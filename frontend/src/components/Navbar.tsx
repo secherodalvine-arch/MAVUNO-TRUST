@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Sprout } from 'lucide-react';
 import '../styles/Navbar.css';
 
 const Navbar: React.FC = () => {
@@ -16,7 +17,7 @@ const Navbar: React.FC = () => {
     <nav className="navbar" aria-label="Main navigation">
       <div className="navbar-inner">
         <Link to="/" className="navbar-brand" aria-label="MavunoTrust Home">
-          <span className="brand-icon">🌾</span>
+          <Sprout size={22} style={{ color: '#4ade80', marginRight: '6px' }} />
           <span className="brand-name">MavunoTrust</span>
         </Link>
 

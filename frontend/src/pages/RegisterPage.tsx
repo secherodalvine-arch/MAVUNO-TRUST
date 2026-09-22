@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Eye, EyeOff, Sprout, Briefcase, AlertTriangle, Info, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -11,6 +12,7 @@ export const RegisterPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState('');
 
@@ -61,7 +63,10 @@ export const RegisterPage: React.FC = () => {
     <div style={styles.container}>
       <div style={styles.card}>
         <div style={styles.header}>
-          <div style={styles.badge}>🌱 Join MavunoTrust Network</div>
+          <div style={styles.badge}>
+            <Sprout size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} />
+            Join MavunoTrust Network
+          </div>
           <h1 style={styles.title}>Create Your Account</h1>
           <p style={styles.subtitle}>
             Connect directly with verified agricultural partners across Kenya.
@@ -70,7 +75,8 @@ export const RegisterPage: React.FC = () => {
 
         {(error || validationError) && (
           <div style={styles.errorAlert}>
-            ⚠️ {validationError || error}
+            <AlertTriangle size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px', flexShrink: 0 }} />
+            <span>{validationError || error}</span>
           </div>
         )}
 
@@ -87,7 +93,9 @@ export const RegisterPage: React.FC = () => {
                   backgroundColor: role === 'FARMER' ? 'rgba(22, 163, 74, 0.1)' : '#0f172a',
                 }}
               >
-                <div style={styles.roleIcon}>🧑‍🌾</div>
+                <div style={styles.roleIcon}>
+                  <Sprout size={28} style={{ color: role === 'FARMER' ? '#4ade80' : '#94a3b8' }} />
+                </div>
                 <div style={styles.roleTitle}>Farmer</div>
                 <div style={styles.roleDesc}>Post crop listings & calculate cost/profit</div>
               </div>
@@ -100,14 +108,17 @@ export const RegisterPage: React.FC = () => {
                   backgroundColor: role === 'DEALER' ? 'rgba(37, 99, 235, 0.1)' : '#0f172a',
                 }}
               >
-                <div style={styles.roleIcon}>💼</div>
+                <div style={styles.roleIcon}>
+                  <Briefcase size={28} style={{ color: role === 'DEALER' ? '#60a5fa' : '#94a3b8' }} />
+                </div>
                 <div style={styles.roleTitle}>Dealer / Broker</div>
                 <div style={styles.roleDesc}>Find farmers & complete AFA verification</div>
               </div>
             </div>
             {role === 'DEALER' && (
               <p style={styles.dealerNotice}>
-                ℹ️ Dealer profiles require AFA licence verification before making official trade offers.
+                <Info size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} />
+                Dealer profiles require AFA licence verification before making official trade offers.
               </p>
             )}
           </div>
@@ -160,25 +171,36 @@ export const RegisterPage: React.FC = () => {
             <label style={styles.label} htmlFor="password">
               Password *
             </label>
-            <input
-              id="password"
-              type="password"
-              required
-              placeholder="••••••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={styles.input}
-            />
+            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+              <input
+                id="password"
+                type={showPassword ? 'text' : 'password'}
+                required
+                placeholder="••••••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{ ...styles.input, width: '100%', paddingRight: '44px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                title={showPassword ? 'Hide password' : 'Show password'}
+                style={styles.eyeButton}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
             {/* Password strength indicators */}
             <div style={styles.pwdRules}>
-              <span style={{ color: hasMinLength ? '#4ade80' : '#94a3b8' }}>
-                {hasMinLength ? '✓' : '•'} At least 8 characters
+              <span style={{ color: hasMinLength ? '#4ade80' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {hasMinLength ? <CheckCircle2 size={13} /> : <Circle size={13} />} At least 8 characters
               </span>
-              <span style={{ color: hasUpper ? '#4ade80' : '#94a3b8' }}>
-                {hasUpper ? '✓' : '•'} 1 uppercase letter
+              <span style={{ color: hasUpper ? '#4ade80' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {hasUpper ? <CheckCircle2 size={13} /> : <Circle size={13} />} 1 uppercase letter
               </span>
-              <span style={{ color: hasNumber ? '#4ade80' : '#94a3b8' }}>
-                {hasNumber ? '✓' : '•'} 1 number
+              <span style={{ color: hasNumber ? '#4ade80' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                {hasNumber ? <CheckCircle2 size={13} /> : <Circle size={13} />} 1 number
               </span>
             </div>
           </div>
@@ -191,11 +213,18 @@ export const RegisterPage: React.FC = () => {
               backgroundColor: role === 'FARMER' ? '#16a34a' : '#2563eb',
               opacity: isSubmitting ? 0.7 : 1,
               cursor: isSubmitting ? 'not-allowed' : 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
             }}
           >
-            {isSubmitting
-              ? 'Creating account...'
-              : `Register as ${role === 'FARMER' ? 'Farmer' : 'Dealer'} →`}
+            <span>
+              {isSubmitting
+                ? 'Creating account...'
+                : `Register as ${role === 'FARMER' ? 'Farmer' : 'Dealer'}`}
+            </span>
+            {!isSubmitting && <ArrowRight size={18} />}
           </button>
         </form>
 
@@ -285,7 +314,9 @@ const styles: Record<string, React.CSSProperties> = {
     transition: 'all 0.2s ease',
   },
   roleIcon: {
-    fontSize: '1.75rem',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: '6px',
   },
   roleTitle: {
@@ -323,6 +354,20 @@ const styles: Record<string, React.CSSProperties> = {
     color: '#f8fafc',
     outline: 'none',
   },
+  eyeButton: {
+    position: 'absolute',
+    right: '12px',
+    background: 'none',
+    border: 'none',
+    color: '#94a3b8',
+    cursor: 'pointer',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '4px',
+    borderRadius: '4px',
+    transition: 'color 0.2s',
+  },
   pwdRules: {
     display: 'flex',
     gap: '12px',
@@ -354,3 +399,4 @@ const styles: Record<string, React.CSSProperties> = {
     textDecoration: 'none',
   },
 };
+

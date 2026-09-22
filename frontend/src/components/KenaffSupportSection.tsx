@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { KENAFF_CONTACTS } from '../utils/kenaffUtils';
+import { Handshake, Sprout, Info, ExternalLink } from 'lucide-react';
 
 interface KenaffSupportSectionProps {
   defaultOpen?: boolean;
@@ -34,7 +35,7 @@ export const KenaffSupportSection: React.FC<KenaffSupportSectionProps> = ({
             gap: '8px'
           }}
         >
-          <span>🤝</span> {buttonLabel}
+          <Handshake size={18} /> {buttonLabel}
         </button>
       )}
 
@@ -50,7 +51,7 @@ export const KenaffSupportSection: React.FC<KenaffSupportSectionProps> = ({
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px', marginBottom: '10px' }}>
             <h3 style={{ margin: 0, color: '#166534', fontSize: '1.2rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🌾</span> KENAFF Support
+              <Sprout size={20} /> KENAFF Support
             </h3>
             {!defaultOpen && (
               <button
@@ -113,15 +114,18 @@ export const KenaffSupportSection: React.FC<KenaffSupportSectionProps> = ({
                 gap: '6px'
               }}
             >
-              KENAFF Contact Us ↗
+              <span>KENAFF Contact Us</span>
+              <ExternalLink size={16} />
             </a>
           </div>
 
-          <div style={{ padding: '10px 12px', backgroundColor: '#dcfce7', borderRadius: '6px', border: '1px solid #86efac', color: '#14532d', fontSize: '0.85rem', lineHeight: '1.4' }}>
-            ℹ <strong>Notice:</strong> MavunoTrust does not automatically submit your complaint to KENAFF. You choose whether to contact KENAFF for external support.
+          <div style={{ padding: '10px 12px', backgroundColor: '#dcfce7', borderRadius: '6px', border: '1px solid #86efac', color: '#14532d', fontSize: '0.85rem', lineHeight: '1.4', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Info size={16} style={{ flexShrink: 0 }} />
+            <span><strong>Notice:</strong> MavunoTrust does not automatically submit your complaint to KENAFF. You choose whether to contact KENAFF for external support.</span>
           </div>
         </div>
       )}
     </div>
   );
 };
+

@@ -1,59 +1,64 @@
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { Search, TrendingUp, Calculator, Lock, FileText, Scale, Sprout, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
 import '../styles/LandingPage.css';
 
 interface Feature {
-  icon: string;
+  icon: React.ReactNode;
   title: string;
   description: string;
 }
 
 const features: Feature[] = [
   {
-    icon: '🔍',
+    icon: <Search size={24} style={{ color: '#60a5fa' }} />,
     title: 'Dealer Verification',
     description:
       'Check whether an agricultural dealer or broker holds a valid, current licence before agreeing to a transaction.',
   },
   {
-    icon: '💹',
+    icon: <TrendingUp size={24} style={{ color: '#4ade80' }} />,
     title: 'Market Information',
     description:
-      'Access current and recent agricultural market price information to make informed selling decisions.',
+      'Access current and recent agricultural market price information powered by ShambaRecords to make informed selling decisions.',
   },
   {
-    icon: '🧮',
+    icon: <Calculator size={24} style={{ color: '#f59e0b' }} />,
     title: 'Business Calculator',
     description:
       'Enter your private production costs and estimate your break-even price, cost per unit, and expected profit or loss.',
   },
   {
-    icon: '🔒',
+    icon: <Lock size={24} style={{ color: '#a855f7' }} />,
     title: 'Private Communication',
     description:
-      'Communicate with dealers privately and securely. Your conversations are not publicly visible.',
+      'Communicate with dealers privately and securely via Socket.io messaging. Your conversations are completely confidential.',
   },
   {
-    icon: '📋',
+    icon: <FileText size={24} style={{ color: '#38bdf8' }} />,
     title: 'Transaction Records',
     description:
-      'Keep a clear record of offers, agreements, delivery status, and payment — all in one place.',
+      'Keep a clear record of offers, counteroffers, agreements, delivery status, and payments — all in one transparent place.',
   },
   {
-    icon: '⚖️',
+    icon: <Scale size={24} style={{ color: '#ec4899' }} />,
     title: 'Farmer Rights Centre',
     description:
-      'Learn what rights you have before, during, and after a sale — and what to do if something goes wrong.',
+      'Learn what rights you have under Kenya agricultural law before, during, and after a sale — and get support guidance when needed.',
   },
 ];
 
 const buildStatusItems = [
-  { label: 'Project foundation', done: true },
-  { label: 'Authentication system', done: false },
-  { label: 'Farmer profiles & crop listings', done: false },
-  { label: 'Market price information', done: false },
-  { label: 'Dealer verification (AFA)', done: false },
-  { label: 'Private messaging', done: false },
-  { label: 'Transaction records', done: false },
-  { label: 'Farmer Rights Centre', done: false },
+  { label: 'Project foundation & responsive design', done: true },
+  { label: 'Authentication & Role Security (Farmer/Dealer/Admin)', done: true },
+  { label: 'Farmer profiles & crop listings management', done: true },
+  { label: 'ShambaRecords HMAC live market price engine', done: true },
+  { label: 'Dealer profile & AFA licence verification', done: true },
+  { label: 'Production cost & break-even calculator', done: true },
+  { label: 'Real-time WebSocket private chat', done: true },
+  { label: 'Trade offers, counteroffers & transactions tracking', done: true },
+  { label: 'Farmer Rights Centre & dispute pathways', done: true },
+  { label: 'ElevenLabs AI voice & speech accessibility', done: true },
 ];
 
 const LandingPage = () => {
@@ -65,8 +70,9 @@ const LandingPage = () => {
         <div className="hero-grid" aria-hidden="true" />
 
         <div className="container">
-          <div className="hero-badge" aria-label="Platform under development">
-            <span>🌱</span> Under Active Development
+          <div className="hero-badge" aria-label="MavunoTrust Network">
+            <Sprout size={16} style={{ color: '#4ade80' }} />
+            <span>Empowering Kenya's Agricultural Trade</span>
           </div>
 
           <h1 className="hero-title" id="hero-heading">
@@ -78,24 +84,23 @@ const LandingPage = () => {
           </p>
 
           <p className="hero-subtitle" style={{ marginBottom: 'var(--space-8)' }}>
-            MavunoTrust is being built to help farmers and agricultural dealers
-            connect with verified information, understand transaction details, and
-            access rights and remedy guidance in one trusted platform.
+            MavunoTrust connects Kenyan farmers and agricultural dealers with verified licence information,
+            transparent market prices, private break-even calculations, and secure direct trade offers.
           </p>
 
           <div className="hero-actions">
-            {/* Buttons will become functional when auth is implemented */}
-            <button id="cta-register" className="btn btn-primary" disabled aria-disabled="true">
-              Get started — coming soon
-            </button>
-            <button id="cta-learn-more" className="btn btn-outline" disabled aria-disabled="true">
-              Learn more
-            </button>
+            <Link id="cta-register" className="btn btn-primary" to="/register" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <span>Get Started Now</span>
+              <ArrowRight size={18} />
+            </Link>
+            <Link id="cta-learn-more" className="btn btn-outline" to="/rights">
+              Explore Rights Centre
+            </Link>
           </div>
 
           <div className="hero-status">
             <span className="status-dot" aria-hidden="true" />
-            <span>Platform foundation initialised · Features being built</span>
+            <span>Platform operational · Verified licensing & live market pricing connected</span>
           </div>
         </div>
       </section>
@@ -103,13 +108,12 @@ const LandingPage = () => {
       {/* ===================== FEATURES ===================== */}
       <section className="landing-features" aria-labelledby="features-heading">
         <div className="container">
-          <p className="section-label">What we're building</p>
+          <p className="section-label">Core Capabilities</p>
           <h2 className="section-title" id="features-heading">
-            Planned platform capabilities
+            Platform Capabilities & Services
           </h2>
           <p className="section-description">
-            These features are part of the planned MavunoTrust roadmap.
-            Not all features are live yet — this page will be updated as each module is completed.
+            Explore the full suite of tools built to empower farmers and transparent agricultural dealers across Kenya.
           </p>
           <div className="features-grid">
             {features.map((feature) => (
@@ -118,7 +122,7 @@ const LandingPage = () => {
                 className="feature-card"
                 aria-label={feature.title}
               >
-                <span className="feature-icon" aria-hidden="true">{feature.icon}</span>
+                <div className="feature-icon" aria-hidden="true">{feature.icon}</div>
                 <h3 className="feature-title">{feature.title}</h3>
                 <p className="feature-desc">{feature.description}</p>
               </article>
@@ -131,22 +135,20 @@ const LandingPage = () => {
       <section className="landing-status" aria-labelledby="status-heading">
         <div className="container">
           <div className="status-card">
-            <h2 id="status-heading">Current Build Status</h2>
+            <h2 id="status-heading">Platform System Capabilities</h2>
             <p>
-              MavunoTrust is in active development. The list below reflects the
-              current state of the platform honestly. No features are claimed to be
-              operational before they are built and verified.
+              MavunoTrust features transparent system status and strict data privacy safeguards.
             </p>
             <ul className="status-list" aria-label="Build status checklist">
               {buildStatusItems.map((item) => (
-                <li key={item.label}>
+                <li key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span
                     className={item.done ? 'icon-done' : 'icon-pending'}
                     aria-label={item.done ? 'Complete' : 'Pending'}
                   >
-                    {item.done ? '✓' : '○'}
+                    {item.done ? <CheckCircle2 size={16} style={{ color: '#4ade80' }} /> : <Circle size={16} style={{ color: '#94a3b8' }} />}
                   </span>
-                  {item.label}
+                  <span>{item.label}</span>
                 </li>
               ))}
             </ul>
@@ -158,3 +160,4 @@ const LandingPage = () => {
 };
 
 export default LandingPage;
+

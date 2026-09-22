@@ -11,69 +11,71 @@ export const FarmerProfilePage: React.FC = () => {
   const [bio, setBio] = useState('');
   const [generalArea, setGeneralArea] = useState('');
   const [county, setCounty] = useState('');
-  const [primaryCropsStr, setPrimaryCropsStr] = useState('');
-  const [estimatedAnnualYield, setEstimatedAnnualYield] = useState<number | ''>('');
-  const [yieldUnit, setYieldUnit] = useState('');
-  const [expectedSellingPeriod, setExpectedSellingPeriod] = useState('');
-  const [isPublicProfile, setIsPublicProfile] = useState(true);
-  const [privateExactLocation, setPrivateExactLocation] = useState('');
+  const [subCounty, setSubCounty] = useState('');
+  const [generalArea, setGeneralArea] = useState('');
+  const [exactLocation, setExactLocation] = useState('');
+  const [primaryCrops, setPrimaryCrops] = useState('');
+  const [farmSizeAcres, setFarmSizeAcres] = useState<number | ''>('');
+  const [bio, setBio] = useState('');
 
   useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const data = await getMyFarmerProfileApi();
-        setDisplayName(data.displayName || '');
-        setBio(data.bio || '');
-        setGeneralArea(data.generalArea || '');
-        setCounty(data.county || '');
-        setPrimaryCropsStr(data.primaryCrops ? data.primaryCrops.join(', ') : '');
-        setEstimatedAnnualYield(data.estimatedAnnualYield !== undefined ? data.estimatedAnnualYield : '');
-        setYieldUnit(data.yieldUnit || 'bags (90kg)');
-        setExpectedSellingPeriod(data.expectedSellingPeriod || '');
-        setIsPublicProfile(data.isPublicProfile !== false);
-        setPrivateExactLocation(data._privateExactLocation || '');
-      } catch (err: any) {
-        setMessage({ type: 'error', text: 'Failed to load farmer profile.' });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchProfile();
   }, []);
 
+  const fetchProfile = async () => {
+    setIsLoading(true);
+    try {
+      const data = await farmerService.getProfile();
+      if (data) {
+        setDisplayName(data.displayName || user?.fullName || '');
+        setCounty(data.location?.county || '');
+        setSubCounty(data.location?.subCounty || '');
+        setGeneralArea(data.location?.generalArea || '');
+        setExactLocation(data.location?.exactLocation || '');
+        setPrimaryCrops(data.primaryCrops ? data.primaryCrops.join(', ') : '');
+        setFarmSizeAcres(data.farmSizeAcres !== undefined ? data.farmSizeAcres : '');
+        setBio(data.bio || '');
+      } else {
+        setDisplayName(user?.fullName || '');
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Failed to load profile details.' });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSaving(true);
     setMessage(null);
 
-    if (!displayName.trim()) {
-      setMessage({ type: 'error', text: 'Display name is required.' });
-      return;
-    }
+    const cropsArray = primaryCrops
+      .split(',')
+      .map((c) => c.trim())
+      .filter((c) => c.length > 0);
 
-    setIsSaving(true);
-    try {
-      const primaryCrops = primaryCropsStr
-        .split(',')
-        .map((s) => s.trim())
-        .filter(Boolean);
-
-      await updateMyFarmerProfileApi({
-        displayName: displayName.trim(),
-        bio: bio.trim(),
-        generalArea: generalArea.trim(),
+    const profilePayload: FarmerProfileData = {
+      displayName: displayName.trim(),
+      location: {
         county: county.trim(),
-        primaryCrops,
-        estimatedAnnualYield: estimatedAnnualYield === '' ? undefined : Number(estimatedAnnualYield),
-        yieldUnit: yieldUnit.trim(),
-        expectedSellingPeriod: expectedSellingPeriod.trim(),
-        isPublicProfile,
-        _privateExactLocation: privateExactLocation.trim(),
-      });
+        subCounty: subCounty.trim(),
+        generalArea: generalArea.trim(),
+        exactLocation: exactLocation.trim(),
+      },
+      primaryCrops: cropsArray,
+      farmSizeAcres: farmSizeAcres === '' ? undefined : Number(farmSizeAcres),
+      bio: bio.trim(),
+    };
 
+    try {
+      await farmerService.updateProfile(profilePayload);
       setMessage({ type: 'success', text: 'Farmer profile updated successfully!' });
     } catch (err: any) {
-      setMessage({ type: 'error', text: err.response?.data?.error?.message || 'Failed to update profile.' });
+      setMessage({
+        type: 'error',
+        text: err.response?.data?.message || 'Failed to update farmer profile.',
+      });
     } finally {
       setIsSaving(false);
     }
@@ -81,8 +83,9 @@ export const FarmerProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-        🌾 Loading Farmer Profile...
+      <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+        <Sprout size={20} style={{ color: '#4ade80' }} />
+        <span>Loading Farmer Profile...</span>
       </div>
     );
   }
@@ -91,7 +94,10 @@ export const FarmerProfilePage: React.FC = () => {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <span style={styles.badge}>🧑‍🌾 Farmer Management</span>
+          <span style={styles.badge}>
+            <User size={13} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} />
+            Farmer Management
+          </span>
           <h1 style={styles.title}>My Farmer Profile</h1>
           <p style={styles.subtitle}>
             Manage your public agricultural identity and private location controls.
@@ -106,16 +112,23 @@ export const FarmerProfilePage: React.FC = () => {
             backgroundColor: message.type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
             borderColor: message.type === 'success' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)',
             color: message.type === 'success' ? '#86efac' : '#fca5a5',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
           }}
         >
-          {message.type === 'success' ? '✅' : '⚠️'} {message.text}
+          {message.type === 'success' ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
+          <span>{message.text}</span>
         </div>
       )}
 
       <form onSubmit={handleSubmit} style={styles.grid}>
         {/* Public Profile Card */}
         <div style={styles.card}>
-          <h2 style={styles.cardTitle}>🌐 Public Profile Information</h2>
+          <h2 style={styles.cardTitle}>
+            <Globe size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', color: '#60a5fa' }} />
+            Public Profile Information
+          </h2>
           <p style={styles.cardDesc}>
             This information is visible to verified dealers searching for crop matches in your area.
           </p>
@@ -137,72 +150,62 @@ export const FarmerProfilePage: React.FC = () => {
               <label style={styles.label}>County *</label>
               <input
                 type="text"
+                required
                 value={county}
                 onChange={(e) => setCounty(e.target.value)}
                 style={styles.input}
                 placeholder="e.g. Nakuru"
               />
             </div>
+
             <div style={styles.field}>
-              <label style={styles.label}>General Area / Region *</label>
+              <label style={styles.label}>Sub-County</label>
               <input
                 type="text"
-                value={generalArea}
-                onChange={(e) => setGeneralArea(e.target.value)}
+                value={subCounty}
+                onChange={(e) => setSubCounty(e.target.value)}
                 style={styles.input}
-                placeholder="e.g. Nakuru North (General area only)"
+                placeholder="e.g. Njoro"
               />
             </div>
           </div>
 
           <div style={styles.field}>
-            <label style={styles.label}>Primary Crops Produced (comma-separated)</label>
+            <label style={styles.label}>General Area / Ward</label>
             <input
               type="text"
-              value={primaryCropsStr}
-              onChange={(e) => setPrimaryCropsStr(e.target.value)}
+              value={generalArea}
+              onChange={(e) => setGeneralArea(e.target.value)}
+              style={styles.input}
+              placeholder="e.g. Egerton Ward"
+            />
+          </div>
+
+          <div style={styles.field}>
+            <label style={styles.label}>Primary Crops (comma separated)</label>
+            <input
+              type="text"
+              value={primaryCrops}
+              onChange={(e) => setPrimaryCrops(e.target.value)}
               style={styles.input}
               placeholder="e.g. Maize, Beans, Potatoes, Tomatoes"
             />
           </div>
 
-          <div style={styles.fieldRow}>
-            <div style={styles.field}>
-              <label style={styles.label}>Est. Annual Yield</label>
-              <input
-                type="number"
-                min="0"
-                value={estimatedAnnualYield}
-                onChange={(e) => setEstimatedAnnualYield(e.target.value ? Number(e.target.value) : '')}
-                style={styles.input}
-                placeholder="e.g. 150"
-              />
-            </div>
-            <div style={styles.field}>
-              <label style={styles.label}>Yield Unit</label>
-              <input
-                type="text"
-                value={yieldUnit}
-                onChange={(e) => setYieldUnit(e.target.value)}
-                style={styles.input}
-                placeholder="e.g. bags (90kg), tons, crates"
-              />
-            </div>
-          </div>
-
           <div style={styles.field}>
-            <label style={styles.label}>Expected Harvest / Selling Period</label>
+            <label style={styles.label}>Farm Size (Acres)</label>
             <input
-              type="text"
-              value={expectedSellingPeriod}
-              onChange={(e) => setExpectedSellingPeriod(e.target.value)}
+              type="number"
+              step="0.1"
+              value={farmSizeAcres}
+              onChange={(e) => setFarmSizeAcres(e.target.value === '' ? '' : Number(e.target.value))}
               style={styles.input}
-              placeholder="e.g. March – May / Main Harvest"
+              placeholder="e.g. 5"
             />
           </div>
 
           <div style={styles.field}>
-            <label style={styles.label}>Bio / Farming Overview</label>
+            <label style={styles.label}>Farm Bio / Description</label>
             <textarea
               rows={3}
               value={bio}
@@ -215,14 +218,17 @@ export const FarmerProfilePage: React.FC = () => {
 
         {/* Privacy & Location Controls */}
         <div style={styles.card}>
-          <h2 style={styles.cardTitle}>🔒 Privacy & Exact Location Controls</h2>
+          <h2 style={styles.cardTitle}>
+            <Lock size={18} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '8px', color: '#a855f7' }} />
+            Privacy & Exact Location Controls
+          </h2>
           <p style={styles.cardDesc}>
             MavunoTrust protects your exact home/farm location. Your exact address is never surfaced on public searches or profiles.
           </p>
 
           <div style={styles.privacyNoticeBox}>
-            <div style={{ fontWeight: 700, color: '#4ade80', marginBottom: '6px' }}>
-              🛡️ Privacy Guarantee:
+            <div style={{ fontWeight: 700, color: '#4ade80', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <Shield size={16} /> Privacy Guarantee:
             </div>
             <div style={{ fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.4 }}>
               Public profile displays only your <strong>County</strong> and <strong>General Area</strong> ({county || 'Not set'}, {generalArea || 'Not set'}). Private exact location is stored in encrypted format and only shared with explicit consent during confirmed trade deliveries.
