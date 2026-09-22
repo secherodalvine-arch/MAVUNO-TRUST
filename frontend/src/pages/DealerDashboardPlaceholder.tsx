@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { Briefcase, Building2, Search, ArrowRight } from 'lucide-react';
 
 export const DealerDashboardPlaceholder: React.FC = () => {
   const { user } = useAuth();
@@ -16,7 +17,7 @@ export const DealerDashboardPlaceholder: React.FC = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-          <span style={{ fontSize: '2rem' }}>💼</span>
+          <Briefcase size={32} style={{ color: '#60a5fa' }} />
           <div>
             <h1 style={{ margin: 0, fontSize: '1.75rem', color: '#f8fafc' }}>
               Dealer Hub
@@ -27,7 +28,7 @@ export const DealerDashboardPlaceholder: React.FC = () => {
           </div>
         </div>
 
-        {/* Step 5 Action Banner */}
+        {/* Action Banner */}
         <div
           style={{
             backgroundColor: 'rgba(59, 130, 246, 0.1)',
@@ -38,11 +39,11 @@ export const DealerDashboardPlaceholder: React.FC = () => {
             color: '#93c5fd',
           }}
         >
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>
-            💼 Step 5 Features Active
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Briefcase size={18} /> Dealer Features Active
           </h3>
           <p style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#cbd5e1', lineHeight: 1.5 }}>
-            Update your business profile, specify operating counties and crops dealt, and enter your AFA licence number for future verification.
+            Update your business profile, specify operating counties and crops dealt, and enter your AFA licence number for verification check.
           </p>
           <Link
             to="/dealer/profile"
@@ -54,10 +55,13 @@ export const DealerDashboardPlaceholder: React.FC = () => {
               borderRadius: '8px',
               fontSize: '0.9rem',
               fontWeight: 600,
-              display: 'inline-block',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
             }}
           >
-            Manage Dealer Profile & Licence →
+            <span>Manage Dealer Profile & Licence</span>
+            <ArrowRight size={16} />
           </Link>
         </div>
 
@@ -70,21 +74,21 @@ export const DealerDashboardPlaceholder: React.FC = () => {
           }}
         >
           <div style={cardStyle}>
-            <div style={cardIconStyle}>🏢</div>
+            <div style={cardIconStyle}><Briefcase size={22} style={{ color: '#60a5fa' }} /></div>
             <h4 style={cardTitleStyle}>Business Profile</h4>
             <p style={cardBodyStyle}>Configure operating regions, crops dealt, purchasing capacity, and licence number.</p>
             <Link to="/dealer/profile" style={linkStyle}>Edit Profile →</Link>
           </div>
           <div style={cardStyle}>
-            <div style={cardIconStyle}>🏛️</div>
+            <div style={cardIconStyle}><Building2 size={22} style={{ color: '#60a5fa' }} /></div>
             <h4 style={cardTitleStyle}>AFA Verification</h4>
-            <p style={cardBodyStyle}>Licence status remains PENDING (NOT CHECKED) until verification service runs in future step.</p>
+            <p style={cardBodyStyle}>Licence status check powered by Demo AFA Verification Provider.</p>
             <Link to="/dealer/profile" style={linkStyle}>View Status →</Link>
           </div>
           <div style={cardStyle}>
-            <div style={cardIconStyle}>🔍</div>
+            <div style={cardIconStyle}><Search size={22} style={{ color: '#38bdf8' }} /></div>
             <h4 style={cardTitleStyle}>Farmer Crop Match</h4>
-            <p style={cardBodyStyle}>Future step: Search verified crop listings by county and crop type.</p>
+            <p style={cardBodyStyle}>Search verified farmer crop listings by county and crop type.</p>
           </div>
         </div>
       </div>
@@ -103,7 +107,6 @@ const cardStyle: React.CSSProperties = {
 };
 
 const cardIconStyle: React.CSSProperties = {
-  fontSize: '1.5rem',
   marginBottom: '8px',
 };
 
@@ -126,3 +129,4 @@ const linkStyle: React.CSSProperties = {
   fontSize: '0.85rem',
   fontWeight: 600,
 };
+

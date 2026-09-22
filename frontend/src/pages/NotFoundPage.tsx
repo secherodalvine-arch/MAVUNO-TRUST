@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { Sprout } from 'lucide-react';
 
 const NotFoundPage = () => {
   return (
@@ -12,7 +13,7 @@ const NotFoundPage = () => {
       textAlign: 'center',
       padding: '2rem',
     }}>
-      <span style={{ fontSize: '3rem' }}>🌾</span>
+      <Sprout size={48} style={{ color: '#4ade80' }} />
       <h1 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem' }}>Page Not Found</h1>
       <p style={{ color: 'var(--color-text-secondary)', maxWidth: '400px' }}>
         The page you are looking for does not exist or has not been built yet.

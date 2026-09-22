@@ -3,16 +3,16 @@ import { KENAFF_CONTACTS, generateComplaintSummary, generateMailtoLink } from '.
 function test(name: string, fn: () => void) {
   try {
     fn();
-    console.log(`  ✓ ${name}`);
+    console.log(`  [PASS] ${name}`);
   } catch (error: any) {
-    console.log(`  ✗ ${name}`);
+    console.log(`  [FAIL] ${name}`);
     console.log(`    → ${error.message}`);
     throw error;
   }
 }
 
 function runTests() {
-  console.log('\n🌾 MavunoTrust Frontend - KENAFF Utils Test Suite');
+  console.log('\n[TEST] MavunoTrust Frontend - KENAFF Utils Test Suite');
   console.log('==================================================================');
 
   test('KENAFF contact details are the verified official values', () => {

@@ -4,6 +4,7 @@ import { getConversations, getMessages, sendMessage } from '../services/chatServ
 import type { ConversationDTO, MessageDTO } from '../services/chatService';
 import { socketService } from '../services/socketService';
 import { useLocation } from 'react-router-dom';
+import { Lock } from 'lucide-react';
 
 export const MessagesPage: React.FC = () => {
   const { user, accessToken } = useAuthContext();
@@ -168,8 +169,8 @@ export const MessagesPage: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#059669', fontSize: '0.85rem', fontWeight: 'bold', backgroundColor: '#dcfce7', padding: '6px 12px', borderRadius: '20px' }}>
-                <span style={{ fontSize: '1.1rem' }}>🔒</span> Private Chat
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontSize: '0.85rem', fontWeight: 'bold', backgroundColor: '#dcfce7', padding: '6px 12px', borderRadius: '20px' }}>
+                <Lock size={15} /> Private Chat
               </div>
             </div>
 

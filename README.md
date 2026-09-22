@@ -2,34 +2,22 @@
 
 **Verified connections. Informed decisions. Fairer agricultural trade.**
 
-MavunoTrust is a platform being built to connect farmers and agricultural dealers with:
-
-- Verified dealer licence information
-- Current agricultural market price data
-- Private business calculations (cost, break-even, estimated profit/loss)
-- Secure private communication
-- Clear transaction records
-- Farmer rights and remedy guidance
-- Complaint and dispute pathways
+MavunoTrust is an agricultural trade platform designed to connect farmers and licensed agricultural dealers across Kenya with transparent licensing verification, live market price intelligence, private break-even calculations, direct trade negotiations, and legal rights guidance.
 
 ---
 
-## ⚠️ Development Status
+## Key Features
 
-This is the **initial foundation** (Step 2). Major application modules are not yet implemented.
-
-The following features are planned and will be built in later controlled steps:
-
-- [ ] Authentication & user accounts
-- [ ] Farmer profiles and crop listings
-- [ ] Dealer profiles and verification (AFA)
-- [ ] Market price information
-- [ ] Private business calculator
-- [ ] Secure messaging
-- [ ] Transaction records
-- [ ] Farmer Rights Centre
-- [ ] Complaint / dispute pathways
-- [ ] Admin panel
+- **Authentication & Password Controls**: Secure account registration and sign-in for Farmers and Dealers with Argon2id password hashing, HTTP-only refresh tokens, role-based authorization, and **interactive show/hide password visibility toggles** on authentication forms.
+- **Iconography & Professional UI**: Built with a clean, high-visibility UI standard using **Lucide React SVG icons** (`lucide-react`) across all pages and components rather than raw emoji characters.
+- **Farmer Management & Crop Listings**: Farmers can manage public profiles, protect exact farm location coordinates, and publish available crop yields for dealer matching.
+- **Dealer Verification & AFA Compliance**: Verified dealer profiles displaying AFA regulatory licensing status evaluated against the Demo AFA Verification Provider (`ACTIVE`, `EXPIRED`, `SUSPENDED`, `REVOKED`).
+- **Market Data Engine (ShambaRecords)**: Server-side HMAC SHA-256 signed integration with ShambaRecords (`POST /api/v1/prices/latest`, `POST /api/v1/prices/search`) bringing live market prices directly to farmers.
+- **Private Production Cost & Break-Even Calculator**: Confidential business calculator for inputting seed, fertilizer, labor, and transport expenses to estimate unit costs, break-even prices, and profit/loss margins.
+- **Real-Time WebSocket Chat**: Direct, end-to-end encrypted private messaging between farmers and verified dealers powered by Socket.io.
+- **Trade Offers & Counteroffers**: Structured offer creation, counteroffers, delivery/fulfilment confirmation, transaction completion, and mutual rating/reviews.
+- **Farmer Rights & Dispute Centre**: Educational hub explaining legal farmer rights under Kenyan law, dispute escalation pathways, and direct contact options with the Kenya National Federation of Agricultural Producers (KENAFF).
+- **Audio & Voice Accessibility**: Integrated ElevenLabs AI voice reader for audio accessibility.
 
 ---
 
@@ -37,10 +25,11 @@ The following features are planned and will be built in later controlled steps:
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React, TypeScript, Vite, React Router |
-| Backend | Node.js, Express, TypeScript |
-| Database | MongoDB, Mongoose |
-| API | REST |
+| **Frontend** | React 19, TypeScript, Vite, React Router v7, Lucide React Icons (`lucide-react`), Socket.io Client |
+| **Backend** | Node.js, Express, TypeScript, Mongoose, Socket.io Server |
+| **Database** | MongoDB / MongoDB Atlas |
+| **Security** | Argon2id password hashing, JWT Access/Refresh tokens, CORS, Rate Limiting |
+| **External Integrations** | ShambaRecords HMAC Market API, ElevenLabs Voice AI, KENAFF Legal Guidelines |
 
 ---
 
@@ -48,187 +37,173 @@ The following features are planned and will be built in later controlled steps:
 
 ```
 mavuno-trust/
-├── frontend/                  # React + Vite frontend
+├── frontend/                  # React + Vite frontend application
 │   ├── src/
-│   │   ├── components/        # Reusable UI components
-│   │   ├── pages/             # Page components
-│   │   ├── layouts/           # Layout wrappers
-│   │   ├── services/          # API service layer
-│   │   ├── hooks/             # Custom React hooks
-│   │   ├── types/             # Shared TypeScript types
-│   │   ├── utils/             # Utility functions
-│   │   ├── router/            # App routing
-│   │   ├── styles/            # CSS stylesheets
-│   │   └── assets/            # Static assets
+│   │   ├── components/        # UI components (Navbar, Footer, KenaffSupportSection, etc.)
+│   │   ├── context/           # React AuthContext and global state
+│   │   ├── hooks/             # Custom React hooks (useAuth)
+│   │   ├── pages/             # Page components (LoginPage, RegisterPage, MarketInfoPage, etc.)
+│   │   ├── router/            # Application router configuration
+│   │   ├── services/          # API service layers (auth, farmer, dealer, market, chat)
+│   │   ├── styles/            # CSS stylesheets and global tokens
+│   │   ├── tests/             # Frontend test suites (kenaffUtils.test.ts)
+│   │   └── utils/             # Helper utilities
+│   ├── .env
 │   ├── .env.example
-│   └── index.html
+│   ├── package.json
+│   └── vite.config.ts
 │
-├── backend/                   # Node.js + Express backend
+├── backend/                   # Node.js + Express backend service
 │   ├── src/
 │   │   ├── config/            # DB and app configuration
-│   │   ├── controllers/       # Request handlers
-│   │   ├── middleware/        # Express middleware
-│   │   ├── models/            # Mongoose models (added in later steps)
-│   │   ├── routes/            # API routes
-│   │   ├── services/          # Business logic services
-│   │   ├── utils/             # Utility functions
-│   │   └── types/             # Shared TypeScript types
+│   │   ├── controllers/       # Request handlers (auth, farmer, dealer, market, etc.)
+│   │   ├── middleware/        # Express middleware (auth, rateLimit, errorHandler)
+│   │   ├── models/            # Mongoose schemas (User, FarmerProfile, DealerProfile, etc.)
+│   │   ├── routes/            # REST API endpoints
+│   │   ├── services/          # Core business logic services
+│   │   ├── socket.ts          # Real-time WebSocket connection handler
+│   │   └── tests/             # Backend test suites (auth, market, calculator, etc.)
+│   ├── .env
 │   ├── .env.example
+│   ├── package.json
 │   └── tsconfig.json
 │
-├── .gitignore
-└── README.md
+├── .gitignore                 # Monorepo gitignore rules
+└── README.md                  # System documentation
 ```
 
 ---
 
-## Installation
+## Installation & Setup
 
 ### Prerequisites
 
-- Node.js 18+
-- MongoDB instance (local or cloud) — optional for initial startup
+- **Node.js 18+** installed
+- **MongoDB instance** (local MongoDB daemon or cloud MongoDB Atlas connection URI)
 
-### 1. Clone / open the project
+### 1. Clone & Open Directory
 
 ```bash
 cd "mavuno trust"
 ```
 
-### 2. Install backend dependencies
+### 2. Configure Backend
 
 ```bash
 cd backend
 npm install
 ```
 
-### 3. Configure backend environment
+Create `backend/.env` file:
 
-```bash
-copy .env.example .env
-```
-
-Edit `backend/.env` and fill in:
-
-```
-PORT=5000
-MONGODB_URI=mongodb://localhost:27017/mavunotrust   # or your MongoDB Atlas URI
+```env
+PORT=8000
+MONGODB_URI=mongodb://localhost:27017/mavunotrust
+DB_NAME=mavunotrust
 CORS_ORIGIN=http://localhost:5173
-JWT_SECRET=replace_with_a_strong_random_secret
+JWT_SECRET=your_strong_random_jwt_secret_key_here
 NODE_ENV=development
+
+# ShambaRecords API Credentials
+SHAMBARECORDS_BASE_URL=https://api-data.shambarecords.com
+SHAMBARECORDS_API_KEY=your_shambarecords_api_key
+SHAMBARECORDS_API_SECRET=your_shambarecords_api_secret
+
+# ElevenLabs Credentials (Optional)
+ELEVENLABS_API_KEY=your_elevenlabs_api_key
+ELEVENLABS_AGENT_ID=your_elevenlabs_agent_id
 ```
 
-> **MONGODB_URI** can be left empty during initial setup. The server will start with a warning.
-
-### 4. Install frontend dependencies
+### 3. Configure Frontend
 
 ```bash
 cd ../frontend
 npm install
 ```
 
-### 5. Configure frontend environment
+Create `frontend/.env` file:
 
-```bash
-copy .env.example .env
+```env
+VITE_API_URL=http://localhost:8000/api
+VITE_ELEVENLABS_AGENT_ID=your_elevenlabs_agent_id
 ```
-
-The default `.env` value `VITE_API_URL=http://localhost:5000/api` should work for local development.
 
 ---
 
-## Running the Project
+## Running the Application
 
-### Start the backend (terminal 1)
+### Start Backend Service (Terminal 1)
 
 ```bash
 cd backend
 npm run dev
 ```
 
-The API will start at: `http://localhost:5000`
+> **API Base URL**: `http://localhost:8000`  
+> **Health Check**: `http://localhost:8000/api/health`
 
-### Start the frontend (terminal 2)
+### Start Frontend Application (Terminal 2)
 
 ```bash
 cd frontend
 npm run dev
 ```
 
-The frontend will start at: `http://localhost:5173`
+> **Frontend Application URL**: `http://localhost:5173`
 
 ---
 
-## Testing the API Health Endpoint
+## API Endpoints Reference
 
-Once the backend is running, test:
+| Module | Method | Endpoint | Description |
+|--------|--------|----------|-------------|
+| **Health** | `GET` | `/api/health` | Backend and Database connection health status |
+| **Auth** | `POST` | `/api/auth/register` | Register new Farmer or Dealer account |
+| **Auth** | `POST` | `/api/auth/login` | Sign in with email and password |
+| **Auth** | `POST` | `/api/auth/logout` | Revoke session and clear refresh token |
+| **Auth** | `GET` | `/api/auth/me` | Fetch authenticated user details |
+| **Farmer** | `GET` | `/api/farmer/profile` | Retrieve farmer profile details |
+| **Farmer** | `PUT` | `/api/farmer/profile` | Update farmer profile & location privacy |
+| **Farmer** | `GET` | `/api/farmer/crops` | List published crop offerings |
+| **Dealer** | `GET` | `/api/dealers/search` | Search verified dealers by county/crop |
+| **Dealer** | `POST` | `/api/dealers/verify` | Execute AFA licence verification check |
+| **Market** | `GET` | `/api/market/latest` | Fetch latest reference agricultural market prices |
+| **Market** | `POST` | `/api/market/search` | Search prices by commodity and market location |
+| **Calculator**| `POST` | `/api/calculator/break-even` | Compute production cost & break-even price |
+| **Messages** | `GET` | `/api/conversations` | Fetch active user chat conversations |
+| **Offers** | `POST` | `/api/offers` | Create trade offer for produce |
+| **Transactions**| `GET` | `/api/transactions` | Track order status, delivery & completion |
+
+---
+
+## Testing & Quality Assurance
+
+Run the test suites to verify backend security, HMAC signing, calculations, and frontend utilities:
+
+### Backend Test Suites
 
 ```bash
-curl http://localhost:5000/api/health
+cd backend
+npm run test:auth          # Test authentication, password rules & Argon2id
+npm run test:market        # Test ShambaRecords HMAC signature & price normalizer
+npm run test:calculator    # Test production cost and break-even calculations
+npm run test:verification  # Test AFA licence verification provider logic
 ```
 
-Expected response:
+### Frontend Build & Test
 
-```json
-{
-  "success": true,
-  "service": "MavunoTrust API",
-  "database": "connected",
-  "timestamp": "2026-09-21T10:00:00.000Z"
-}
-```
-
-If MongoDB is not configured:
-
-```json
-{
-  "success": true,
-  "service": "MavunoTrust API",
-  "database": "disconnected",
-  "timestamp": "..."
-}
+```bash
+cd frontend
+npm run test:kenaff        # Test KENAFF legal guidance utility suite
+npm run build              # Run TypeScript compilation and Vite production build
 ```
 
 ---
 
-## Environment Variables Reference
+## Security & Privacy Commitment
 
-### Backend (`backend/.env`)
+1. **No Fake Data**: MavunoTrust does not generate fake government verification or fabricated prices. If external provider services are unavailable, transparent status messages are returned.
+2. **Farmer Location Protection**: Exact farm coordinates and home addresses are kept private and never exposed on public directory searches.
+3. **Password Security**: Passwords must contain at least 8 characters, an uppercase letter, and a number. Interactive show/hide toggles assist users while typing.
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `PORT` | No (default: 5000) | Server port |
-| `MONGODB_URI` | Yes (for DB features) | MongoDB connection string |
-| `CORS_ORIGIN` | No (default: localhost:5173) | Allowed frontend origin |
-| `JWT_SECRET` | Yes (for auth) | JWT signing secret |
-| `NODE_ENV` | No | `development` or `production` |
-
-### Frontend (`frontend/.env`)
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `VITE_API_URL` | No (has default) | Backend API base URL |
-
-### Market Data Integration (ShambaRecords)
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `SHAMBARECORDS_BASE_URL` | No (default: https://api-data.shambarecords.com) | ShambaRecords API Production/Sandbox Base URL |
-| `SHAMBARECORDS_API_KEY` | Yes (for live requests) | Server-side ShambaRecords API key |
-| `SHAMBARECORDS_API_SECRET` | Yes (for HMAC signing) | Server-side ShambaRecords API secret |
-
-- **Integration Purpose**: Retrieves factual reference agricultural market price information (latest prices and search/filter) directly from ShambaRecords (`POST /api/v1/prices/latest`, `POST /api/v1/prices/search`).
-- **Backend Communication**: Frontend never communicates directly with ShambaRecords. All requests originate from the Node.js/Express backend service. Requests include HMAC SHA-256 header signatures (`X-Shamba-Signature`) constructed from server secret credentials.
-- **Credential Storage**: Credentials are stored exclusively in backend `.env` variables and NEVER exposed to React or client-side bundles.
-- **Reference Information Statement**: Market prices are external reference information from ShambaRecords and are NOT guaranteed transaction prices. They do not constitute financial or trade advice ("Sell now", "Do not sell", "Accept dealer").
-- **Running Tests**: Run `npm run test:market` in `backend` directory to test the market provider, HMAC signing, normalizers, search filtering, and error safety without requiring a live key.
-
----
-
-## Important Notes
-
-- **No fake data**: This platform does not generate fabricated government data, fake market prices, or fake verification results. If ShambaRecords is missing credentials or unavailable, a truthful status/error is returned.
-- **AFA Verification**: Dealer licence verification uses an official AFA API or a clearly labelled demo provider bound to authenticated dealer accounts. Gemini AI does not determine licence status.
-- **Privacy**: Farmer exact location data is not publicly exposed.
-- **Security**: Authentication, authorization, IDOR protection, and server-side secret management are strictly enforced.
 

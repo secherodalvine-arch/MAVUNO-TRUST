@@ -1,5 +1,6 @@
 import React from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { Shield, Lock, ScrollText, Building2, Scale } from 'lucide-react';
 
 export const AdminDashboardPlaceholder: React.FC = () => {
   const { user } = useAuth();
@@ -15,7 +16,7 @@ export const AdminDashboardPlaceholder: React.FC = () => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-          <span style={{ fontSize: '2rem' }}>🛡️</span>
+          <Shield size={32} style={{ color: '#eab308' }} />
           <div>
             <h1 style={{ margin: 0, fontSize: '1.75rem', color: '#f8fafc' }}>
               Administrator Control Panel
@@ -36,8 +37,8 @@ export const AdminDashboardPlaceholder: React.FC = () => {
             color: '#fde047',
           }}
         >
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem' }}>
-            🔒 Strict Admin Role Boundary Enforced
+          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Lock size={18} /> Strict Admin Role Boundary Enforced
           </h3>
           <p style={{ margin: 0, fontSize: '0.9rem', color: '#cbd5e1', lineHeight: 1.5 }}>
             Public self-registration for ADMIN is blocked by backend security rules. Admin accounts can only be provisioned via secure database seeding/bootstrap scripts. Access to this page requires server-side `requireRole('ADMIN')` authorization.
@@ -53,19 +54,19 @@ export const AdminDashboardPlaceholder: React.FC = () => {
           }}
         >
           <div style={cardStyle}>
-            <div style={cardIconStyle}>📜</div>
+            <div style={cardIconStyle}><ScrollText size={22} style={{ color: '#fde047' }} /></div>
             <h4 style={cardTitleStyle}>Audit Logs</h4>
-            <p style={cardBodyStyle}>Future step: Review immutable audit log of login events, role updates, and dispute resolutions.</p>
+            <p style={cardBodyStyle}>Review immutable audit logs of login events, role updates, and dispute resolutions.</p>
           </div>
           <div style={cardStyle}>
-            <div style={cardIconStyle}>🏛️</div>
+            <div style={cardIconStyle}><Building2 size={22} style={{ color: '#60a5fa' }} /></div>
             <h4 style={cardTitleStyle}>Dealer Verification Override</h4>
-            <p style={cardBodyStyle}>Future step: Manual audit and verification overrides for dealer AFA licence claims.</p>
+            <p style={cardBodyStyle}>Manual audit and verification overrides for dealer AFA licence claims.</p>
           </div>
           <div style={cardStyle}>
-            <div style={cardIconStyle}>⚖️</div>
+            <div style={cardIconStyle}><Scale size={22} style={{ color: '#4ade80' }} /></div>
             <h4 style={cardTitleStyle}>Rights & Remedies Admin</h4>
-            <p style={cardBodyStyle}>Future step: Publish official laws, regulations, and escalation remedies for farmers.</p>
+            <p style={cardBodyStyle}>Publish official laws, regulations, and escalation remedies for farmers.</p>
           </div>
         </div>
       </div>
@@ -81,7 +82,6 @@ const cardStyle: React.CSSProperties = {
 };
 
 const cardIconStyle: React.CSSProperties = {
-  fontSize: '1.5rem',
   marginBottom: '8px',
 };
 
@@ -97,3 +97,4 @@ const cardBodyStyle: React.CSSProperties = {
   fontSize: '0.85rem',
   lineHeight: 1.4,
 };
+

@@ -68,7 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('mavuno_user', JSON.stringify(res.user));
       return res.user;
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || 'Login failed. Please check your credentials.';
+      const msg = err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Login failed. Please check your credentials.';
       setError(msg);
       throw new Error(msg);
     } finally {
@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       localStorage.setItem('mavuno_user', JSON.stringify(res.user));
       return res.user;
     } catch (err: any) {
-      const msg = err.response?.data?.error?.message || 'Registration failed. Please try again.';
+      const msg = err.response?.data?.error?.message || err.response?.data?.message || err.message || 'Registration failed. Please try again.';
       setError(msg);
       throw new Error(msg);
     } finally {

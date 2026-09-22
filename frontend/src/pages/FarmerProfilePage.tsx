@@ -1,7 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getMyFarmerProfileApi, updateMyFarmerProfileApi } from '../services/farmerService';
+import { Sprout, User, CheckCircle2, AlertTriangle, Globe, Lock, Shield } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 export const FarmerProfilePage: React.FC = () => {
+  const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
@@ -9,14 +12,13 @@ export const FarmerProfilePage: React.FC = () => {
   // Form states
   const [displayName, setDisplayName] = useState('');
   const [bio, setBio] = useState('');
-  const [generalArea, setGeneralArea] = useState('');
   const [county, setCounty] = useState('');
   const [subCounty, setSubCounty] = useState('');
   const [generalArea, setGeneralArea] = useState('');
-  const [exactLocation, setExactLocation] = useState('');
+  const [privateExactLocation, setPrivateExactLocation] = useState('');
+  const [isPublicProfile, setIsPublicProfile] = useState(true);
   const [primaryCrops, setPrimaryCrops] = useState('');
   const [farmSizeAcres, setFarmSizeAcres] = useState<number | ''>('');
-  const [bio, setBio] = useState('');
 
   useEffect(() => {
     fetchProfile();
@@ -25,15 +27,12 @@ export const FarmerProfilePage: React.FC = () => {
   const fetchProfile = async () => {
     setIsLoading(true);
     try {
-      const data = await farmerService.getProfile();
+      const data = await getMyFarmerProfileApi();
       if (data) {
         setDisplayName(data.displayName || user?.fullName || '');
-        setCounty(data.location?.county || '');
-        setSubCounty(data.location?.subCounty || '');
-        setGeneralArea(data.location?.generalArea || '');
-        setExactLocation(data.location?.exactLocation || '');
+        setCounty(data.county || '');
+        setGeneralArea(data.generalArea || '');
         setPrimaryCrops(data.primaryCrops ? data.primaryCrops.join(', ') : '');
-        setFarmSizeAcres(data.farmSizeAcres !== undefined ? data.farmSizeAcres : '');
         setBio(data.bio || '');
       } else {
         setDisplayName(user?.fullName || '');
@@ -55,26 +54,19 @@ export const FarmerProfilePage: React.FC = () => {
       .map((c) => c.trim())
       .filter((c) => c.length > 0);
 
-    const profilePayload: FarmerProfileData = {
-      displayName: displayName.trim(),
-      location: {
-        county: county.trim(),
-        subCounty: subCounty.trim(),
-        generalArea: generalArea.trim(),
-        exactLocation: exactLocation.trim(),
-      },
-      primaryCrops: cropsArray,
-      farmSizeAcres: farmSizeAcres === '' ? undefined : Number(farmSizeAcres),
-      bio: bio.trim(),
-    };
-
     try {
-      await farmerService.updateProfile(profilePayload);
+      await updateMyFarmerProfileApi({
+        displayName: displayName.trim(),
+        county: county.trim(),
+        generalArea: generalArea.trim(),
+        primaryCrops: cropsArray,
+        bio: bio.trim(),
+      });
       setMessage({ type: 'success', text: 'Farmer profile updated successfully!' });
     } catch (err: any) {
       setMessage({
         type: 'error',
-        text: err.response?.data?.message || 'Failed to update farmer profile.',
+        text: err.response?.data?.error?.message || 'Failed to update farmer profile.',
       });
     } finally {
       setIsSaving(false);

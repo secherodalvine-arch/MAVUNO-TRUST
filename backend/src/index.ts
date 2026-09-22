@@ -19,7 +19,7 @@ const app = express();
 const httpServer = http.createServer(app);
 // Initialize Socket.io
 initializeSocket(httpServer);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8000;
 
 // ---- Security & Middleware ----
 app.use(express.json({ limit: '1mb' }));
