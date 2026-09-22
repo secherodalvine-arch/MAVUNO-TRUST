@@ -1,0 +1,262 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;600;700;800&display=swap');
+
+/* ============================================================
+   MAVUNOTRUST — GLOBAL DESIGN SYSTEM
+   ============================================================ */
+
+/* ----- Design Tokens ----- */
+:root {
+  /* Primary brand: deep forest green */
+  --color-primary-900: #0a2e1a;
+  --color-primary-800: #103d24;
+  --color-primary-700: #175230;
+  --color-primary-600: #1e6b3e;
+  --color-primary-500: #27894f;
+  --color-primary-400: #34a862;
+  --color-primary-300: #5ec285;
+  --color-primary-200: #96d9b0;
+  --color-primary-100: #d0f0de;
+  --color-primary-50:  #edfaf2;
+
+  /* Accent: warm amber / harvest gold */
+  --color-accent-700: #8a5800;
+  --color-accent-600: #b07200;
+  --color-accent-500: #d98e00;
+  --color-accent-400: #f5a623;
+  --color-accent-300: #f8c06a;
+  --color-accent-100: #fef3d7;
+
+  /* Surface / neutrals */
+  --color-surface-dark:  #0d1b10;
+  --color-surface-card:  #131f16;
+  --color-surface-muted: #1c2e20;
+  --color-surface-border: rgba(255,255,255,0.08);
+
+  /* Text */
+  --color-text-primary: #e8f5ec;
+  --color-text-secondary: #a0c4ac;
+  --color-text-muted: #6b9276;
+  --color-text-inverse: #0a2e1a;
+
+  /* Semantic */
+  --color-success: #34a862;
+  --color-warning: #f5a623;
+  --color-error:   #e05252;
+  --color-info:    #4da8da;
+
+  /* Typography */
+  --font-heading: 'Outfit', sans-serif;
+  --font-body:    'Inter', sans-serif;
+
+  /* Spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+  --space-24: 6rem;
+
+  /* Radius */
+  --radius-sm: 6px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
+  --radius-pill: 9999px;
+
+  /* Shadow */
+  --shadow-sm: 0 1px 4px rgba(0,0,0,0.3);
+  --shadow-md: 0 4px 20px rgba(0,0,0,0.4);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.5);
+  --shadow-glow-green: 0 0 30px rgba(39,137,79,0.25);
+
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-base: 250ms ease;
+  --transition-slow: 400ms ease;
+}
+
+/* ----- Reset & Base ----- */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-size: 16px;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-surface-dark);
+  color: var(--color-text-primary);
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+a {
+  color: var(--color-primary-300);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--color-primary-200);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  line-height: 1.2;
+  color: var(--color-text-primary);
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+/* ----- Layout Utilities ----- */
+.container {
+  width: 100%;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
+}
+
+.layout-wrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+}
+
+/* ----- Buttons ----- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary-500), var(--color-primary-400));
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(39,137,79,0.4);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(39,137,79,0.5);
+  color: #fff;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--color-primary-300);
+  border: 1.5px solid var(--color-primary-500);
+}
+
+.btn-outline:hover {
+  background: rgba(39,137,79,0.1);
+  color: var(--color-primary-200);
+  transform: translateY(-2px);
+}
+
+/* ----- Cards ----- */
+.card {
+  background: var(--color-surface-card);
+  border: 1px solid var(--color-surface-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  transition: transform var(--transition-base), box-shadow var(--transition-base);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ----- Glassmorphism ----- */
+.glass {
+  background: rgba(19, 31, 22, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.08);
+}
+
+/* ----- Badge ----- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.badge-green {
+  background: rgba(39,137,79,0.15);
+  color: var(--color-primary-300);
+  border: 1px solid rgba(39,137,79,0.3);
+}
+
+.badge-amber {
+  background: rgba(245,166,35,0.12);
+  color: var(--color-accent-300);
+  border: 1px solid rgba(245,166,35,0.25);
+}
+
+/* ----- Divider ----- */
+.divider {
+  border: none;
+  border-top: 1px solid var(--color-surface-border);
+  margin: var(--space-8) 0;
+}
+
+/* ----- Animations ----- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 20px rgba(39,137,79,0.2); }
+  50%       { box-shadow: 0 0 40px rgba(39,137,79,0.45); }
+}
+
+@keyframes gradientShift {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.6s ease both;
+}
+
+/* ----- Responsive ----- */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 var(--space-4);
+  }
+}
