@@ -1,0 +1,270 @@
+/* KAMIS Market Ticker & Display Styles */
+
+.kamis-ticker-section {
+  margin-bottom: 1.5rem;
+  background: var(--surface-card, #ffffff);
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.kamis-ticker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border-color, #f3f4f6);
+}
+
+.kamis-ticker-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading, #111827);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.kamis-source-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background-color: #ecfdf5;
+  color: #047857;
+  border: 1px solid #a7f3d0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 9999px;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+}
+
+.kamis-dev-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+}
+
+.kamis-ticker-container {
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  border-radius: 8px;
+  background: #f9fafb;
+  padding: 0.75rem 0;
+  cursor: pointer;
+}
+
+.kamis-ticker-track {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+  animation: kamisTickerScroll 35s linear infinite;
+}
+
+.kamis-ticker-track:hover,
+.kamis-ticker-track.paused {
+  animation-play-state: paused;
+}
+
+@keyframes kamisTickerScroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+/* Reduced Motion Accessibility Rule */
+@media (prefers-reduced-motion: reduce) {
+  .kamis-ticker-container {
+    overflow-x: auto;
+  }
+  .kamis-ticker-track {
+    animation: none !important;
+    width: auto;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+  }
+}
+
+.kamis-card {
+  min-width: 240px;
+  max-width: 280px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.kamis-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #10b981;
+}
+
+.kamis-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 0.4rem;
+}
+
+.kamis-card-commodity {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #1f2937;
+}
+
+.kamis-card-location {
+  font-size: 0.8rem;
+  color: #6b7280;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.kamis-card-prices {
+  margin: 0.4rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.kamis-card-price-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.kamis-price-label {
+  color: #6b7280;
+}
+
+.kamis-price-val {
+  font-weight: 700;
+  color: #059669;
+}
+
+.kamis-card-date {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-top: 0.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px dashed #f3f4f6;
+  padding-top: 0.3rem;
+}
+
+/* Detail View Modal */
+.kamis-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.kamis-modal-content {
+  background: #ffffff;
+  border-radius: 12px;
+  max-width: 500px;
+  width: 100%;
+  padding: 1.5rem;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  position: relative;
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.kamis-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.kamis-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+}
+
+.kamis-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.kamis-modal-close:hover {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+.kamis-detail-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.kamis-detail-item {
+  display: flex;
+  flex-direction: column;
+}
+
+.kamis-detail-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6b7280;
+  margin-bottom: 0.15rem;
+}
+
+.kamis-detail-value {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.kamis-modal-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 0.75rem;
+}
