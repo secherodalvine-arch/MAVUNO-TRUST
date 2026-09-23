@@ -86,6 +86,73 @@
   color: #e8f5ec;
 }
 
+/* ── Customer Support Header Button ── */
+.app-header-support-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 36px;
+  padding: 0 12px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.32);
+  border-radius: 999px;
+  color: #86efac;
+  font-family: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.app-header-support-btn:hover {
+  background: rgba(34, 197, 94, 0.22);
+  border-color: rgba(74, 222, 128, 0.55);
+  color: #ffffff;
+  box-shadow: 0 0 16px rgba(34, 197, 94, 0.25);
+  transform: translateY(-1px);
+}
+
+.ah-support-icon {
+  color: #4ade80;
+  transition: transform 0.2s ease;
+}
+
+.app-header-support-btn:hover .ah-support-icon {
+  transform: scale(1.1);
+}
+
+.ah-support-label {
+  letter-spacing: 0.01em;
+}
+
+.ah-support-dot {
+  width: 7px;
+  height: 7px;
+  background: #22c55e;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #22c55e;
+  animation: ah-support-pulse 2s infinite;
+}
+
+@keyframes ah-support-pulse {
+  0%   { opacity: 1; transform: scale(1); }
+  50%  { opacity: 0.4; transform: scale(0.85); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@media (max-width: 640px) {
+  .ah-support-label {
+    display: none;
+  }
+  .app-header-support-btn {
+    padding: 0 10px;
+    width: 36px;
+    justify-content: center;
+  }
+}
+
 /* ── Bell ── */
 .ah-notif-wrap { position: relative; }
 
@@ -552,5 +619,21 @@
 [data-theme='light'] .ah-profile-menu-item:hover {
   background: #f0f7f2;
   color: #0d2315;
+}
+
+[data-theme='light'] .app-header-support-btn {
+  background: rgba(39, 137, 79, 0.12);
+  border-color: rgba(39, 137, 79, 0.35);
+  color: #1b6339;
+}
+
+[data-theme='light'] .app-header-support-btn:hover {
+  background: rgba(39, 137, 79, 0.2);
+  border-color: #27894f;
+  color: #0d2315;
+}
+
+[data-theme='light'] .ah-support-icon {
+  color: #27894f;
 }
 

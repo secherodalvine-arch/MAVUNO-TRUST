@@ -4,11 +4,12 @@ import {
   Menu, Bell, User, Settings, LogOut,
   CheckCheck, Trash2, ChevronDown, X,
   MessageSquare, HandshakeIcon, Receipt, AlertTriangle,
-  Sprout, Info,
+  Sprout, Info, Headphones,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { notificationService, type AppNotification } from '../services/notificationService';
 import { socketService } from '../services/socketService';
+import CustomerSupportWidget from './CustomerSupportWidget';
 import './AppHeader.css';
 
 const routeTitles: Record<string, string> = {
@@ -59,6 +60,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
 
   // Profile dropdown state
   const [profileOpen, setProfileOpen] = useState(false);
+
+  // Customer support voice agent modal state
+  const [supportOpen, setSupportOpen] = useState(false);
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -185,6 +189,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
 
       {/* Right side */}
       <div className="app-header-right">
+
+        {/* ── Customer Support Voice Agent ── */}
+        <button
+          className="app-header-support-btn"
+          onClick={() => {
+            setSupportOpen(true);
+            setNotifOpen(false);
+            setProfileOpen(false);
+          }}
+          aria-label="Open Customer Support AI voice assistant"
+          title="Customer Support AI Voice Assistant"
+        >
+          <Headphones size={16} className="ah-support-icon" />
+          <span className="ah-support-label">Support</span>
+          <span className="ah-support-dot" aria-hidden="true" />
+        </button>
 
         {/* ── Notification Bell ── */}
         <div className="ah-notif-wrap" ref={notifRef}>
@@ -329,6 +349,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
           )}
         </div>
       </div>
+
+      {/* ── Customer Support Voice Modal ── */}
+      <CustomerSupportWidget
+        isOpen={supportOpen}
+        onClose={() => setSupportOpen(false)}
+      />
     </header>
   );
 };

@@ -25,6 +25,7 @@ export const streamAudio = async (req, res, next) => {
     }
 };
 
+// Homepage Voice Agent Config
 export const getVoiceConfig = async (req, res, next) => {
     try {
         const agentId = process.env.ELEVENLABS_AGENT_ID || '';
@@ -32,6 +33,24 @@ export const getVoiceConfig = async (req, res, next) => {
             success: true,
             data: {
                 agentId
+            }
+        });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+
+// Dedicated Customer Support Voice Agent Config (Own API & Credentials)
+export const getCustomerSupportVoiceConfig = async (req, res, next) => {
+    try {
+        const agentId = process.env.ELEVENLABS_CUSTOMER_SUPPORT_AGENT_ID || '';
+        const hasApiKey = Boolean(process.env.ELEVENLABS_CUSTOMER_SUPPORT_API_KEY);
+        res.json({
+            success: true,
+            data: {
+                agentId,
+                hasApiKey
             }
         });
     }
