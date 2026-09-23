@@ -14,6 +14,7 @@ export interface OfferDTO {
   message?: string;
   parentOfferId?: string;
   status: 'PENDING' | 'COUNTERED' | 'ACCEPTED' | 'REJECTED' | 'WITHDRAWN' | 'EXPIRED';
+  cropName?: string;
   createdAt: string;
   updatedAt: string;
 }

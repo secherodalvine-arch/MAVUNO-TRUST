@@ -1,0 +1,10 @@
+import { Router } from 'express';
+import { requireAuth } from '../middleware/requireAuth.js';
+import { createOffer, getMyOffers, getOfferHistory, counterOffer, respondToOffer } from '../controllers/offerController.js';
+const router = Router();
+router.post('/', requireAuth, createOffer);
+router.get('/', requireAuth, getMyOffers);
+router.get('/:id/history', requireAuth, getOfferHistory);
+router.post('/:id/counter', requireAuth, counterOffer);
+router.post('/:id/respond', requireAuth, respondToOffer);
+export default router;

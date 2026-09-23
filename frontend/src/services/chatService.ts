@@ -19,6 +19,9 @@ export interface ConversationDTO {
   relatedOfferId?: string;
   isActive: boolean;
   lastMessageAt?: string;
+  lastMessageText?: string;
+  lastMessageSenderId?: string;
+  lastMessageStatus?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -34,8 +37,15 @@ export interface MessageDTO {
   updatedAt: string;
 }
 
-export const createOrGetConversation = async (targetUserId: string, offerId: string): Promise<ConversationDTO> => {
-  const response = await apiClient.post('/chat/create', { targetUserId, offerId });
+export const createOrGetConversation = async (targetUserId: string, offerId?: string): Promise<ConversationDTO> => {
+  const payload: { targetUserId: string; offerId?: string } = { targetUserId };
+  if (offerId) payload.offerId = offerId;
+  const response = await apiClient.post('/chat/create', payload);
+  return response.data.data;
+};
+
+export const getConversationById = async (conversationId: string): Promise<ConversationDTO> => {
+  const response = await apiClient.get(`/chat/${conversationId}`);
   return response.data.data;
 };
 

@@ -1,7 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Eye, EyeOff, Sprout, Briefcase, AlertTriangle, Info, CheckCircle2, Circle, ArrowRight } from 'lucide-react';
+import {
+  Eye, EyeOff, Sprout, Briefcase,
+  AlertTriangle, Info, CheckCircle2, Circle, ArrowRight,
+} from 'lucide-react';
+import '../styles/AuthPages.css';
 
 export const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,7 +20,6 @@ export const RegisterPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [validationError, setValidationError] = useState('');
 
-  // Password strength indicators
   const hasMinLength = password.length >= 8;
   const hasUpper = /[A-Z]/.test(password);
   const hasNumber = /[0-9]/.test(password);
@@ -31,7 +34,6 @@ export const RegisterPage: React.FC = () => {
       setValidationError('Please fill in all required fields.');
       return;
     }
-
     if (!isPasswordValid) {
       setValidationError('Password does not meet complexity requirements.');
       return;
@@ -46,12 +48,8 @@ export const RegisterPage: React.FC = () => {
         password,
         role,
       });
-
-      if (user.role === 'FARMER') {
-        navigate('/farmer/dashboard');
-      } else {
-        navigate('/dealer/dashboard');
-      }
+      if (user.role === 'FARMER') navigate('/farmer/dashboard');
+      else navigate('/dealer/dashboard');
     } catch {
       // Error handled by AuthContext
     } finally {
@@ -59,344 +57,182 @@ export const RegisterPage: React.FC = () => {
     }
   };
 
+  const displayError = validationError || error;
+
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <div style={styles.header}>
-          <div style={styles.badge}>
-            <Sprout size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px' }} />
-            Join MavunoTrust Network
-          </div>
-          <h1 style={styles.title}>Create Your Account</h1>
-          <p style={styles.subtitle}>
-            Connect directly with verified agricultural partners across Kenya.
-          </p>
+    <div className="auth-card auth-card--wide">
+      {/* Brand */}
+      <Link to="/" className="auth-brand" aria-label="MavunoTrust home">
+        <span className="auth-brand-icon" aria-hidden="true"><Sprout size={18} /></span>
+        <span className="auth-brand-name">MavunoTrust</span>
+      </Link>
+
+      {/* Header */}
+      <div className="auth-header">
+        <div className="auth-badge">
+          <Sprout size={13} />
+          <span>Join the Network</span>
         </div>
-
-        {(error || validationError) && (
-          <div style={styles.errorAlert}>
-            <AlertTriangle size={16} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '6px', flexShrink: 0 }} />
-            <span>{validationError || error}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} style={styles.form}>
-          {/* Role selector */}
-          <div style={styles.field}>
-            <label style={styles.label}>Select Account Type</label>
-            <div style={styles.roleGrid}>
-              <div
-                onClick={() => setRole('FARMER')}
-                style={{
-                  ...styles.roleCard,
-                  borderColor: role === 'FARMER' ? '#16a34a' : '#334155',
-                  backgroundColor: role === 'FARMER' ? 'rgba(22, 163, 74, 0.1)' : '#0f172a',
-                }}
-              >
-                <div style={styles.roleIcon}>
-                  <Sprout size={28} style={{ color: role === 'FARMER' ? '#4ade80' : '#94a3b8' }} />
-                </div>
-                <div style={styles.roleTitle}>Farmer</div>
-                <div style={styles.roleDesc}>Post crop listings & calculate cost/profit</div>
-              </div>
-
-              <div
-                onClick={() => setRole('DEALER')}
-                style={{
-                  ...styles.roleCard,
-                  borderColor: role === 'DEALER' ? '#2563eb' : '#334155',
-                  backgroundColor: role === 'DEALER' ? 'rgba(37, 99, 235, 0.1)' : '#0f172a',
-                }}
-              >
-                <div style={styles.roleIcon}>
-                  <Briefcase size={28} style={{ color: role === 'DEALER' ? '#60a5fa' : '#94a3b8' }} />
-                </div>
-                <div style={styles.roleTitle}>Dealer / Broker</div>
-                <div style={styles.roleDesc}>Find farmers & complete AFA verification</div>
-              </div>
-            </div>
-            {role === 'DEALER' && (
-              <p style={styles.dealerNotice}>
-                <Info size={14} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} />
-                Dealer profiles require AFA licence verification before making official trade offers.
-              </p>
-            )}
-          </div>
-
-          <div style={styles.field}>
-            <label style={styles.label} htmlFor="fullName">
-              Full Name / Business Name *
-            </label>
-            <input
-              id="fullName"
-              type="text"
-              required
-              placeholder="e.g. Wanjiku Agricultural Enterprise"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.field}>
-            <label style={styles.label} htmlFor="email">
-              Email Address *
-            </label>
-            <input
-              id="email"
-              type="email"
-              required
-              placeholder="wanjiku@mavunotrust.co.ke"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.field}>
-            <label style={styles.label} htmlFor="phone">
-              Phone Number (Optional)
-            </label>
-            <input
-              id="phone"
-              type="tel"
-              placeholder="+254 700 000 000"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              style={styles.input}
-            />
-          </div>
-
-          <div style={styles.field}>
-            <label style={styles.label} htmlFor="password">
-              Password *
-            </label>
-            <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                required
-                placeholder="••••••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                style={{ ...styles.input, width: '100%', paddingRight: '44px' }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-                title={showPassword ? 'Hide password' : 'Show password'}
-                style={styles.eyeButton}
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
-            </div>
-            {/* Password strength indicators */}
-            <div style={styles.pwdRules}>
-              <span style={{ color: hasMinLength ? '#4ade80' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {hasMinLength ? <CheckCircle2 size={13} /> : <Circle size={13} />} At least 8 characters
-              </span>
-              <span style={{ color: hasUpper ? '#4ade80' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {hasUpper ? <CheckCircle2 size={13} /> : <Circle size={13} />} 1 uppercase letter
-              </span>
-              <span style={{ color: hasNumber ? '#4ade80' : '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                {hasNumber ? <CheckCircle2 size={13} /> : <Circle size={13} />} 1 number
-              </span>
-            </div>
-          </div>
-
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            style={{
-              ...styles.submitButton,
-              backgroundColor: role === 'FARMER' ? '#16a34a' : '#2563eb',
-              opacity: isSubmitting ? 0.7 : 1,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-            }}
-          >
-            <span>
-              {isSubmitting
-                ? 'Creating account...'
-                : `Register as ${role === 'FARMER' ? 'Farmer' : 'Dealer'}`}
-            </span>
-            {!isSubmitting && <ArrowRight size={18} />}
-          </button>
-        </form>
-
-        <div style={styles.footer}>
-          <p>
-            Already have an account?{' '}
-            <Link to="/login" style={styles.link}>
-              Sign in
-            </Link>
-          </p>
-        </div>
+        <h1 className="auth-title">Create Your Account</h1>
+        <p className="auth-subtitle">
+          Connect directly with verified agricultural partners across Kenya.
+        </p>
       </div>
+
+      {/* Error */}
+      {displayError && (
+        <div className="auth-error" role="alert">
+          <AlertTriangle size={15} />
+          <span>{displayError}</span>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="auth-form" noValidate>
+        {/* Role selector */}
+        <div className="auth-field">
+          <label className="auth-label">Account Type</label>
+          <div className="auth-role-grid">
+            <button
+              type="button"
+              onClick={() => setRole('FARMER')}
+              className={`auth-role-btn ${role === 'FARMER' ? 'auth-role-btn--active' : ''}`}
+              aria-pressed={role === 'FARMER'}
+            >
+              <Sprout size={26} />
+              <span className="auth-role-title">Farmer</span>
+              <span className="auth-role-desc">Post crop listings &amp; calculate cost/profit</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setRole('DEALER')}
+              className={`auth-role-btn auth-role-btn--dealer ${role === 'DEALER' ? 'auth-role-btn--dealer-active' : ''}`}
+              aria-pressed={role === 'DEALER'}
+            >
+              <Briefcase size={26} />
+              <span className="auth-role-title">Dealer / Broker</span>
+              <span className="auth-role-desc">Find farmers &amp; complete AFA verification</span>
+            </button>
+          </div>
+
+          {role === 'DEALER' && (
+            <p className="auth-notice">
+              <Info size={13} />
+              Dealer profiles require AFA licence verification before making official trade offers.
+            </p>
+          )}
+        </div>
+
+        {/* Full Name */}
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="reg-name">
+            Full Name / Business Name <span className="auth-required">*</span>
+          </label>
+          <input
+            id="reg-name"
+            type="text"
+            required
+            placeholder="e.g. Wanjiku Agricultural Enterprise"
+            value={fullName}
+            onChange={(e) => setFullName(e.target.value)}
+            className="auth-input"
+            autoComplete="name"
+          />
+        </div>
+
+        {/* Email */}
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="reg-email">
+            Email Address <span className="auth-required">*</span>
+          </label>
+          <input
+            id="reg-email"
+            type="email"
+            required
+            placeholder="wanjiku@mavunotrust.co.ke"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="auth-input"
+            autoComplete="email"
+          />
+        </div>
+
+        {/* Phone */}
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="reg-phone">
+            Phone Number <span className="auth-optional">(Optional)</span>
+          </label>
+          <input
+            id="reg-phone"
+            type="tel"
+            placeholder="+254 700 000 000"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            className="auth-input"
+            autoComplete="tel"
+          />
+        </div>
+
+        {/* Password */}
+        <div className="auth-field">
+          <label className="auth-label" htmlFor="reg-password">
+            Password <span className="auth-required">*</span>
+          </label>
+          <div className="auth-input-wrap">
+            <input
+              id="reg-password"
+              type={showPassword ? 'text' : 'password'}
+              required
+              placeholder="••••••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="auth-input auth-input--padded"
+              autoComplete="new-password"
+            />
+            <button
+              type="button"
+              className="auth-eye-btn"
+              onClick={() => setShowPassword((v) => !v)}
+              aria-label={showPassword ? 'Hide password' : 'Show password'}
+            >
+              {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+            </button>
+          </div>
+
+          {/* Password strength */}
+          <div className="auth-pwd-rules">
+            <span className={hasMinLength ? 'pwd-rule pwd-rule--pass' : 'pwd-rule'}>
+              {hasMinLength ? <CheckCircle2 size={12} /> : <Circle size={12} />}
+              8+ characters
+            </span>
+            <span className={hasUpper ? 'pwd-rule pwd-rule--pass' : 'pwd-rule'}>
+              {hasUpper ? <CheckCircle2 size={12} /> : <Circle size={12} />}
+              Uppercase
+            </span>
+            <span className={hasNumber ? 'pwd-rule pwd-rule--pass' : 'pwd-rule'}>
+              {hasNumber ? <CheckCircle2 size={12} /> : <Circle size={12} />}
+              Number
+            </span>
+          </div>
+        </div>
+
+        <button
+          id="register-submit"
+          type="submit"
+          disabled={isSubmitting}
+          className={`auth-submit ${role === 'DEALER' ? 'auth-submit--dealer' : ''}`}
+        >
+          {isSubmitting
+            ? <><span className="auth-spinner" aria-hidden="true" /> Creating account…</>
+            : <><span>Register as {role === 'FARMER' ? 'Farmer' : 'Dealer'}</span><ArrowRight size={17} /></>
+          }
+        </button>
+      </form>
+
+      <p className="auth-footer-text">
+        Already have an account?{' '}
+        <Link to="/login" className="auth-link">Sign in</Link>
+      </p>
     </div>
   );
 };
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    minHeight: '85vh',
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: '32px 16px',
-  },
-  card: {
-    width: '100%',
-    maxWidth: '520px',
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
-    borderRadius: '16px',
-    padding: '36px 32px',
-    boxShadow: '0 20px 25px -5px rgba(0,0,0,0.4)',
-  },
-  header: {
-    marginBottom: '28px',
-    textAlign: 'center',
-  },
-  badge: {
-    display: 'inline-block',
-    backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    color: '#4ade80',
-    border: '1px solid rgba(34, 197, 94, 0.2)',
-    fontSize: '0.8rem',
-    fontWeight: 600,
-    padding: '4px 12px',
-    borderRadius: '20px',
-    marginBottom: '12px',
-  },
-  title: {
-    fontSize: '1.75rem',
-    fontWeight: 700,
-    color: '#f8fafc',
-    margin: '0 0 8px 0',
-  },
-  subtitle: {
-    fontSize: '0.9rem',
-    color: '#94a3b8',
-    margin: 0,
-    lineHeight: 1.5,
-  },
-  errorAlert: {
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
-    color: '#fca5a5',
-    padding: '12px 16px',
-    borderRadius: '8px',
-    fontSize: '0.875rem',
-    marginBottom: '20px',
-  },
-  form: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '20px',
-  },
-  roleGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '12px',
-    marginTop: '6px',
-  },
-  roleCard: {
-    border: '2px solid #334155',
-    borderRadius: '12px',
-    padding: '16px 12px',
-    textAlign: 'center',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-  },
-  roleIcon: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: '6px',
-  },
-  roleTitle: {
-    fontSize: '0.95rem',
-    fontWeight: 700,
-    color: '#f8fafc',
-    marginBottom: '4px',
-  },
-  roleDesc: {
-    fontSize: '0.75rem',
-    color: '#94a3b8',
-    lineHeight: 1.3,
-  },
-  dealerNotice: {
-    fontSize: '0.8rem',
-    color: '#60a5fa',
-    margin: '8px 0 0 0',
-  },
-  field: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '6px',
-  },
-  label: {
-    fontSize: '0.875rem',
-    fontWeight: 600,
-    color: '#cbd5e1',
-  },
-  input: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #475569',
-    borderRadius: '8px',
-    padding: '12px 14px',
-    fontSize: '0.95rem',
-    color: '#f8fafc',
-    outline: 'none',
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: '12px',
-    background: 'none',
-    border: 'none',
-    color: '#94a3b8',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: '4px',
-    borderRadius: '4px',
-    transition: 'color 0.2s',
-  },
-  pwdRules: {
-    display: 'flex',
-    gap: '12px',
-    fontSize: '0.75rem',
-    marginTop: '4px',
-    flexWrap: 'wrap',
-  },
-  submitButton: {
-    color: '#ffffff',
-    border: 'none',
-    borderRadius: '8px',
-    padding: '14px',
-    fontSize: '1rem',
-    fontWeight: 600,
-    marginTop: '8px',
-    transition: 'all 0.2s',
-  },
-  footer: {
-    marginTop: '28px',
-    paddingTop: '20px',
-    borderTop: '1px solid #334155',
-    textAlign: 'center',
-    fontSize: '0.875rem',
-    color: '#94a3b8',
-  },
-  link: {
-    color: '#4ade80',
-    fontWeight: 600,
-    textDecoration: 'none',
-  },
-};
-

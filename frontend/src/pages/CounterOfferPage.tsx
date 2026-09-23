@@ -74,60 +74,60 @@ export const CounterOfferPage: React.FC = () => {
   };
 
   return (
-    <div style={{ maxWidth: '600px', margin: '40px auto', padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', fontFamily: 'sans-serif' }}>
-      <h2 style={{ margin: '0 0 20px 0', color: '#111827' }}>Counteroffer</h2>
+    <div className="offer-form-card" style={{ maxWidth: '600px', margin: '40px auto' }}>
+      <h2 style={{ margin: '0 0 20px 0', fontSize: '1.5rem', fontWeight: 700 }}>Counteroffer</h2>
       
-      {error && <div style={{ padding: '10px', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '6px', marginBottom: '20px' }}>{error}</div>}
+      {error && <div style={{ padding: '12px 14px', backgroundColor: '#fee2e2', color: '#991b1b', border: '1px solid #fca5a5', borderRadius: '8px', marginBottom: '20px', fontSize: '0.9rem' }}>{error}</div>}
 
       {history.length > 0 && (
-        <div style={{ marginBottom: '25px', padding: '15px', backgroundColor: '#f3f4f6', borderRadius: '6px' }}>
-          <h4 style={{ margin: '0 0 10px 0', color: '#374151' }}>Negotiation History</h4>
+        <div className="offer-history-box" style={{ marginBottom: '25px' }}>
+          <h4 style={{ margin: '0 0 10px 0', color: '#0f172a', fontWeight: 700 }}>Negotiation History</h4>
           {history.map((h) => (
-            <div key={h._id} style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#4b5563', paddingLeft: '10px', borderLeft: '3px solid #d1d5db' }}>
-              <strong>{h.initiatedBy}</strong> offered {h.quantity} {h.unit} at {h.currency} {h.proposedPricePerUnit} / {h.unit}
-              {h.message && <div><em style={{ color: '#6b7280' }}>"{h.message}"</em></div>}
+            <div key={h._id} style={{ marginBottom: '10px', fontSize: '0.9rem', color: '#334155', paddingLeft: '10px', borderLeft: '3px solid #cbd5e1' }}>
+              <strong style={{ color: '#0f172a' }}>{h.initiatedBy}</strong> offered {h.quantity} {h.unit} at {h.currency} {h.proposedPricePerUnit} / {h.unit}
+              {h.message && <div style={{ marginTop: '2px' }}><em style={{ color: '#64748b' }}>"{h.message}"</em></div>}
             </div>
           ))}
         </div>
       )}
 
       {offer && offer.status !== 'PENDING' ? (
-        <div style={{ padding: '15px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '6px' }}>
+        <div style={{ padding: '15px', backgroundColor: '#fef3c7', color: '#92400e', borderRadius: '8px', border: '1px solid #fde68a' }}>
           This offer is no longer pending ({offer.status}). You cannot counteroffer.
         </div>
       ) : (
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151', fontSize: '0.9rem' }}>New Quantity ({offer?.unit})</label>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '0.88rem' }}>New Quantity ({offer?.unit})</label>
             <input 
               type="number" 
               value={formData.quantity}
               onChange={e => setFormData({...formData, quantity: e.target.value})}
               min="1"
               required
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+              style={{ width: '100%', boxSizing: 'border-box' }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151', fontSize: '0.9rem' }}>New Price Per Unit ({offer?.currency})</label>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '0.88rem' }}>New Price Per Unit ({offer?.currency})</label>
             <input 
               type="number" 
               value={formData.proposedPricePerUnit}
               onChange={e => setFormData({...formData, proposedPricePerUnit: e.target.value})}
               min="0"
               required
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+              style={{ width: '100%', boxSizing: 'border-box' }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold', color: '#374151', fontSize: '0.9rem' }}>Message (Optional)</label>
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '0.88rem' }}>Message (Optional)</label>
             <textarea 
               value={formData.message}
               onChange={e => setFormData({...formData, message: e.target.value})}
               rows={3}
-              style={{ width: '100%', padding: '10px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+              style={{ width: '100%', boxSizing: 'border-box' }}
               placeholder="Explain your counteroffer..."
             />
           </div>
@@ -138,13 +138,14 @@ export const CounterOfferPage: React.FC = () => {
               disabled={loading}
               style={{ 
                 flex: 1,
-                padding: '12px', 
+                padding: '12px 18px', 
                 backgroundColor: loading ? '#9ca3af' : '#4f46e5', 
-                color: 'white', 
+                color: '#ffffff', 
                 border: 'none', 
-                borderRadius: '6px', 
+                borderRadius: '8px', 
                 cursor: loading ? 'not-allowed' : 'pointer', 
-                fontWeight: 'bold' 
+                fontWeight: 700,
+                fontSize: '0.95rem'
               }}
             >
               {loading ? 'Sending Counteroffer...' : 'Send Counteroffer'}
@@ -155,13 +156,14 @@ export const CounterOfferPage: React.FC = () => {
               onClick={handleMessageUser}
               style={{ 
                 flex: 1,
-                padding: '12px', 
-                backgroundColor: '#0ea5e9', 
-                color: 'white', 
+                padding: '12px 18px', 
+                backgroundColor: '#0284c7', 
+                color: '#ffffff', 
                 border: 'none', 
-                borderRadius: '6px', 
+                borderRadius: '8px', 
                 cursor: 'pointer', 
-                fontWeight: 'bold' 
+                fontWeight: 700,
+                fontSize: '0.95rem'
               }}
             >
               Message {isFarmer ? 'Dealer' : 'Farmer'}
@@ -174,13 +176,14 @@ export const CounterOfferPage: React.FC = () => {
             style={{ 
               width: '100%',
               marginTop: '5px',
-              padding: '12px', 
-              backgroundColor: 'transparent', 
-              color: '#4b5563', 
-              border: '1px solid #d1d5db', 
-              borderRadius: '6px', 
+              padding: '12px 18px', 
+              backgroundColor: '#f1f5f9', 
+              color: '#1e293b', 
+              border: '1px solid #cbd5e1', 
+              borderRadius: '8px', 
               cursor: 'pointer', 
-              fontWeight: 'bold' 
+              fontWeight: 600,
+              fontSize: '0.9rem'
             }}
           >
             Cancel

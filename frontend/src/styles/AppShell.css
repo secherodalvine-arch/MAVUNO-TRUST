@@ -1,0 +1,33 @@
+/* ── Authenticated App Shell ── */
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-surface-dark, #0d1b10);
+}
+
+/* Offset body from sidebar */
+.app-shell-body {
+  margin-left: var(--sidebar-width, 256px);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  transition: margin-left 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.app-shell--collapsed .app-shell-body {
+  margin-left: var(--sidebar-collapsed-width, 64px);
+}
+
+.app-shell-main {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Mobile: no sidebar margin */
+@media (max-width: 900px) {
+  .app-shell-body {
+    margin-left: 0 !important;
+  }
+}

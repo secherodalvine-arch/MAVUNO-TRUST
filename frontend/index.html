@@ -1,18 +1,41 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MavunoTrust — Verified Agricultural Trade</title>
-    <meta name="description" content="MavunoTrust connects farmers and agricultural dealers with verified information, market data, business calculations, private communication, and farmer rights guidance." />
-    <meta name="theme-color" content="#0a2e1a" />
-    <meta property="og:title" content="MavunoTrust" />
-    <meta property="og:description" content="Verified connections. Informed decisions. Fairer agricultural trade." />
-    <meta property="og:type" content="website" />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="apple-touch-icon" href="/logo.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MavunoTrust" />
+  <title>MavunoTrust</title>
+  <meta name="description"
+    content="MavunoTrust connects farmers and agricultural dealers with verified information, market data, business calculations, private communication, and farmer rights guidance." />
+  <meta name="theme-color" content="#0a2e1a" />
+  <meta property="og:title" content="MavunoTrust" />
+  <meta property="og:description" content="Verified connections. Informed decisions. Fairer agricultural trade." />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="/logo.png" />
+  <script>
+    (function() {
+      try {
+        var saved = localStorage.getItem('mavuno-theme') || 'dark';
+        var effective = saved;
+        if (saved === 'system') {
+          effective = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+        }
+        document.documentElement.setAttribute('data-theme', effective);
+      } catch (e) {}
+    })();
+  </script>
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>

@@ -9,6 +9,7 @@ import type { RatingData } from '../services/ratingService';
 import { createDispute, getDisputes, closeDispute } from '../services/disputeService';
 import type { DisputeDTO, DisputeCategory } from '../services/disputeService';
 import { KenaffSupportSection } from '../components/KenaffSupportSection';
+import '../styles/TransactionsPage.css';
 
 const TransactionCompletionSection: React.FC<{
   transaction: TransactionDTO;
@@ -37,12 +38,12 @@ const TransactionCompletionSection: React.FC<{
   };
 
   return (
-    <div style={{ padding: '15px 20px', borderTop: '1px solid #e5e7eb', backgroundColor: '#f0fdf4' }}>
+    <div className="tx-white-panel" style={{ padding: '16px 20px', borderTop: '1px solid #e2e8f0', backgroundColor: '#ffffff', borderLeft: '4px solid #16a34a' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <h4 style={{ margin: '0 0 4px 0', color: '#14532d', fontSize: '0.95rem' }}>Transaction Completion</h4>
+          <h4 style={{ margin: '0 0 4px 0', color: '#14532d', fontSize: '0.95rem', fontWeight: 700 }}>Transaction Completion</h4>
           {isCompleted ? (
-            <div style={{ fontSize: '0.85rem', color: '#166534' }}>
+            <div style={{ fontSize: '0.85rem', color: '#166534', fontWeight: 600 }}>
               ✓ Transaction marked as Completed
               {transaction.completedAt && ` on ${new Date(transaction.completedAt).toLocaleString()}`}.
             </div>
@@ -51,7 +52,7 @@ const TransactionCompletionSection: React.FC<{
               Goods/produce fulfilment is complete. You can now explicitly confirm transaction completion.
             </div>
           ) : (
-            <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
               Delivery/Fulfilment must be marked as FULFILLED before transaction completion can be confirmed.
             </div>
           )}
@@ -60,7 +61,7 @@ const TransactionCompletionSection: React.FC<{
         {isEligible && !isCompleted && (
           <button
             onClick={() => setShowConfirmModal(true)}
-            style={{ backgroundColor: '#16a34a', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}
+            style={{ backgroundColor: '#16a34a', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
           >
             Confirm Transaction Completed
           </button>
@@ -68,31 +69,31 @@ const TransactionCompletionSection: React.FC<{
       </div>
 
       {showConfirmModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '8px', maxWidth: '500px', width: '90%', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-            <h3 style={{ marginTop: 0, color: '#111827' }}>Confirm Explicit Completion</h3>
-            <p style={{ color: '#374151', fontSize: '0.95rem', lineHeight: '1.5' }}>
-              Are you sure you want to mark this transaction as <strong>COMPLETED</strong>?
+        <div className="tx-modal-overlay">
+          <div className="tx-white-modal" style={{ maxWidth: '500px', width: '90%' }}>
+            <h3 style={{ marginTop: 0, color: '#0f172a', fontWeight: 700 }}>Confirm Explicit Completion</h3>
+            <p style={{ color: '#334155', fontSize: '0.95rem', lineHeight: '1.5' }}>
+              Are you sure you want to mark this transaction as <strong style={{ color: '#0f172a' }}>COMPLETED</strong>?
             </p>
-            <p style={{ color: '#6b7280', fontSize: '0.85rem', lineHeight: '1.4' }}>
+            <p className="tx-modal-note" style={{ fontSize: '0.85rem', lineHeight: '1.4' }}>
               This confirms that the agreed agricultural transaction terms and fulfilment have been satisfied. 
-              <em>Note: Completion records the transaction status and does not represent a payment transaction or digital payment transfer.</em>
+              <em style={{ color: '#64748b' }}> Note: Completion records the transaction status and does not represent a payment transaction or digital payment transfer.</em>
             </p>
 
-            {error && <div style={{ color: 'red', fontSize: '0.85rem', marginBottom: '15px' }}>{error}</div>}
+            {error && <div style={{ color: '#dc2626', fontSize: '0.85rem', marginBottom: '15px' }}>{error}</div>}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
               <button
                 onClick={() => setShowConfirmModal(false)}
                 disabled={loading}
-                style={{ padding: '8px 16px', backgroundColor: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                className="tx-btn-secondary"
               >
                 Cancel
               </button>
               <button
                 onClick={handleComplete}
                 disabled={loading}
-                style={{ padding: '8px 16px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
+                style={{ padding: '8px 16px', backgroundColor: '#16a34a', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
               >
                 {loading ? 'Submitting...' : 'Yes, Confirm Completed'}
               </button>
@@ -155,22 +156,22 @@ const TransactionCancellationSection: React.FC<{
   }
 
   return (
-    <div style={{ padding: '15px 20px', borderTop: '1px solid #e5e7eb', backgroundColor: isCancelled ? '#fef2f2' : '#fefce8' }}>
+    <div className="tx-white-panel" style={{ padding: '16px 20px', borderTop: '1px solid #e2e8f0', backgroundColor: '#ffffff', borderLeft: isCancelled ? '4px solid #dc2626' : undefined }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <h4 style={{ margin: '0 0 4px 0', color: isCancelled ? '#991b1b' : '#854d0e', fontSize: '0.95rem' }}>Transaction Cancellation</h4>
+          <h4 style={{ margin: '0 0 4px 0', color: isCancelled ? '#991b1b' : '#b45309', fontSize: '0.95rem', fontWeight: 700 }}>Transaction Cancellation</h4>
           {isCancelled ? (
             <div style={{ fontSize: '0.85rem', color: '#b91c1c' }}>
               ✕ Transaction Cancelled {transaction.cancelledAt && ` on ${new Date(transaction.cancelledAt).toLocaleString()}`}.
-              <div>Reason: <strong>{formatReason(transaction.cancellationReason)}</strong></div>
-              {transaction.cancellationNote && <div style={{ fontStyle: 'italic', marginTop: '2px' }}>"{transaction.cancellationNote}"</div>}
+              <div style={{ marginTop: '2px' }}>Reason: <strong style={{ color: '#7f1d1d' }}>{formatReason(transaction.cancellationReason)}</strong></div>
+              {transaction.cancellationNote && <div style={{ fontStyle: 'italic', marginTop: '2px', color: '#991b1b' }}>"{transaction.cancellationNote}"</div>}
             </div>
           ) : isFulfilled ? (
-            <div style={{ fontSize: '0.85rem', color: '#854d0e' }}>
+            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
               Delivery/Fulfilment has been marked as FULFILLED. Fulfilled transactions cannot be directly cancelled. If an issue occurred, please use the dispute/remedy process.
             </div>
           ) : isEligible ? (
-            <div style={{ fontSize: '0.85rem', color: '#854d0e' }}>
+            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
               This transaction is active. You may explicitly cancel if terms cannot be met.
             </div>
           ) : null}
@@ -179,7 +180,7 @@ const TransactionCancellationSection: React.FC<{
         {isEligible && (
           <button
             onClick={() => setShowModal(true)}
-            style={{ backgroundColor: '#dc2626', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}
+            style={{ backgroundColor: '#dc2626', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
           >
             Cancel Transaction
           </button>
@@ -187,19 +188,19 @@ const TransactionCancellationSection: React.FC<{
       </div>
 
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '8px', maxWidth: '500px', width: '90%', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-            <h3 style={{ marginTop: 0, color: '#991b1b' }}>Cancel Transaction</h3>
-            <p style={{ color: '#374151', fontSize: '0.95rem', lineHeight: '1.5' }}>
-              Are you sure you want to <strong>CANCEL</strong> this transaction? This action will permanently update the status to CANCELLED.
+        <div className="tx-modal-overlay">
+          <div className="tx-white-modal" style={{ maxWidth: '500px', width: '90%' }}>
+            <h3 style={{ marginTop: 0, color: '#991b1b', fontWeight: 700 }}>Cancel Transaction</h3>
+            <p style={{ color: '#334155', fontSize: '0.95rem', lineHeight: '1.5' }}>
+              Are you sure you want to <strong style={{ color: '#991b1b' }}>CANCEL</strong> this transaction? This action will permanently update the status to CANCELLED.
             </p>
 
             <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px' }}>Reason for Cancellation *</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>Reason for Cancellation *</label>
               <select
                 value={reason}
                 onChange={e => setReason(e.target.value)}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               >
                 <option value="MUTUAL_AGREEMENT">Mutual Agreement</option>
                 <option value="DELIVERY_ISSUE">Delivery / Logistics Issue</option>
@@ -209,34 +210,44 @@ const TransactionCancellationSection: React.FC<{
             </div>
 
             <div style={{ marginBottom: '15px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '6px' }}>Additional Note (Optional)</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>Additional Note (Optional)</label>
               <textarea
                 rows={2}
                 placeholder="Provide a brief explanation if needed..."
                 value={note}
                 onChange={e => setNote(e.target.value)}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  fontSize: '0.9rem',
+                  fontFamily: 'inherit',
+                }}
               />
             </div>
 
-            <p style={{ color: '#6b7280', fontSize: '0.8rem', lineHeight: '1.4' }}>
-              <em>Note: Cancellation updates the agreement record state and does not process financial refunds or payment settlements.</em>
+            <p className="tx-modal-note" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
+              <em style={{ color: '#64748b' }}>Note: Cancellation updates the agreement record state and does not process financial refunds or payment settlements.</em>
             </p>
 
-            {error && <div style={{ color: 'red', fontSize: '0.85rem', marginBottom: '15px' }}>{error}</div>}
+            {error && <div style={{ color: '#dc2626', fontSize: '0.85rem', marginBottom: '15px' }}>{error}</div>}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '20px' }}>
               <button
                 onClick={() => setShowModal(false)}
                 disabled={loading}
-                style={{ padding: '8px 16px', backgroundColor: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                className="tx-btn-secondary"
               >
                 Go Back
               </button>
               <button
                 onClick={handleCancel}
                 disabled={loading}
-                style={{ padding: '8px 16px', backgroundColor: '#dc2626', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
+                style={{ padding: '8px 16px', backgroundColor: '#dc2626', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
               >
                 {loading ? 'Cancelling...' : 'Confirm Cancellation'}
               </button>
@@ -335,23 +346,23 @@ const TransactionDisputeSection: React.FC<{
   }
 
   return (
-    <div style={{ padding: '15px 20px', borderTop: '1px solid #e5e7eb', backgroundColor: activeDispute ? '#fef3c7' : '#fafafa' }}>
+    <div className="tx-white-panel" style={{ padding: '16px 20px', borderTop: '1px solid #e2e8f0', backgroundColor: '#ffffff', borderLeft: activeDispute ? '4px solid #d97706' : undefined }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
         <div>
-          <h4 style={{ margin: '0 0 4px 0', color: activeDispute ? '#92400e' : '#374151', fontSize: '0.95rem' }}>
+          <h4 style={{ margin: '0 0 4px 0', color: activeDispute ? '#b45309' : '#0f172a', fontSize: '0.95rem', fontWeight: 700 }}>
             Dispute & Remedy Pathway
           </h4>
           {activeDispute ? (
-            <div style={{ fontSize: '0.85rem', color: '#78350f' }}>
-              <strong>Case ID:</strong> {activeDispute.caseId} &bull; <strong>Status:</strong> OPEN (Opened {new Date(activeDispute.createdAt).toLocaleDateString()})
-              <div>Category: <strong>{formatCategory(activeDispute.category)}</strong></div>
+            <div style={{ fontSize: '0.85rem', color: '#b45309', fontWeight: 600 }}>
+              <strong style={{ color: '#78350f' }}>Case ID:</strong> {activeDispute.caseId} &bull; <strong style={{ color: '#78350f' }}>Status:</strong> OPEN (Opened {new Date(activeDispute.createdAt).toLocaleDateString()})
+              <div style={{ marginTop: '2px' }}>Category: <strong style={{ color: '#78350f' }}>{formatCategory(activeDispute.category)}</strong></div>
             </div>
           ) : closedDispute ? (
-            <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
-              ✓ Case <strong>{closedDispute.caseId}</strong> was closed on {closedDispute.closedAt ? new Date(closedDispute.closedAt).toLocaleDateString() : 'earlier date'}.
+            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
+              ✓ Case <strong style={{ color: '#0f172a' }}>{closedDispute.caseId}</strong> was closed on {closedDispute.closedAt ? new Date(closedDispute.closedAt).toLocaleDateString() : 'earlier date'}.
             </div>
           ) : (
-            <div style={{ fontSize: '0.85rem', color: '#6b7280' }}>
+            <div style={{ fontSize: '0.85rem', color: '#475569' }}>
               If an issue occurred regarding terms, delivery, quality, or quantity, you can record a private dispute case.
             </div>
           )}
@@ -360,7 +371,7 @@ const TransactionDisputeSection: React.FC<{
         {!activeDispute && (
           <button
             onClick={() => setShowModal(true)}
-            style={{ backgroundColor: '#d97706', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', fontSize: '0.85rem', cursor: 'pointer' }}
+            style={{ backgroundColor: '#d97706', color: '#ffffff', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer' }}
           >
             Report a Problem / Seek Remedy
           </button>
@@ -368,28 +379,28 @@ const TransactionDisputeSection: React.FC<{
       </div>
 
       {activeDispute && (
-        <div style={{ marginTop: '12px', padding: '12px', backgroundColor: '#ffffff', borderRadius: '6px', border: '1px solid #fcd34d' }}>
-          <div style={{ fontSize: '0.85rem', color: '#374151', marginBottom: '8px' }}>
-            <strong>Description:</strong> "{activeDispute.description}"
+        <div style={{ marginTop: '12px', padding: '14px', backgroundColor: '#ffffff', borderRadius: '8px', border: '1px solid #fcd34d' }}>
+          <div style={{ fontSize: '0.85rem', color: '#1e293b', marginBottom: '8px' }}>
+            <strong style={{ color: '#0f172a' }}>Description:</strong> "{activeDispute.description}"
           </div>
           {activeDispute.evidenceInfo && (
-            <div style={{ fontSize: '0.85rem', color: '#4b5563', marginBottom: '8px' }}>
-              <strong>Reference / Evidence:</strong> {activeDispute.evidenceInfo}
+            <div style={{ fontSize: '0.85rem', color: '#334155', marginBottom: '8px' }}>
+              <strong style={{ color: '#0f172a' }}>Reference / Evidence:</strong> {activeDispute.evidenceInfo}
             </div>
           )}
-          <div style={{ fontSize: '0.8rem', color: '#92400e', backgroundColor: '#fffbeb', padding: '8px', borderRadius: '4px', border: '1px solid #fef3c7', marginBottom: '10px', lineHeight: '1.4' }}>
+          <div style={{ fontSize: '0.8rem', color: '#92400e', backgroundColor: '#fffbeb', padding: '10px 12px', borderRadius: '6px', border: '1px solid #fef3c7', marginBottom: '12px', lineHeight: '1.4' }}>
             ℹ <strong>Notice:</strong> Your dispute is recorded privately in MavunoTrust. MavunoTrust does not automatically determine who is right, award compensation, or submit your case to an external authority.
           </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
             <button
               onClick={() => navigate('/farmer/rights')}
-              style={{ backgroundColor: '#2563eb', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ backgroundColor: '#2563eb', color: '#ffffff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
             >
               View Farmer Rights & Remedy Guidance
             </button>
             <button
               onClick={() => handleCloseCase(activeDispute._id)}
-              style={{ backgroundColor: '#6b7280', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 'bold', cursor: 'pointer' }}
+              style={{ backgroundColor: '#475569', color: '#ffffff', border: 'none', padding: '6px 14px', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
             >
               Close Dispute Case
             </button>
@@ -403,19 +414,19 @@ const TransactionDisputeSection: React.FC<{
       )}
 
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 }}>
-          <div style={{ backgroundColor: 'white', padding: '25px', borderRadius: '8px', maxWidth: '520px', width: '90%', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
-            <h3 style={{ marginTop: 0, color: '#b45309' }}>Report a Problem / Seek Remedy</h3>
-            <p style={{ color: '#374151', fontSize: '0.9rem', lineHeight: '1.4' }}>
+        <div className="tx-modal-overlay">
+          <div className="tx-white-modal" style={{ maxWidth: '520px', width: '90%' }}>
+            <h3 style={{ marginTop: 0, color: '#b45309', fontWeight: 700 }}>Report a Problem / Seek Remedy</h3>
+            <p style={{ color: '#334155', fontSize: '0.9rem', lineHeight: '1.4' }}>
               Record a factual dispute regarding this transaction. This case will be stored securely in your private account records.
             </p>
 
             <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '4px' }}>Problem Category *</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>Problem Category *</label>
               <select
                 value={category}
                 onChange={e => setCategory(e.target.value as any)}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               >
                 <option value="DELIVERY_ISSUE">Delivery / Logistics Issue</option>
                 <option value="QUANTITY_ISSUE">Quantity Dispute</option>
@@ -427,45 +438,55 @@ const TransactionDisputeSection: React.FC<{
             </div>
 
             <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '4px' }}>Detailed Description *</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>Detailed Description *</label>
               <textarea
                 rows={3}
                 placeholder="Explain what went wrong in detail..."
                 value={description}
                 onChange={e => setDescription(e.target.value)}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  fontSize: '0.9rem',
+                  fontFamily: 'inherit',
+                }}
               />
             </div>
 
             <div style={{ marginBottom: '12px' }}>
-              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '4px' }}>Optional Evidence / Reference Info</label>
+              <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>Optional Evidence / Reference Info</label>
               <input
                 type="text"
                 placeholder="e.g. Chat message reference, delivery note number, photo reference..."
                 value={evidenceInfo}
                 onChange={e => setEvidenceInfo(e.target.value)}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #d1d5db', boxSizing: 'border-box' }}
+                style={{ width: '100%', boxSizing: 'border-box' }}
               />
             </div>
 
-            <p style={{ color: '#6b7280', fontSize: '0.8rem', lineHeight: '1.4', backgroundColor: '#f3f4f6', padding: '10px', borderRadius: '4px' }}>
-              <em>MavunoTrust records dispute cases for participant reference and guidance. Opening a dispute does not legally alter transaction ownership or automatically submit complaints to government agencies or courts.</em>
+            <p className="tx-modal-note" style={{ fontSize: '0.8rem', lineHeight: '1.4' }}>
+              <em style={{ color: '#64748b' }}>MavunoTrust records dispute cases for participant reference and guidance. Opening a dispute does not legally alter transaction ownership or automatically submit complaints to government agencies or courts.</em>
             </p>
 
-            {error && <div style={{ color: 'red', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</div>}
+            {error && <div style={{ color: '#dc2626', fontSize: '0.85rem', marginBottom: '12px' }}>{error}</div>}
 
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', marginTop: '15px' }}>
               <button
                 onClick={() => setShowModal(false)}
                 disabled={submitLoading}
-                style={{ padding: '8px 16px', backgroundColor: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+                className="tx-btn-secondary"
               >
                 Cancel
               </button>
               <button
                 onClick={handleOpenDispute}
                 disabled={submitLoading}
-                style={{ padding: '8px 16px', backgroundColor: '#d97706', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: submitLoading ? 'not-allowed' : 'pointer' }}
+                style={{ padding: '8px 16px', backgroundColor: '#d97706', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: submitLoading ? 'not-allowed' : 'pointer' }}
               >
                 {submitLoading ? 'Submitting...' : 'Submit Dispute Case'}
               </button>
@@ -516,51 +537,52 @@ const TransactionFulfilmentSection: React.FC<{
 
   const fulfilment = transaction.fulfilment;
   const statusColorMap = {
-    PENDING: { bg: '#fef3c7', text: '#d97706' },
-    IN_PROGRESS: { bg: '#e0f2fe', text: '#0284c7' },
-    FULFILLED: { bg: '#dcfce7', text: '#16a34a' },
+    PENDING: { bg: '#fef3c7', text: '#b45309', border: '#fde68a' },
+    IN_PROGRESS: { bg: '#e0f2fe', text: '#0369a1', border: '#bae6fd' },
+    FULFILLED: { bg: '#dcfce7', text: '#15803d', border: '#bbf7d0' },
   };
   const currentStatus = fulfilment?.status || 'PENDING';
   const badgeStyle = statusColorMap[currentStatus];
 
   return (
-    <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb', backgroundColor: '#fafafa' }}>
+    <div className="tx-white-panel" style={{ padding: '20px', borderTop: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-        <h4 style={{ margin: 0, color: '#111827', fontSize: '1rem' }}>Delivery / Fulfilment</h4>
-        <span style={{ backgroundColor: badgeStyle.bg, color: badgeStyle.text, padding: '4px 10px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem' }}>
+        <h4 style={{ margin: 0, color: '#0f172a', fontSize: '1.05rem', fontWeight: 700 }}>Delivery / Fulfilment</h4>
+        <span style={{ backgroundColor: badgeStyle.bg, color: badgeStyle.text, border: `1px solid ${badgeStyle.border}`, padding: '4px 10px', borderRadius: '12px', fontWeight: 'bold', fontSize: '0.8rem' }}>
           {currentStatus}
         </span>
       </div>
 
-      <p style={{ margin: '0 0 15px 0', fontSize: '0.85rem', color: '#6b7280' }}>
-        Track agreed transport, collection dates, and delivery status. <em>Note: Fulfilment status does not confirm that payment has occurred.</em>
+      <p className="tx-helper-text" style={{ margin: '6px 0 15px 0', fontSize: '0.85rem', color: '#475569' }}>
+        Track agreed transport, collection dates, and delivery status. <em style={{ color: '#64748b' }}>Note: Fulfilment status does not confirm that payment has occurred.</em>
       </p>
 
       {!editing ? (
         <div style={{ fontSize: '0.9rem', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <div><strong>Delivery / Collection Method:</strong> {fulfilment?.method || 'Not specified'}</div>
-          <div><strong>Expected Date:</strong> {fulfilment?.expectedDate ? new Date(fulfilment.expectedDate).toLocaleDateString() : 'Not specified'}</div>
-          {fulfilment?.notes && <div><strong>Fulfilment Notes:</strong> {fulfilment.notes}</div>}
+          <div style={{ color: '#1e293b' }}><strong style={{ color: '#0f172a' }}>Delivery / Collection Method:</strong> {fulfilment?.method || 'Not specified'}</div>
+          <div style={{ color: '#1e293b' }}><strong style={{ color: '#0f172a' }}>Expected Date:</strong> {fulfilment?.expectedDate ? new Date(fulfilment.expectedDate).toLocaleDateString() : 'Not specified'}</div>
+          {fulfilment?.notes && <div style={{ color: '#1e293b' }}><strong style={{ color: '#0f172a' }}>Fulfilment Notes:</strong> {fulfilment.notes}</div>}
           {fulfilment?.actualFulfilmentDate && (
-            <div style={{ color: '#16a34a', fontWeight: 'bold' }}>
+            <div style={{ color: '#15803d', fontWeight: 'bold' }}>
               Fulfilled on: {new Date(fulfilment.actualFulfilmentDate).toLocaleString()}
             </div>
           )}
           <button
             onClick={() => setEditing(true)}
-            style={{ marginTop: '10px', alignSelf: 'flex-start', padding: '6px 14px', backgroundColor: '#e5e7eb', color: '#374151', border: 'none', borderRadius: '4px', fontSize: '0.85rem', fontWeight: 'bold', cursor: 'pointer' }}
+            className="tx-btn-secondary"
+            style={{ marginTop: '8px', alignSelf: 'flex-start' }}
           >
             Update Fulfilment Details
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '12px', backgroundColor: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #d1d5db' }}>
+        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px', backgroundColor: '#ffffff', padding: '16px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '4px' }}>Fulfilment Status</label>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>Fulfilment Status</label>
             <select
               value={status}
               onChange={e => setStatus(e.target.value as any)}
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}
+              style={{ width: '100%', boxSizing: 'border-box' }}
             >
               <option value="PENDING">PENDING</option>
               <option value="IN_PROGRESS">IN_PROGRESS</option>
@@ -569,51 +591,61 @@ const TransactionFulfilmentSection: React.FC<{
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '4px' }}>Delivery / Collection Method</label>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>Delivery / Collection Method</label>
             <input
               type="text"
               placeholder="e.g. Farmer Delivery to Depot, Dealer Farm Pickup"
               value={method}
               onChange={e => setMethod(e.target.value)}
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+              style={{ width: '100%', boxSizing: 'border-box' }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '4px' }}>Expected Delivery/Collection Date</label>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>Expected Delivery/Collection Date</label>
             <input
               type="date"
               value={expectedDate}
               onChange={e => setExpectedDate(e.target.value)}
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+              style={{ width: '100%', boxSizing: 'border-box' }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 'bold', marginBottom: '4px' }}>Fulfilment Notes</label>
+            <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: '#0f172a', marginBottom: '6px' }}>Fulfilment Notes</label>
             <textarea
               rows={2}
               placeholder="Add notes about location, contact person, or transport details..."
               value={notes}
               onChange={e => setNotes(e.target.value)}
-              style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #ccc', boxSizing: 'border-box' }}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                backgroundColor: '#ffffff',
+                color: '#0f172a',
+                border: '1px solid #cbd5e1',
+                borderRadius: '6px',
+                padding: '8px 12px',
+                fontSize: '0.9rem',
+                fontFamily: 'inherit',
+              }}
             />
           </div>
 
-          {error && <div style={{ color: 'red', fontSize: '0.85rem' }}>{error}</div>}
+          {error && <div style={{ color: '#dc2626', fontSize: '0.85rem' }}>{error}</div>}
 
-          <div style={{ display: 'flex', gap: '10px', marginTop: '5px' }}>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '6px' }}>
             <button
               type="submit"
               disabled={loading}
-              style={{ padding: '8px 16px', backgroundColor: '#2563eb', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: loading ? 'not-allowed' : 'pointer' }}
+              style={{ padding: '8px 18px', backgroundColor: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer' }}
             >
               {loading ? 'Saving...' : 'Save Fulfilment Details'}
             </button>
             <button
               type="button"
               onClick={() => setEditing(false)}
-              style={{ padding: '8px 16px', backgroundColor: '#9ca3af', color: 'white', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}
+              className="tx-btn-secondary"
             >
               Cancel
             </button>
@@ -674,44 +706,58 @@ const TransactionRatingSection: React.FC<{ transactionId: string, currentUserId:
   };
 
   return (
-    <div style={{ padding: '0 20px 20px 20px', borderTop: '1px solid #e5e7eb', backgroundColor: '#fdfdfd' }}>
-      <h4 style={{ margin: '15px 0 10px 0', color: '#374151' }}>Ratings & Reviews</h4>
+    <div className="tx-white-panel" style={{ padding: '0 20px 20px 20px', borderTop: '1px solid #e2e8f0', backgroundColor: '#ffffff' }}>
+      <h4 style={{ margin: '15px 0 12px 0', color: '#0f172a', fontSize: '1rem', fontWeight: 700 }}>Ratings & Reviews</h4>
       
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '20px' }}>
         {/* MY RATING SECTION */}
-        <div style={{ backgroundColor: '#f3f4f6', padding: '15px', borderRadius: '8px' }}>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
           {myRating ? (
             <>
-              <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#111827' }}>Your rating</div>
-              <div style={{ color: '#fbbf24', fontSize: '1.2rem', marginBottom: '5px' }}>{renderStars(myRating.rating)}</div>
-              {myRating.comment && <div style={{ fontSize: '0.9rem', color: '#4b5563', fontStyle: 'italic' }}>"{myRating.comment}"</div>}
+              <div style={{ fontWeight: 700, marginBottom: '6px', color: '#0f172a' }}>Your rating</div>
+              <div style={{ color: '#f59e0b', fontSize: '1.25rem', marginBottom: '6px' }}>{renderStars(myRating.rating)}</div>
+              {myRating.comment && <div style={{ fontSize: '0.9rem', color: '#334155', fontStyle: 'italic' }}>"{myRating.comment}"</div>}
             </>
           ) : (
             <div>
-              <div style={{ fontWeight: 'bold', marginBottom: '10px', color: '#111827' }}>Rate your experience with this {counterpartyLabel}</div>
-              <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
+              <div style={{ fontWeight: 700, marginBottom: '10px', color: '#0f172a' }}>Rate your experience with this {counterpartyLabel}</div>
+              <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
                 {[1, 2, 3, 4, 5].map(star => (
                   <span 
                     key={star} 
                     onClick={() => setSelectedRating(star)}
-                    style={{ cursor: 'pointer', color: selectedRating >= star ? '#fbbf24' : '#d1d5db', fontSize: '1.5rem' }}
+                    style={{ cursor: 'pointer', color: selectedRating >= star ? '#f59e0b' : '#cbd5e1', fontSize: '1.5rem', userSelect: 'none' }}
                   >
                     ★
                   </span>
                 ))}
               </div>
               <textarea 
+                className="tx-rating-textarea"
                 placeholder="Write a short review (optional)" 
                 value={comment}
                 onChange={e => setComment(e.target.value)}
-                style={{ width: '100%', padding: '8px', borderRadius: '4px', border: '1px solid #d1d5db', marginBottom: '10px', boxSizing: 'border-box' }}
-                rows={2}
+                style={{
+                  width: '100%',
+                  boxSizing: 'border-box',
+                  marginBottom: '10px',
+                  backgroundColor: '#ffffff',
+                  color: '#0f172a',
+                  border: '1px solid #cbd5e1',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  fontSize: '0.9rem',
+                  lineHeight: '1.5',
+                  fontFamily: 'inherit',
+                  resize: 'vertical',
+                }}
+                rows={3}
               />
-              {error && <div style={{ color: 'red', fontSize: '0.85rem', marginBottom: '10px' }}>{error}</div>}
+              {error && <div style={{ color: '#dc2626', fontSize: '0.85rem', marginBottom: '10px' }}>{error}</div>}
               <button 
                 onClick={handleSubmit}
                 disabled={submitLoading || selectedRating === 0}
-                style={{ backgroundColor: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: (submitLoading || selectedRating === 0) ? 'not-allowed' : 'pointer', opacity: (submitLoading || selectedRating === 0) ? 0.7 : 1 }}
+                style={{ backgroundColor: '#10b981', color: '#ffffff', border: 'none', padding: '7px 14px', borderRadius: '6px', fontWeight: 600, fontSize: '0.85rem', cursor: (submitLoading || selectedRating === 0) ? 'not-allowed' : 'pointer', opacity: (submitLoading || selectedRating === 0) ? 0.7 : 1 }}
               >
                 {submitLoading ? 'Submitting...' : 'Submit Rating'}
               </button>
@@ -720,15 +766,15 @@ const TransactionRatingSection: React.FC<{ transactionId: string, currentUserId:
         </div>
 
         {/* THEIR RATING SECTION */}
-        <div style={{ backgroundColor: '#f3f4f6', padding: '15px', borderRadius: '8px' }}>
-          <div style={{ fontWeight: 'bold', marginBottom: '5px', color: '#111827' }}>Their rating</div>
+        <div style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0', padding: '16px', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontWeight: 700, marginBottom: '6px', color: '#0f172a' }}>Their rating</div>
           {theirRating ? (
             <>
-              <div style={{ color: '#fbbf24', fontSize: '1.2rem', marginBottom: '5px' }}>{renderStars(theirRating.rating)}</div>
-              {theirRating.comment && <div style={{ fontSize: '0.9rem', color: '#4b5563', fontStyle: 'italic' }}>"{theirRating.comment}"</div>}
+              <div style={{ color: '#f59e0b', fontSize: '1.25rem', marginBottom: '6px' }}>{renderStars(theirRating.rating)}</div>
+              {theirRating.comment && <div style={{ fontSize: '0.9rem', color: '#334155', fontStyle: 'italic' }}>"{theirRating.comment}"</div>}
             </>
           ) : (
-            <div style={{ color: '#6b7280', fontSize: '0.9rem' }}>They haven't rated you yet.</div>
+            <div style={{ color: '#64748b', fontSize: '0.9rem' }}>They haven't rated you yet.</div>
           )}
         </div>
       </div>
@@ -770,19 +816,19 @@ export const TransactionsPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div style={{ padding: '20px' }}>Loading transactions...</div>;
-  if (error) return <div style={{ padding: '20px', color: 'red' }}>{error}</div>;
+  if (loading) return <div className="tx-page-wrapper"><p style={{ color: '#a0c4ac', padding: 20 }}>Loading transactions…</p></div>;
+  if (error) return <div className="tx-page-wrapper"><p style={{ color: '#f87171', padding: 20 }}>{error}</p></div>;
 
   return (
-    <div style={{ maxWidth: '1000px', margin: '40px auto', padding: '0 20px', fontFamily: 'sans-serif' }}>
-      <h1 style={{ color: '#111827', marginBottom: '20px' }}>Transaction Records</h1>
+    <div className="tx-page-wrapper">
+      <h1>Transaction Records</h1>
       
-      <div style={{ backgroundColor: '#fff3cd', color: '#856404', padding: '15px', borderRadius: '8px', marginBottom: '30px', border: '1px solid #ffeeba' }}>
+      <div className="tx-notice">
         <strong>Information:</strong> This record shows the terms agreed through MavunoTrust. It does not by itself confirm that payment or delivery has occurred.
       </div>
 
       {transactions.length === 0 ? (
-        <div style={{ textAlign: 'center', color: '#6b7280', padding: '40px' }}>
+        <div className="tx-empty">
           No transaction records found.
         </div>
       ) : (
@@ -791,39 +837,36 @@ export const TransactionsPage: React.FC = () => {
             const isFarmer = user?.role === 'FARMER';
             const counterpartyName = isFarmer ? tx.dealerId.fullName : tx.farmerId.fullName;
             const counterpartyLabel = isFarmer ? 'Dealer' : 'Farmer';
+            const statusKey = (tx.status || '').toLowerCase().replace('_', '_');
             
             return (
-              <div key={tx._id} style={{ border: '1px solid #e5e7eb', borderRadius: '12px', overflow: 'hidden', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }}>
+              <div key={tx._id} className="tx-card-container">
                 {/* Header */}
-                <div style={{ backgroundColor: '#f9fafb', padding: '15px 20px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="tx-card-header">
                   <div>
-                    <h3 style={{ margin: 0, color: '#111827' }}>{tx.cropName}</h3>
-                    <div style={{ fontSize: '0.85rem', color: '#4b5563', marginTop: '4px' }}>
-                      Agreement Date: {new Date(tx.agreementDate).toLocaleDateString()}
-                    </div>
+                    <h3>{tx.cropName}</h3>
+                    <div className="tx-date">Agreement: {new Date(tx.agreementDate).toLocaleDateString()}</div>
                   </div>
-                  <div style={{ backgroundColor: '#dcfce7', color: '#059669', padding: '6px 12px', borderRadius: '20px', fontWeight: 'bold', fontSize: '0.85rem' }}>
-                    {tx.status}
-                  </div>
+                  <span className={`tx-status ${statusKey}`}>{tx.status}</span>
                 </div>
 
                 {/* Body */}
-                <div style={{ padding: '20px', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px', backgroundColor: '#ffffff' }}>
+                <div className="tx-card-body">
                   <div>
-                    <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '4px' }}>Quantity</div>
-                    <div style={{ fontWeight: 'bold', color: '#111827' }}>{tx.quantity} {tx.unit}</div>
+                    <div className="tx-field-label">Quantity</div>
+                    <div className="tx-field-value">{tx.quantity} {tx.unit}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '4px' }}>Agreed Price Per Unit</div>
-                    <div style={{ fontWeight: 'bold', color: '#111827' }}>{tx.currency} {tx.agreedPricePerUnit.toLocaleString()}</div>
+                    <div className="tx-field-label">Agreed Price / Unit</div>
+                    <div className="tx-field-value">{tx.currency} {tx.agreedPricePerUnit.toLocaleString()}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '4px' }}>Total Agreed Value</div>
-                    <div style={{ fontWeight: 'bold', color: '#111827' }}>{tx.currency} {tx.totalAgreedValue.toLocaleString()}</div>
+                    <div className="tx-field-label">Total Value</div>
+                    <div className="tx-field-value" style={{ color: '#5ec285' }}>{tx.currency} {tx.totalAgreedValue.toLocaleString()}</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.85rem', color: '#6b7280', marginBottom: '4px' }}>{counterpartyLabel}</div>
-                    <div style={{ fontWeight: 'bold', color: '#111827' }}>{counterpartyName}</div>
+                    <div className="tx-field-label">{counterpartyLabel}</div>
+                    <div className="tx-field-value">{counterpartyName}</div>
                   </div>
                 </div>
 
@@ -840,10 +883,10 @@ export const TransactionsPage: React.FC = () => {
                 <TransactionDisputeSection transaction={tx} onUpdate={fetchTransactions} />
 
                 {/* Footer Actions */}
-                <div style={{ backgroundColor: '#f9fafb', padding: '15px 20px', borderTop: '1px solid #e5e7eb', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button 
+                <div className="tx-card-footer">
+                  <button
                     onClick={() => handleMessageUser(tx)}
-                    style={{ backgroundColor: '#4f46e5', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
+                    className="btn-sm btn-sm-primary"
                   >
                     Message {counterpartyLabel}
                   </button>
@@ -853,7 +896,7 @@ export const TransactionsPage: React.FC = () => {
                 {user && (
                   <TransactionRatingSection 
                     transactionId={tx._id} 
-                    currentUserId={(user as any).userId || (user as any)._id} 
+                    currentUserId={user.id || (user as any)._id || (user as any).userId} 
                     counterpartyLabel={counterpartyLabel} 
                   />
                 )}

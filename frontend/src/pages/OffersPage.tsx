@@ -1,151 +1,184 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../context/AuthContext';
 import { getMyOffers, respondToOffer } from '../services/offerService';
 import type { OfferDTO } from '../services/offerService';
-import { useNavigate } from 'react-router-dom';
 import { createOrGetConversation } from '../services/chatService';
+import {
+  HandshakeIcon, CheckCircle2, XCircle, ArrowLeftRight,
+  MessageSquare, AlertTriangle, RefreshCw, Calendar, Package,
+} from 'lucide-react';
+import LoadSpinner from '../components/LoadSpinner';
+import '../styles/pages.css';
+
+const statusLabel: Record<string, string> = {
+  PENDING: 'Pending', ACCEPTED: 'Accepted', REJECTED: 'Rejected',
+  WITHDRAWN: 'Withdrawn', CANCELLED: 'Cancelled', COMPLETED: 'Completed',
+};
+const statusClass: Record<string, string> = {
+  PENDING: 'pending', ACCEPTED: 'accepted', REJECTED: 'rejected',
+  WITHDRAWN: 'cancelled', CANCELLED: 'cancelled', COMPLETED: 'accepted',
+};
 
 export const OffersPage: React.FC = () => {
   const { user } = useAuthContext();
   const navigate = useNavigate();
   const [offers, setOffers] = useState<OfferDTO[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchOffers();
-  }, []);
+  useEffect(() => { fetchOffers(); }, []);
 
   const fetchOffers = async () => {
     try {
-      setLoading(true);
-      const data = await getMyOffers();
-      setOffers(data);
+      setLoading(true); setError(null);
+      setOffers(await getMyOffers());
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to fetch offers.');
-    } finally {
-      setLoading(false);
-    }
+    } finally { setLoading(false); }
   };
 
   const handleAction = async (id: string, action: 'ACCEPT' | 'REJECT' | 'CANCEL') => {
     try {
       await respondToOffer(id, action);
-      alert(`Offer ${action.toLowerCase()}ed successfully.`);
       fetchOffers();
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Failed to perform action.');
     }
   };
 
-  const handleMessageUser = async (offer: OfferDTO) => {
+  const handleMessage = async (offer: OfferDTO) => {
     try {
       const isFarmer = user?.role === 'FARMER';
-      const targetUserId = isFarmer ? offer.dealerId?._id : offer.farmerId?._id;
-      if (!targetUserId) return;
-      
-      const conversation = await createOrGetConversation(targetUserId, offer._id);
-      navigate(`/messages?conversationId=${conversation._id}`);
+      const targetId = isFarmer ? offer.dealerId?._id : offer.farmerId?._id;
+      if (!targetId) return;
+      const conv = await createOrGetConversation(targetId, offer._id);
+      navigate(`/messages?conversationId=${conv._id}`);
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Failed to open conversation.');
     }
   };
 
-  if (loading) return <div style={{ padding: '20px' }}>Loading offers...</div>;
-  if (error) return <div style={{ padding: '20px', color: 'red' }}>{error}</div>;
+  const isFarmer = user?.role === 'FARMER';
 
   return (
-    <div style={{ maxWidth: '900px', margin: '0 auto', padding: '20px', fontFamily: 'sans-serif' }}>
-      <h2 style={{ color: '#111827', marginBottom: '20px' }}>Negotiation Centre</h2>
-      
-      {offers.length === 0 ? (
-        <p>You have no active or past offers.</p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+    <div className="page-wrapper">
+      <div className="page-header">
+        <div className="page-header-icon green">
+          <HandshakeIcon size={22} />
+        </div>
+        <div>
+          <h1 className="page-title">Negotiation Centre</h1>
+          <p className="page-subtitle">Manage trade offers, counteroffers, and agreements with your trading partners.</p>
+        </div>
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+        <button className="btn btn-outline" onClick={fetchOffers} disabled={loading} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <RefreshCw size={15} /> Refresh
+        </button>
+      </div>
+
+      {loading && <LoadSpinner fullPage={false} size="md" text="Loading offers…" />}
+
+      {!loading && error && (
+        <div className="state-card state-card--error">
+          <AlertTriangle size={20} />
+          <span className="state-title">Could not load offers</span>
+          <span className="state-desc">{error}</span>
+          <button className="btn btn-outline" onClick={fetchOffers}>Retry</button>
+        </div>
+      )}
+
+      {!loading && !error && offers.length === 0 && (
+        <div className="state-card">
+          <HandshakeIcon size={28} />
+          <span className="state-title">No offers yet</span>
+          <span className="state-desc">You have no active or past trade offers. Find a dealer to start negotiating.</span>
+        </div>
+      )}
+
+      {!loading && !error && offers.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
           {offers.map(offer => {
-            const isFarmer = user?.role === 'FARMER';
-            const counterpartyName = isFarmer ? offer.dealerId?.fullName : offer.farmerId?.fullName;
-            
+            const counterparty = isFarmer ? offer.dealerId?.fullName : offer.farmerId?.fullName;
+            const canRespond = offer.status === 'PENDING' &&
+              ((offer.initiatedBy === 'FARMER' && user?.role === 'DEALER') ||
+               (offer.initiatedBy === 'DEALER' && user?.role === 'FARMER'));
+
             return (
-              <div key={offer._id} style={{ border: '1px solid #e5e7eb', borderRadius: '8px', padding: '20px', backgroundColor: '#fff' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '10px' }}>
+              <div key={offer._id} className="offer-card">
+                <div className="offer-header">
                   <div>
-                    <span style={{ fontSize: '0.8rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    <p className="offer-title">
+                      {offer.quantity} {offer.unit} — {offer.currency} {offer.proposedPricePerUnit}/{offer.unit}
+                    </p>
+                    <p className="offer-sub">
+                      {counterparty ? `With ${counterparty}` : 'Unknown party'} ·{' '}
+                      <Calendar size={11} style={{ display: 'inline', verticalAlign: 'middle' }} />{' '}
                       {new Date(offer.createdAt).toLocaleDateString()}
-                    </span>
-                    <h3 style={{ margin: '5px 0 0 0', color: '#111827' }}>
-                      {offer.quantity} {offer.unit} at {offer.currency} {offer.proposedPricePerUnit} / {offer.unit}
-                    </h3>
+                    </p>
                   </div>
-                  <div style={{ 
-                    padding: '4px 10px', 
-                    borderRadius: '20px', 
-                    fontSize: '0.8rem', 
-                    fontWeight: 'bold',
-                    backgroundColor: offer.status === 'ACCEPTED' ? '#dcfce7' : offer.status === 'REJECTED' || offer.status === 'WITHDRAWN' ? '#fee2e2' : '#e0e7ff',
-                    color: offer.status === 'ACCEPTED' ? '#166534' : offer.status === 'REJECTED' || offer.status === 'WITHDRAWN' ? '#991b1b' : '#3730a3'
-                  }}>
-                    {offer.status}
-                  </div>
+                  <span className={`offer-status-badge ${statusClass[offer.status] || 'pending'}`}>
+                    {statusLabel[offer.status] || offer.status}
+                  </span>
                 </div>
 
-                <div style={{ marginBottom: '15px', color: '#4b5563', fontSize: '0.95rem' }}>
-                  <strong>Counterparty:</strong> {counterpartyName || 'Unknown'}<br />
-                  <strong>Total Value:</strong> {offer.currency} {offer.totalAmount}
+                <div className="offer-details">
+                  <div className="offer-detail">
+                    <span className="offer-detail-label">Total Value</span>
+                    <span className="offer-detail-value">{offer.currency} {offer.totalAmount?.toLocaleString()}</span>
+                  </div>
+                  <div className="offer-detail">
+                    <span className="offer-detail-label">Initiated By</span>
+                    <span className="offer-detail-value">{offer.initiatedBy}</span>
+                  </div>
+                  {offer.cropName && (
+                    <div className="offer-detail">
+                      <span className="offer-detail-label"><Package size={11} /> Crop</span>
+                      <span className="offer-detail-value">{offer.cropName}</span>
+                    </div>
+                  )}
                 </div>
 
                 {offer.message && (
-                  <div style={{ backgroundColor: '#f9fafb', padding: '10px', borderRadius: '6px', marginBottom: '15px', fontStyle: 'italic', color: '#374151', fontSize: '0.9rem' }}>
+                  <div className="offer-message-box">
                     "{offer.message}"
                   </div>
                 )}
 
-                {offer.status === 'PENDING' && (
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                    {((offer.initiatedBy === 'FARMER' && user?.role === 'DEALER') || 
-                      (offer.initiatedBy === 'DEALER' && user?.role === 'FARMER')) ? (
-                      <>
-                        <button 
-                          onClick={() => handleAction(offer._id, 'ACCEPT')}
-                          style={{ padding: '8px 16px', backgroundColor: '#16a34a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                        >
-                          Accept
-                        </button>
-                        <button 
-                          onClick={() => handleAction(offer._id, 'REJECT')}
-                          style={{ padding: '8px 16px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                        >
-                          Reject
-                        </button>
-                        <button 
-                          onClick={() => navigate(`/offers/${offer._id}/counter`)}
-                          style={{ padding: '8px 16px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                        >
-                          Counteroffer
-                        </button>
-                      </>
-                    ) : (
-                      <button 
-                        onClick={() => handleAction(offer._id, 'CANCEL')}
-                        style={{ padding: '8px 16px', backgroundColor: '#9ca3af', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                      >
-                        Cancel Offer
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => handleMessageUser(offer)}
-                      style={{ padding: '8px 16px', backgroundColor: '#0ea5e9', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                    >
-                      Message {isFarmer ? 'Dealer' : 'Farmer'}
-                    </button>
-                  </div>
-                )}
-                
                 {offer.status === 'ACCEPTED' && (
-                  <div style={{ marginTop: '15px', padding: '10px', backgroundColor: '#dcfce7', borderRadius: '6px', color: '#166534', fontSize: '0.9rem' }}>
-                    <strong>Offer Accepted.</strong> A separate transaction record will be created for this agreement.
+                  <div className="info-notice">
+                    <CheckCircle2 size={15} />
+                    <span>Offer accepted. A transaction record has been created for this agreement.</span>
                   </div>
                 )}
+
+                <div className="offer-actions">
+                  {canRespond && (
+                    <>
+                      <button className="btn-sm btn-sm-primary" onClick={() => handleAction(offer._id, 'ACCEPT')}>
+                        <CheckCircle2 size={14} /> Accept
+                      </button>
+                      <button className="btn-sm btn-sm-danger" onClick={() => handleAction(offer._id, 'REJECT')}>
+                        <XCircle size={14} /> Reject
+                      </button>
+                      <button className="btn-sm btn-sm-outline" onClick={() => navigate(`/offers/${offer._id}/counter`)}>
+                        <ArrowLeftRight size={14} /> Counteroffer
+                      </button>
+                    </>
+                  )}
+                  {offer.status === 'PENDING' && !canRespond && (
+                    <button className="btn-sm btn-sm-outline" onClick={() => handleAction(offer._id, 'CANCEL')}>
+                      <XCircle size={14} /> Cancel Offer
+                    </button>
+                  )}
+                  {offer.status === 'PENDING' && (
+                    <button className="btn-sm btn-sm-outline" onClick={() => handleMessage(offer)}>
+                      <MessageSquare size={14} /> Message {isFarmer ? 'Dealer' : 'Farmer'}
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
@@ -154,3 +187,5 @@ export const OffersPage: React.FC = () => {
     </div>
   );
 };
+
+export default OffersPage;

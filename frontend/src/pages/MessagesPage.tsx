@@ -1,50 +1,137 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuthContext } from '../context/AuthContext';
-import { getConversations, getMessages, sendMessage } from '../services/chatService';
+import {
+  getConversations,
+  getConversationById,
+  createOrGetConversation,
+  getMessages,
+  sendMessage
+} from '../services/chatService';
 import type { ConversationDTO, MessageDTO } from '../services/chatService';
 import { socketService } from '../services/socketService';
 import { useLocation } from 'react-router-dom';
-import { Lock } from 'lucide-react';
+import {
+  MessageSquare,
+  Send,
+  Lock,
+  Search,
+  ChevronLeft,
+  Check,
+  CheckCheck,
+} from 'lucide-react';
+import LoadSpinner from '../components/LoadSpinner';
+import './MessagesPage.css';
 
 export const MessagesPage: React.FC = () => {
   const { user, accessToken } = useAuthContext();
   const location = useLocation();
-  const queryParams = new URLSearchParams(location.search);
-  const initialConversationId = queryParams.get('conversationId');
+  const currentUserId = user?.id || (user as any)?._id;
 
   const [conversations, setConversations] = useState<ConversationDTO[]>([]);
-  const [activeConversationId, setActiveConversationId] = useState<string | null>(initialConversationId);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeConversationId, setActiveConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<MessageDTO[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [sending, setSending] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Initial load of conversations and socket setup
   useEffect(() => {
     fetchConversations();
 
     if (accessToken) {
       socketService.connect(accessToken);
-      
+
       socketService.onNewMessage((newMsg: MessageDTO) => {
-        setMessages(prev => {
-          // Deduplicate based on _id (so REST response + WS event don't duplicate)
-          if (prev.some(m => m._id === newMsg._id)) return prev;
+        setMessages((prev) => {
+          if (prev.some((m) => m._id === newMsg._id)) return prev;
           return [...prev, newMsg];
         });
+
+        // Update conversation list snippet and move to top
+        setConversations((prev) => {
+          const copy = [...prev];
+          const idx = copy.findIndex((c) => c._id === newMsg.conversationId);
+          if (idx !== -1) {
+            copy[idx] = {
+              ...copy[idx],
+              lastMessageAt: newMsg.createdAt,
+              lastMessageText: newMsg.content,
+              lastMessageSenderId: newMsg.senderId,
+              lastMessageStatus: newMsg.status,
+            };
+            const [moved] = copy.splice(idx, 1);
+            copy.unshift(moved);
+          }
+          return copy;
+        });
+      });
+
+      socketService.onMessagesRead(({ conversationId }) => {
+        setMessages((prev) =>
+          prev.map((m) => (m.senderId === currentUserId ? { ...m, status: 'READ' } : m))
+        );
+        setConversations((prev) =>
+          prev.map((c) => (c._id === conversationId ? { ...c, lastMessageStatus: 'READ' } : c))
+        );
       });
     }
 
     return () => {
       socketService.disconnect();
     };
-  }, [accessToken]);
+  }, [accessToken, currentUserId]);
+
+  // Synchronize URL search params (e.g. ?conversationId=... or ?recipientId=... or ?userId=... or ?dealerId=...)
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const convId = queryParams.get('conversationId');
+    const targetUserId = queryParams.get('userId') || queryParams.get('recipientId') || queryParams.get('dealerId');
+
+    if (convId) {
+      setActiveConversationId(convId);
+      // Ensure conversation exists in state
+      if (!conversations.some((c) => c._id === convId)) {
+        getConversationById(convId)
+          .then((conv) => {
+            setConversations((prev) => {
+              if (prev.some((c) => c._id === conv._id)) return prev;
+              return [conv, ...prev];
+            });
+          })
+          .catch(console.error);
+      }
+    } else if (targetUserId && !loading) {
+      // Find existing or create new conversation with this user
+      const existing = conversations.find((c) =>
+        c.participants.some((p) => p._id === targetUserId)
+      );
+
+      if (existing) {
+        setActiveConversationId(existing._id);
+      } else {
+        createOrGetConversation(targetUserId)
+          .then((newConv) => {
+            setConversations((prev) => {
+              if (prev.some((c) => c._id === newConv._id)) return prev;
+              return [newConv, ...prev];
+            });
+            setActiveConversationId(newConv._id);
+          })
+          .catch(console.error);
+      }
+    }
+  }, [location.search, loading]);
 
   useEffect(() => {
     if (activeConversationId) {
       fetchMessages(activeConversationId);
       socketService.joinConversation(activeConversationId);
+      setTimeout(() => inputRef.current?.focus(), 150);
     }
   }, [activeConversationId]);
 
@@ -61,12 +148,33 @@ export const MessagesPage: React.FC = () => {
       setLoading(true);
       const data = await getConversations();
       setConversations(data);
-      if (data.length > 0 && !activeConversationId) {
+
+      const queryParams = new URLSearchParams(location.search);
+      const convId = queryParams.get('conversationId');
+      const targetUserId = queryParams.get('userId') || queryParams.get('recipientId') || queryParams.get('dealerId');
+
+      if (convId) {
+        setActiveConversationId(convId);
+      } else if (targetUserId) {
+        const existing = data.find((c) =>
+          c.participants.some((p) => p._id === targetUserId)
+        );
+        if (existing) {
+          setActiveConversationId(existing._id);
+        } else {
+          try {
+            const newConv = await createOrGetConversation(targetUserId);
+            setConversations([newConv, ...data]);
+            setActiveConversationId(newConv._id);
+          } catch (err) {
+            console.error('Failed to create/get conversation for user:', err);
+          }
+        }
+      } else if (data.length > 0 && !activeConversationId && window.innerWidth > 680) {
         setActiveConversationId(data[0]._id);
       }
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.error?.message || 'Failed to load conversations.');
     } finally {
       setLoading(false);
     }
@@ -79,7 +187,6 @@ export const MessagesPage: React.FC = () => {
       setMessages(data);
     } catch (err: any) {
       console.error(err);
-      alert(err.response?.data?.error?.message || 'Failed to load messages.');
     } finally {
       setMessagesLoading(false);
     }
@@ -87,20 +194,30 @@ export const MessagesPage: React.FC = () => {
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!activeConversationId || !newMessage.trim()) return;
+    if (!activeConversationId || !newMessage.trim() || sending) return;
 
+    const messageText = newMessage.trim();
     try {
-      const sentMsg = await sendMessage(activeConversationId, newMessage.trim());
-      setMessages(prev => [...prev, sentMsg]);
+      setSending(true);
+      const sentMsg = await sendMessage(activeConversationId, messageText);
+      setMessages((prev) => {
+        if (prev.some((m) => m._id === sentMsg._id)) return prev;
+        return [...prev, sentMsg];
+      });
       setNewMessage('');
-      
-      // Update last message time in conversation list
-      setConversations(prev => {
+
+      // Update last message time & snippet in conversation list & bubble to top
+      setConversations((prev) => {
         const copy = [...prev];
-        const idx = copy.findIndex(c => c._id === activeConversationId);
+        const idx = copy.findIndex((c) => c._id === activeConversationId);
         if (idx !== -1) {
-          copy[idx] = { ...copy[idx], lastMessageAt: new Date().toISOString() };
-          // Move to top
+          copy[idx] = {
+            ...copy[idx],
+            lastMessageAt: new Date().toISOString(),
+            lastMessageText: messageText,
+            lastMessageSenderId: currentUserId,
+            lastMessageStatus: 'SENT',
+          };
           const [moved] = copy.splice(idx, 1);
           copy.unshift(moved);
         }
@@ -108,99 +225,231 @@ export const MessagesPage: React.FC = () => {
       });
     } catch (err: any) {
       alert(err.response?.data?.error?.message || 'Failed to send message.');
+    } finally {
+      setSending(false);
     }
   };
 
-  const activeConversation = conversations.find(c => c._id === activeConversationId);
+  const activeConversation = conversations.find((c) => c._id === activeConversationId);
+  const activeCounterparty = activeConversation?.participants.find((p) => p._id !== currentUserId);
 
-  if (loading) return <div style={{ padding: '20px' }}>Loading messages...</div>;
+  // Filter conversations
+  const filteredConversations = conversations.filter((c) => {
+    const cp = c.participants.find((p) => p._id !== currentUserId);
+    const nameMatch = cp?.fullName?.toLowerCase().includes(searchQuery.toLowerCase());
+    const cropMatch = c.relatedListingId?.cropName?.toLowerCase().includes(searchQuery.toLowerCase());
+    return nameMatch || cropMatch;
+  });
+
+  const formatTime = (isoString?: string) => {
+    if (!isoString) return '';
+    const date = new Date(isoString);
+    const now = new Date();
+    const isToday =
+      date.getDate() === now.getDate() &&
+      date.getMonth() === now.getMonth() &&
+      date.getFullYear() === now.getFullYear();
+
+    if (isToday) {
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+  };
 
   return (
-    <div style={{ display: 'flex', height: 'calc(100vh - 64px)', maxWidth: '1200px', margin: '0 auto', fontFamily: 'sans-serif' }}>
-      
-      {/* Sidebar - Conversation List */}
-      <div style={{ width: '30%', borderRight: '1px solid #e5e7eb', backgroundColor: '#f9fafb', overflowY: 'auto' }}>
-        <h2 style={{ padding: '20px', margin: 0, borderBottom: '1px solid #e5e7eb', fontSize: '1.25rem', color: '#111827' }}>Conversations</h2>
-        
-        {conversations.length === 0 ? (
-          <div style={{ padding: '20px', color: '#6b7280' }}>No conversations yet.</div>
-        ) : (
-          conversations.map(convo => {
-            const counterparty = convo.participants.find(p => p._id !== user?.id);
-            const isSelected = activeConversationId === convo._id;
-            
-            return (
-              <div 
-                key={convo._id} 
-                onClick={() => setActiveConversationId(convo._id)}
-                style={{ 
-                  padding: '15px 20px', 
-                  borderBottom: '1px solid #e5e7eb', 
-                  cursor: 'pointer',
-                  backgroundColor: isSelected ? '#e0e7ff' : 'transparent',
-                  transition: 'background-color 0.2s'
-                }}
-              >
-                <div style={{ fontWeight: 'bold', color: '#111827', marginBottom: '4px' }}>
-                  {counterparty?.fullName || 'Unknown User'}
-                </div>
-                <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
-                  {convo.relatedListingId ? `${convo.relatedListingId.cropName} (${convo.relatedListingId.estimatedQuantity} ${convo.relatedListingId.unit})` : 'Offer Discussion'}
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
+    <div className="messages-container">
+      {/* ── Left Sidebar (Conversations List) ── */}
+      <aside
+        className={`messages-sidebar ${
+          activeConversationId ? 'messages-sidebar--hidden' : ''
+        }`}
+        aria-label="Conversations"
+      >
+        <div className="messages-sidebar-header">
+          <div className="messages-sidebar-title-row">
+            <h2 className="messages-sidebar-title">
+              <MessageSquare size={19} className="text-emerald" />
+              Messages
+            </h2>
+            <span className="messages-sidebar-count">
+              {conversations.length} {conversations.length === 1 ? 'chat' : 'chats'}
+            </span>
+          </div>
 
-      {/* Main Chat Area */}
-      <div style={{ width: '70%', display: 'flex', flexDirection: 'column', backgroundColor: '#ffffff' }}>
+          <div className="messages-search-wrap">
+            <Search size={15} className="messages-search-icon" />
+            <input
+              type="text"
+              className="messages-search-input"
+              placeholder="Search conversations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <div className="messages-conv-list">
+          {loading ? (
+            <div style={{ padding: '40px 0' }}>
+              <LoadSpinner size="sm" text="Loading chats..." />
+            </div>
+          ) : filteredConversations.length === 0 ? (
+            <div className="messages-empty-sidebar">
+              <MessageSquare size={36} opacity={0.4} />
+              <span>{searchQuery ? 'No matching conversations' : 'No active conversations'}</span>
+            </div>
+          ) : (
+            filteredConversations.map((convo) => {
+              const counterparty = convo.participants.find((p) => p._id !== currentUserId);
+              const isSelected = activeConversationId === convo._id;
+              const initial = counterparty?.fullName?.charAt(0).toUpperCase() || 'U';
+
+              return (
+                <button
+                  type="button"
+                  key={convo._id}
+                  onClick={() => setActiveConversationId(convo._id)}
+                  className={`messages-conv-item ${
+                    isSelected ? 'messages-conv-item--active' : ''
+                  }`}
+                >
+                  <div className="messages-avatar">{initial}</div>
+                  <div className="messages-conv-details">
+                    <div className="messages-conv-header">
+                      <span className="messages-conv-name">
+                        {counterparty?.fullName || 'User'}
+                      </span>
+                      <span className="messages-conv-time">
+                        {formatTime(convo.lastMessageAt || convo.updatedAt)}
+                      </span>
+                    </div>
+
+                    <div className="messages-conv-sub">
+                      {convo.lastMessageText ? (
+                        <span className="messages-snippet-text">
+                          {convo.lastMessageSenderId === currentUserId && (
+                            <span className="snippet-you">You: </span>
+                          )}
+                          {convo.lastMessageText}
+                        </span>
+                      ) : convo.relatedListingId ? (
+                        <span className="messages-crop-badge">
+                          {convo.relatedListingId.cropName} &middot; {convo.relatedListingId.estimatedQuantity} {convo.relatedListingId.unit}
+                        </span>
+                      ) : (
+                        <span className="messages-snippet-empty">Tap to start chatting</span>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })
+          )}
+        </div>
+      </aside>
+
+      {/* ── Main Chat Area ── */}
+      <section
+        className={`messages-main ${
+          !activeConversationId ? 'messages-main--hidden' : ''
+        }`}
+        aria-label="Active Conversation"
+      >
         {activeConversation ? (
           <>
-            {/* Chat Header */}
-            <div style={{ padding: '15px 20px', borderBottom: '1px solid #e5e7eb', backgroundColor: '#ffffff', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h3 style={{ margin: '0 0 5px 0', color: '#111827' }}>
-                  {activeConversation.participants.find(p => p._id !== user?.id)?.fullName || 'Unknown'}
-                </h3>
-                {activeConversation.relatedListingId && (
-                  <div style={{ fontSize: '0.85rem', color: '#4b5563' }}>
-                    <strong>Crop:</strong> {activeConversation.relatedListingId.cropName} | {activeConversation.relatedListingId.estimatedQuantity} {activeConversation.relatedListingId.unit}
+            {/* Header */}
+            <div className="messages-chat-header">
+              <div className="messages-chat-header-left">
+                {/* Mobile Back Button */}
+                <button
+                  type="button"
+                  className="messages-back-btn"
+                  onClick={() => setActiveConversationId(null)}
+                  aria-label="Back to conversations list"
+                >
+                  <ChevronLeft size={20} />
+                </button>
+
+                <div className="messages-avatar" style={{ width: 38, height: 38, fontSize: '0.85rem' }}>
+                  {activeCounterparty?.fullName?.charAt(0).toUpperCase() || 'U'}
+                </div>
+
+                <div className="messages-chat-title-group">
+                  <h3 className="messages-chat-counterparty">
+                    {activeCounterparty?.fullName || 'Counterparty'}
+                  </h3>
+                  <div className="messages-chat-sub">
+                    {activeConversation.relatedListingId ? (
+                      <span>
+                        Produce: <strong style={{ color: '#5ec285' }}>{activeConversation.relatedListingId.cropName}</strong> ({activeConversation.relatedListingId.estimatedQuantity} {activeConversation.relatedListingId.unit})
+                      </span>
+                    ) : (
+                      <span className="messages-direct-badge">Direct Chat</span>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669', fontSize: '0.85rem', fontWeight: 'bold', backgroundColor: '#dcfce7', padding: '6px 12px', borderRadius: '20px' }}>
-                <Lock size={15} /> Private Chat
+
+              <div className="messages-secure-badge">
+                <Lock size={13} />
+                <span>Audited Deal Room</span>
               </div>
             </div>
 
-            {/* Message History */}
-            <div style={{ flex: 1, padding: '20px', overflowY: 'auto', backgroundColor: '#f3f4f6', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {/* Messages Scroll Area */}
+            <div className="messages-history">
               {messagesLoading ? (
-                <div style={{ textAlign: 'center', color: '#6b7280' }}>Loading messages...</div>
+                <div style={{ padding: '60px 0' }}>
+                  <LoadSpinner size="md" text="Loading message history..." />
+                </div>
               ) : messages.length === 0 ? (
-                <div style={{ textAlign: 'center', color: '#6b7280', marginTop: '20px' }}>
-                  No messages yet. Start the conversation.
+                <div className="messages-no-chat-selected" style={{ height: '100%' }}>
+                  <div className="messages-no-chat-icon">
+                    <MessageSquare size={28} />
+                  </div>
+                  <h4 className="messages-no-chat-heading">
+                    {activeCounterparty?.fullName ? `Chat with ${activeCounterparty.fullName}` : 'Start the Negotiation'}
+                  </h4>
+                  <p className="messages-no-chat-sub">
+                    Send a direct message to inquire about produce requirements, pricing, pickup schedules, or contract terms.
+                  </p>
                 </div>
               ) : (
-                messages.map(msg => {
-                  const isMine = msg.senderId === user?.id;
+                messages.map((msg) => {
+                  const isMine = msg.senderId === currentUserId;
+
                   return (
-                    <div key={msg._id} style={{ display: 'flex', justifyContent: 'space-between', flexDirection: isMine ? 'row-reverse' : 'row' }}>
-                      <div style={{ 
-                        maxWidth: '60%', 
-                        padding: '12px 16px', 
-                        borderRadius: '12px', 
-                        backgroundColor: isMine ? '#4f46e5' : '#ffffff',
-                        color: isMine ? '#ffffff' : '#111827',
-                        border: isMine ? 'none' : '1px solid #e5e7eb',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.05)',
-                        borderBottomRightRadius: isMine ? '4px' : '12px',
-                        borderBottomLeftRadius: isMine ? '12px' : '4px'
-                      }}>
-                        <div style={{ wordBreak: 'break-word', whiteSpace: 'pre-wrap' }}>{msg.content}</div>
-                        <div style={{ fontSize: '0.7rem', marginTop: '6px', textAlign: isMine ? 'right' : 'left', opacity: 0.7 }}>
-                          {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    <div
+                      key={msg._id}
+                      className={`messages-row ${
+                        isMine ? 'messages-row--mine' : 'messages-row--theirs'
+                      }`}
+                    >
+                      <div
+                        className={`messages-bubble ${
+                          isMine ? 'messages-bubble--mine' : 'messages-bubble--theirs'
+                        }`}
+                      >
+                        <div className="messages-bubble-text">{msg.content}</div>
+                        <div className="messages-bubble-footer">
+                          <span>
+                            {new Date(msg.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                          {isMine && (
+                            msg.status === 'READ' ? (
+                              <span className="msg-status-badge msg-status-seen" title="Read by recipient">
+                                <CheckCheck size={13} className="seen-check" />
+                                <span>Seen</span>
+                              </span>
+                            ) : (
+                              <span className="msg-status-badge msg-status-sent" title="Sent">
+                                <Check size={12} className="sent-check" />
+                              </span>
+                            )
+                          )}
                         </div>
                       </div>
                     </div>
@@ -210,42 +459,49 @@ export const MessagesPage: React.FC = () => {
               <div ref={messagesEndRef} />
             </div>
 
-            {/* Input Area */}
-            <div style={{ padding: '20px', borderTop: '1px solid #e5e7eb', backgroundColor: '#ffffff' }}>
-              <form onSubmit={handleSendMessage} style={{ display: 'flex', gap: '10px' }}>
+            {/* Input Bar */}
+            <div className="messages-input-area">
+              <form onSubmit={handleSendMessage} className="messages-form">
                 <input
+                  ref={inputRef}
                   type="text"
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
-                  placeholder="Type your message here..."
-                  style={{ flex: 1, padding: '12px 16px', border: '1px solid #d1d5db', borderRadius: '8px', fontSize: '1rem', outline: 'none' }}
+                  placeholder={
+                    activeCounterparty
+                      ? `Type a message to ${activeCounterparty.fullName}...`
+                      : 'Type negotiation terms, price offers, or questions...'
+                  }
+                  className="messages-input"
+                  disabled={sending}
+                  autoFocus
                 />
                 <button
                   type="submit"
-                  disabled={!newMessage.trim()}
-                  style={{ 
-                    padding: '12px 24px', 
-                    backgroundColor: newMessage.trim() ? '#4f46e5' : '#9ca3af', 
-                    color: 'white', 
-                    border: 'none', 
-                    borderRadius: '8px', 
-                    fontWeight: 'bold', 
-                    cursor: newMessage.trim() ? 'pointer' : 'not-allowed',
-                    transition: 'background-color 0.2s'
-                  }}
+                  disabled={!newMessage.trim() || sending}
+                  className="messages-send-btn"
+                  aria-label="Send message"
                 >
-                  Send
+                  <Send size={16} />
+                  <span>Send</span>
                 </button>
               </form>
             </div>
           </>
         ) : (
-          <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#6b7280', fontSize: '1.1rem' }}>
-            Select a conversation to start messaging.
+          <div className="messages-no-chat-selected">
+            <div className="messages-no-chat-icon">
+              <MessageSquare size={32} />
+            </div>
+            <h3 className="messages-no-chat-heading">Select a Conversation</h3>
+            <p className="messages-no-chat-sub">
+              Choose an active deal from the left sidebar to review terms and coordinate directly with buyers or farmers.
+            </p>
           </div>
         )}
-      </div>
-
+      </section>
     </div>
   );
 };
+
+export default MessagesPage;

@@ -26,7 +26,7 @@ MavunoTrust is an agricultural trade platform designed to connect farmers and li
 | Layer | Technology |
 |-------|-----------|
 | **Frontend** | React 19, TypeScript, Vite, React Router v7, Lucide React Icons (`lucide-react`), Socket.io Client |
-| **Backend** | Node.js, Express, TypeScript, Mongoose, Socket.io Server |
+| **Backend** | Node.js, Express, Mongoose, Socket.io Server |
 | **Database** | MongoDB / MongoDB Atlas |
 | **Security** | Argon2id password hashing, JWT Access/Refresh tokens, CORS, Rate Limiting |
 | **External Integrations** | ShambaRecords HMAC Market API, ElevenLabs Voice AI, KENAFF Legal Guidelines |
@@ -46,7 +46,6 @@ mavuno-trust/
 │   │   ├── router/            # Application router configuration
 │   │   ├── services/          # API service layers (auth, farmer, dealer, market, chat)
 │   │   ├── styles/            # CSS stylesheets and global tokens
-│   │   ├── tests/             # Frontend test suites (kenaffUtils.test.ts)
 │   │   └── utils/             # Helper utilities
 │   ├── .env
 │   ├── .env.example
@@ -61,12 +60,11 @@ mavuno-trust/
 │   │   ├── models/            # Mongoose schemas (User, FarmerProfile, DealerProfile, etc.)
 │   │   ├── routes/            # REST API endpoints
 │   │   ├── services/          # Core business logic services
-│   │   ├── socket.ts          # Real-time WebSocket connection handler
-│   │   └── tests/             # Backend test suites (auth, market, calculator, etc.)
+│   │   └── socket.js          # Real-time WebSocket connection handler
 │   ├── .env
 │   ├── .env.example
 │   ├── package.json
-│   └── tsconfig.json
+│   └── server.js              # Server entry point
 │
 ├── .gitignore                 # Monorepo gitignore rules
 └── README.md                  # System documentation
@@ -100,6 +98,7 @@ Create `backend/.env` file:
 PORT=8000
 MONGODB_URI=mongodb://localhost:27017/mavunotrust
 DB_NAME=mavunotrust
+FRONTEND_URL=http://localhost:5173
 CORS_ORIGIN=http://localhost:5173
 JWT_SECRET=your_strong_random_jwt_secret_key_here
 NODE_ENV=development
@@ -125,7 +124,6 @@ Create `frontend/.env` file:
 
 ```env
 VITE_API_URL=http://localhost:8000/api
-VITE_ELEVENLABS_AGENT_ID=your_elevenlabs_agent_id
 ```
 
 ---
@@ -136,7 +134,9 @@ VITE_ELEVENLABS_AGENT_ID=your_elevenlabs_agent_id
 
 ```bash
 cd backend
-npm run dev
+node server.js
+# Or with auto-reload watch mode during development:
+node --watch server.js
 ```
 
 > **API Base URL**: `http://localhost:8000`  
@@ -176,26 +176,14 @@ npm run dev
 
 ---
 
-## Testing & Quality Assurance
+## Build & Quality Assurance
 
-Run the test suites to verify backend security, HMAC signing, calculations, and frontend utilities:
-
-### Backend Test Suites
-
-```bash
-cd backend
-npm run test:auth          # Test authentication, password rules & Argon2id
-npm run test:market        # Test ShambaRecords HMAC signature & price normalizer
-npm run test:calculator    # Test production cost and break-even calculations
-npm run test:verification  # Test AFA licence verification provider logic
-```
-
-### Frontend Build & Test
+### Frontend Production Build
 
 ```bash
 cd frontend
-npm run test:kenaff        # Test KENAFF legal guidance utility suite
 npm run build              # Run TypeScript compilation and Vite production build
+npm run lint               # Run linter checks
 ```
 
 ---

@@ -1,0 +1,223 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 650" width="100%" height="100%">
+  <defs>
+    <!-- Gradients for Gold, Green & Metal -->
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5d061"/>
+      <stop offset="40%" stop-color="#d49e24"/>
+      <stop offset="80%" stop-color="#9e6e0d"/>
+      <stop offset="100%" stop-color="#f3cb52"/>
+    </linearGradient>
+
+    <linearGradient id="goldLight" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fff0a8"/>
+      <stop offset="50%" stop-color="#e5b236"/>
+      <stop offset="100%" stop-color="#a6730c"/>
+    </linearGradient>
+
+    <linearGradient id="greenTractor" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d7343"/>
+      <stop offset="50%" stop-color="#1b4d2b"/>
+      <stop offset="100%" stop-color="#0f301b"/>
+    </linearGradient>
+
+    <linearGradient id="darkTire" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#3d4940"/>
+      <stop offset="50%" stop-color="#1e2420"/>
+      <stop offset="100%" stop-color="#0c100d"/>
+    </linearGradient>
+
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fff8db" stop-opacity="1"/>
+      <stop offset="40%" stop-color="#f5cf53" stop-opacity="0.8"/>
+      <stop offset="100%" stop-color="#d49e24" stop-opacity="0"/>
+    </radialGradient>
+
+    <!-- Shadow filter for crisp depth -->
+    <filter id="softGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+
+  <!-- ════════════════ CIRCULAR CREST / EMBLEM ════════════════ -->
+  <g transform="translate(250, 220)" id="emblem">
+    <!-- Outer Crest Rings -->
+    <circle cx="0" cy="0" r="168" fill="none" stroke="url(#goldGrad)" stroke-width="5"/>
+    <circle cx="0" cy="0" r="158" fill="none" stroke="url(#goldGrad)" stroke-width="1.8" stroke-dasharray="6,4"/>
+
+    <!-- Sun & Radiating Horizon -->
+    <g id="sunburst">
+      <circle cx="0" cy="-60" r="36" fill="url(#sunGlow)"/>
+      <circle cx="0" cy="-60" r="22" fill="#fff9e0"/>
+
+      <!-- Sun rays -->
+      <line x1="0" y1="-95" x2="0" y2="-130" stroke="url(#goldLight)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="28" y1="-85" x2="52" y2="-120" stroke="url(#goldLight)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="52" y1="-60" x2="90" y2="-85" stroke="url(#goldLight)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="-28" y1="-85" x2="-52" y2="-120" stroke="url(#goldLight)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="-52" y1="-60" x2="-90" y2="-85" stroke="url(#goldLight)" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="60" y1="-40" x2="105" y2="-52" stroke="url(#goldLight)" stroke-width="2" stroke-linecap="round"/>
+      <line x1="-60" y1="-40" x2="-105" y2="-52" stroke="url(#goldLight)" stroke-width="2" stroke-linecap="round"/>
+
+      <!-- Arched Furrows / Horizon Lines -->
+      <path d="M -135,-20 Q 0,-50 135,-20" fill="none" stroke="url(#goldGrad)" stroke-width="1.8" opacity="0.6"/>
+      <path d="M -145,10 Q 0,-25 145,10" fill="none" stroke="url(#goldGrad)" stroke-width="2" opacity="0.75"/>
+      <path d="M -150,40 Q 0,0 150,40" fill="none" stroke="url(#goldGrad)" stroke-width="2.2" opacity="0.9"/>
+    </g>
+
+    <!-- ════════════════ TRACTOR ════════════════ -->
+    <g id="tractor" transform="translate(45, 20)">
+      <!-- Large Rear Wheel (Behind Body) -->
+      <g id="rear-wheel" transform="translate(-75, 40)">
+        <circle cx="0" cy="0" r="54" fill="url(#darkTire)"/>
+        <!-- Tire treads -->
+        <path d="M-50,-15 L-40,-8 M-50,0 L-38,4 M-50,15 L-40,20 M-40,-35 L-30,-25 M-25,-48 L-18,-36 M0,-52 L0,-38 M25,-48 L18,-36 M40,-35 L30,-25 M50,-15 L40,-8 M50,0 L38,4 M50,15 L40,20 M40,35 L30,25 M25,48 L18,36 M0,52 L0,38 M-25,48 L-18,36 M-40,35 L-30,25" stroke="#181c19" stroke-width="4" stroke-linecap="round"/>
+        <circle cx="0" cy="0" r="38" fill="#141815"/>
+        <circle cx="0" cy="0" r="30" fill="url(#goldGrad)" stroke="#785307" stroke-width="1.5"/>
+        <circle cx="0" cy="0" r="14" fill="url(#darkTire)"/>
+        <circle cx="0" cy="0" r="6" fill="url(#goldLight)"/>
+        <!-- Wheel bolts -->
+        <circle cx="0" cy="-22" r="2.5" fill="#543904"/>
+        <circle cx="19" cy="-11" r="2.5" fill="#543904"/>
+        <circle cx="19" cy="11" r="2.5" fill="#543904"/>
+        <circle cx="0" cy="22" r="2.5" fill="#543904"/>
+        <circle cx="-19" cy="11" r="2.5" fill="#543904"/>
+        <circle cx="-19" cy="-11" r="2.5" fill="#543904"/>
+      </g>
+
+      <!-- Tractor Chassis & Engine Block -->
+      <path d="M -70,25 L 35,25 L 45,35 L -70,35 Z" fill="#162019"/>
+      
+      <!-- Rear Mudguard / Fender -->
+      <path d="M -115,22 C -115,-20 -70,-35 -30,-20 L -25,-5 C -55,-12 -90,0 -92,26 Z" fill="url(#greenTractor)" stroke="#3e8f5b" stroke-width="1.2"/>
+
+      <!-- Cab / Canopy Frame -->
+      <path d="M -50,-20 L -54,-90 L 5,-85 L -5,-20" fill="none" stroke="url(#greenTractor)" stroke-width="5" stroke-linecap="round"/>
+      <path d="M -60,-90 L 15,-83 L 10,-95 L -65,-100 Z" fill="url(#greenTractor)" stroke="url(#goldLight)" stroke-width="1.5"/>
+      <path d="M -40,-45 L -20,-45 L -15,-30 L -38,-30 Z" fill="#2d3d32" opacity="0.9"/> <!-- Seat -->
+      <path d="M -22,-52 L -10,-48" stroke="#111" stroke-width="4" stroke-linecap="round"/> <!-- Steering -->
+
+      <!-- Exhaust Pipe -->
+      <path d="M 28,-15 L 28,-75 L 32,-78 L 32,-15 Z" fill="#1a201b" stroke="#555" stroke-width="0.8"/>
+      <path d="M 27,-75 L 38,-78" stroke="#333" stroke-width="3" stroke-linecap="round"/>
+
+      <!-- Engine Hood / Bonnet -->
+      <path d="M -28,-18 L 62,-18 C 72,-18 78,-10 78,5 L 75,25 L -28,25 Z" fill="url(#greenTractor)" stroke="#45a066" stroke-width="1.5"/>
+      <!-- Gold Pinstripe on Bonnet -->
+      <path d="M -25,-10 L 65,-10 C 70,-10 72,-6 72,0 L 70,20" fill="none" stroke="url(#goldLight)" stroke-width="1.8"/>
+
+      <!-- Front Grille -->
+      <path d="M 64,-12 L 76,-12 L 73,22 L 64,22 Z" fill="#1b241e"/>
+      <line x1="66" y1="-6" x2="74" y2="-6" stroke="url(#goldLight)" stroke-width="2"/>
+      <line x1="66" y1="0" x2="74" y2="0" stroke="url(#goldLight)" stroke-width="2"/>
+      <line x1="65" y1="6" x2="73" y2="6" stroke="url(#goldLight)" stroke-width="2"/>
+      <line x1="65" y1="12" x2="73" y2="12" stroke="url(#goldLight)" stroke-width="2"/>
+      <line x1="65" y1="18" x2="72" y2="18" stroke="url(#goldLight)" stroke-width="2"/>
+
+      <!-- Headlight -->
+      <circle cx="65" cy="-8" r="4.5" fill="#fffbe6" stroke="url(#goldLight)" stroke-width="1.5"/>
+
+      <!-- Front Wheel -->
+      <g id="front-wheel" transform="translate(52, 45)">
+        <circle cx="0" cy="0" r="32" fill="url(#darkTire)"/>
+        <!-- Front tire treads -->
+        <circle cx="0" cy="0" r="23" fill="#141815"/>
+        <circle cx="0" cy="0" r="17" fill="url(#goldGrad)" stroke="#785307" stroke-width="1.2"/>
+        <circle cx="0" cy="0" r="7" fill="url(#darkTire)"/>
+        <circle cx="0" cy="0" r="3" fill="url(#goldLight)"/>
+      </g>
+    </g>
+
+    <!-- ════════════════ WHEAT SHEAF (Left Emblem) ════════════════ -->
+    <g id="wheat-sheaf" transform="translate(-145, 10)" filter="url(#softGlow)">
+      <!-- Main stalk curves -->
+      <path d="M 40,110 Q -20,20 -15,-160" fill="none" stroke="url(#goldGrad)" stroke-width="3"/>
+      <path d="M 45,110 Q 5,30 30,-140" fill="none" stroke="url(#goldGrad)" stroke-width="2.5"/>
+      <path d="M 35,110 Q -40,30 -50,-120" fill="none" stroke="url(#goldGrad)" stroke-width="2.8"/>
+      <path d="M 30,110 Q -60,40 -85,-80" fill="none" stroke="url(#goldGrad)" stroke-width="2.2"/>
+
+      <!-- Central Ear of Wheat -->
+      <g transform="translate(-15, -130) rotate(5)">
+        <!-- Grains -->
+        <path d="M0,-30 C-6,-22 -8,-10 0,0 C8,-10 6,-22 0,-30 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="1"/>
+        <path d="M-8,-16 C-16,-10 -18,2 -10,10 C-3,4 -2,-8 -8,-16 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="1"/>
+        <path d="M8,-16 C16,-10 18,2 10,10 C3,4 2,-8 8,-16 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="1"/>
+        <path d="M-9,2 C-18,8 -20,20 -12,28 C-5,22 -4,10 -9,2 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="1"/>
+        <path d="M9,2 C18,8 20,20 12,28 C5,22 4,10 9,2 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="1"/>
+        <path d="M-8,20 C-16,26 -18,38 -10,46 C-3,40 -2,28 -8,20 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="1"/>
+        <path d="M8,20 C16,26 18,38 10,46 C3,40 2,28 8,20 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="1"/>
+        <path d="M-7,38 C-14,44 -16,56 -8,64 C-1,58 0,46 -7,38 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="1"/>
+        <path d="M7,38 C14,44 16,56 8,64 C1,58 0,46 7,38 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="1"/>
+        <!-- Awns / Bristles -->
+        <line x1="0" y1="-30" x2="-8" y2="-65" stroke="url(#goldGrad)" stroke-width="1.2"/>
+        <line x1="0" y1="-30" x2="8" y2="-65" stroke="url(#goldGrad)" stroke-width="1.2"/>
+        <line x1="-8" y1="-16" x2="-28" y2="-45" stroke="url(#goldGrad)" stroke-width="1"/>
+        <line x1="8" y1="-16" x2="28" y2="-45" stroke="url(#goldGrad)" stroke-width="1"/>
+        <line x1="-9" y1="2" x2="-32" y2="-20" stroke="url(#goldGrad)" stroke-width="1"/>
+        <line x1="9" y1="2" x2="32" y2="-20" stroke="url(#goldGrad)" stroke-width="1"/>
+      </g>
+
+      <!-- Left Ear of Wheat -->
+      <g transform="translate(-55, -95) rotate(-20)">
+        <path d="M0,-24 C-5,-18 -6,-8 0,0 C6,-8 5,-18 0,-24 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M-6,-12 C-13,-7 -14,3 -8,9 C-2,4 -2,-6 -6,-12 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M6,-12 C13,-7 14,3 8,9 C2,4 2,-6 6,-12 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M-7,3 C-14,8 -15,18 -9,24 C-3,19 -2,9 -7,3 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M7,3 C14,8 15,18 9,24 C3,19 2,9 7,3 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M-6,18 C-12,23 -13,33 -7,39 C-1,34 0,24 -6,18 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M6,18 C12,23 13,33 7,39 C1,34 0,24 6,18 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <line x1="0" y1="-24" x2="-5" y2="-50" stroke="url(#goldGrad)" stroke-width="1"/>
+        <line x1="0" y1="-24" x2="6" y2="-50" stroke="url(#goldGrad)" stroke-width="1"/>
+      </g>
+
+      <!-- Right Ear of Wheat -->
+      <g transform="translate(25, -115) rotate(22)">
+        <path d="M0,-24 C-5,-18 -6,-8 0,0 C6,-8 5,-18 0,-24 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M-6,-12 C-13,-7 -14,3 -8,9 C-2,4 -2,-6 -6,-12 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M6,-12 C13,-7 14,3 8,9 C2,4 2,-6 6,-12 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M-7,3 C-14,8 -15,18 -9,24 C-3,19 -2,9 -7,3 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <path d="M7,3 C14,8 15,18 9,24 C3,19 2,9 7,3 Z" fill="url(#goldLight)" stroke="#9e6e0d" stroke-width="0.9"/>
+        <line x1="0" y1="-24" x2="-5" y2="-50" stroke="url(#goldGrad)" stroke-width="1"/>
+        <line x1="0" y1="-24" x2="6" y2="-50" stroke="url(#goldGrad)" stroke-width="1"/>
+      </g>
+
+      <!-- Twine Rope Binding the Sheaf -->
+      <g transform="translate(32, 62) rotate(15)">
+        <ellipse cx="0" cy="-6" rx="20" ry="7" fill="#6b4703" stroke="url(#goldLight)" stroke-width="1.8"/>
+        <ellipse cx="0" cy="0" rx="21" ry="7" fill="#875b08" stroke="url(#goldLight)" stroke-width="1.8"/>
+        <ellipse cx="0" cy="6" rx="20" ry="7" fill="#6b4703" stroke="url(#goldLight)" stroke-width="1.8"/>
+        <!-- Hanging cord tails -->
+        <path d="M 8,10 Q 15,25 22,35 M 2,12 Q 5,28 10,40" fill="none" stroke="url(#goldLight)" stroke-width="2.2" stroke-linecap="round"/>
+      </g>
+    </g>
+  </g>
+
+  <!-- ════════════════ LOGO TEXT: MAVUNOTRUST ════════════════ -->
+  <g transform="translate(250, 480)" text-anchor="middle" id="brand-text">
+    <text x="0" y="0" 
+          font-family="'Playfair Display', 'Cinzel', 'Georgia', 'Outfit', 'Times New Roman', serif" 
+          font-size="62" 
+          font-weight="900" 
+          letter-spacing="3" 
+          fill="#1c5731" 
+          stroke="#0b2413" 
+          stroke-width="0.8">
+      MAVUNOTRUST
+    </text>
+  </g>
+
+  <!-- ════════════════ BOTTOM DECORATIVE FLOURISH ════════════════ -->
+  <g transform="translate(250, 520)" id="divider">
+    <!-- Horizontal lines with end dots -->
+    <line x1="-180" y1="0" x2="-22" y2="0" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="-180" cy="0" r="4.5" fill="url(#goldGrad)"/>
+
+    <line x1="22" y1="0" x2="180" y2="0" stroke="url(#goldGrad)" stroke-width="2.5" stroke-linecap="round"/>
+    <circle cx="180" cy="0" r="4.5" fill="url(#goldGrad)"/>
+
+    <!-- Central Diamond Emblem -->
+    <polygon points="0,-8 10,0 0,8 -10,0" fill="url(#goldLight)" stroke="#785307" stroke-width="1.5"/>
+
+    <!-- Lower Crescent Arc -->
+    <path d="M -90,14 Q 0,40 90,14" fill="none" stroke="url(#goldGrad)" stroke-width="2.2" stroke-linecap="round"/>
+  </g>
+</svg>

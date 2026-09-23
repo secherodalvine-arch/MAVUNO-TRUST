@@ -1,33 +1,16 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "MavunoTrust Backend Service",
+  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "test:models": "tsx src/tests/modelValidation.test.ts",
-    "test:auth": "tsx src/tests/authSecurity.test.ts",
-    "test:profiles": "tsx src/tests/profileCropListings.test.ts",
-    "test:verification": "tsx src/tests/demoAfaVerification.test.ts",
-    "test:market": "tsx src/tests/marketDataService.test.ts",
-    "test:calculator": "tsx src/tests/productionCostService.test.ts",
-    "test:voice": "tsx src/tests/voiceService.test.ts",
-    "test:rights": "tsx src/tests/rightsService.test.ts",
-    "test:complaint": "tsx src/tests/complaintIntegration.test.ts",
-    "test:offer": "tsx src/tests/offerService.test.ts",
-    "test:chat": "tsx src/tests/conversationService.test.ts",
-    "test:websocket": "tsx src/tests/websocketService.test.ts",
-    "test:transaction": "tsx src/tests/transactionService.test.ts",
-    "test:rating": "tsx src/tests/ratingService.test.ts",
-    "seed": "tsx src/scripts/seed.ts",
-    "dev": "nodemon --exec tsx src/index.ts",
-    "build": "tsc",
-    "start": "node dist/index.js"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "dependencies": {
     "argon2": "^0.45.1",
     "bcrypt": "^6.0.0",
@@ -40,18 +23,5 @@
     "mongoose": "^9.10.1",
     "socket.io": "^4.8.3",
     "uuid": "^14.0.2"
-  },
-  "devDependencies": {
-    "@types/bcrypt": "^6.0.0",
-    "@types/cookie-parser": "^1.4.10",
-    "@types/cors": "^2.8.19",
-    "@types/express": "^5.0.6",
-    "@types/jsonwebtoken": "^9.0.10",
-    "@types/node": "^26.6.2",
-    "@types/uuid": "^10.0.0",
-    "nodemon": "^3.1.14",
-    "socket.io-client": "^4.8.3",
-    "tsx": "^4.23.15",
-    "typescript": "^7.0.2"
   }
 }

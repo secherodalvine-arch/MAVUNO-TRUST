@@ -1,12 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { productionCostService } from '../services/productionCostService';
 import type { ProductionCostRecord, ProductionCostResponse } from '../services/productionCostService';
-import { useAuth } from '../hooks/useAuth';
 import { PrivacyDataModal } from '../components/PrivacyDataModal';
+import {
+  Calculator,
+  ShieldCheck,
+  AlertCircle,
+  Trash2,
+  Edit3,
+  Coins,
+  Sparkles,
+  HelpCircle,
+} from 'lucide-react';
+import LoadSpinner from '../components/LoadSpinner';
+import '../styles/CalculatorPage.css';
 
 export const ProductionCalculatorPage: React.FC = () => {
-  const { } = useAuth();
-  
   const [records, setRecords] = useState<ProductionCostResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,9 +57,9 @@ export const ProductionCalculatorPage: React.FC = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? (value === '' ? undefined : Number(value)) : value
+      [name]: type === 'number' ? (value === '' ? undefined : Number(value)) : value,
     }));
   };
 
@@ -58,23 +67,27 @@ export const ProductionCalculatorPage: React.FC = () => {
     e.preventDefault();
     try {
       if (formData.expectedQuantity <= 0) {
-        setError('Expected quantity must be greater than zero');
+        setError('Expected yield quantity must be greater than zero');
         return;
       }
-      
+
       const dataToSubmit = { ...formData };
-      if (dataToSubmit.expectedSellingPrice === undefined || dataToSubmit.expectedSellingPrice === null || Number.isNaN(dataToSubmit.expectedSellingPrice)) {
+      if (
+        dataToSubmit.expectedSellingPrice === undefined ||
+        dataToSubmit.expectedSellingPrice === null ||
+        Number.isNaN(dataToSubmit.expectedSellingPrice)
+      ) {
         delete dataToSubmit.expectedSellingPrice;
       }
-      
+
       if (editingId) {
         await productionCostService.updateRecord(editingId, dataToSubmit);
       } else {
         await productionCostService.createRecord(dataToSubmit);
       }
-      
-      fetchRecords(); 
-      
+
+      fetchRecords();
+
       setFormData({
         cropName: '',
         expectedQuantity: 1,
@@ -90,21 +103,22 @@ export const ProductionCalculatorPage: React.FC = () => {
       setEditingId(null);
       setError(null);
     } catch (err: any) {
-      setError(err.response?.data?.error?.message || 'Failed to save record');
+      setError(err.response?.data?.error?.message || 'Failed to save calculation');
     }
   };
 
   const handleDelete = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this calculation?')) return;
     try {
       await productionCostService.deleteRecord(id);
+      setRecords((prev) => prev.filter((r) => r.record._id !== id));
       if (editingId === id) handleCancelEdit();
-      fetchRecords();
     } catch (err: any) {
       setError(err.response?.data?.error?.message || 'Failed to delete record');
     }
   };
 
-  const handleEdit = (record: ProductionCostRecord) => {
+  const handleEdit = (record: ProductionCostRecord & { _id?: string }) => {
     setEditingId(record._id || null);
     setFormData({
       cropName: record.cropName,
@@ -139,19 +153,19 @@ export const ProductionCalculatorPage: React.FC = () => {
   };
 
   const handleScenarioChange = (id: string, field: 'quantity' | 'sellingPrice', value: number) => {
-    setScenarios(prev => ({
+    setScenarios((prev) => ({
       ...prev,
       [id]: {
         ...prev[id],
-        [field]: value
-      }
+        [field]: value,
+      },
     }));
   };
 
   const resetScenario = (id: string, defaultQuantity: number, defaultPrice?: number) => {
-    setScenarios(prev => ({
+    setScenarios((prev) => ({
       ...prev,
-      [id]: { quantity: defaultQuantity, sellingPrice: defaultPrice || 0 }
+      [id]: { quantity: defaultQuantity, sellingPrice: defaultPrice || 0 },
     }));
   };
 
@@ -161,54 +175,104 @@ export const ProductionCalculatorPage: React.FC = () => {
   };
 
   return (
-    <div className="calculator-container" style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
-      <header style={{ marginBottom: '30px' }}>
-        <h2>Private Production Calculator</h2>
-        
-        {/* TOP-OF-FORM "WHY?" EXPLANATION */}
-        <div style={{ backgroundColor: '#eef2ff', padding: '15px', borderRadius: '8px', border: '1px solid #c7d2fe', marginBottom: '20px' }}>
-          <h4 style={{ margin: '0 0 8px 0', color: '#3730a3' }}>Why are we asking for your production costs?</h4>
-          <p style={{ margin: '0 0 8px 0', fontSize: '0.95rem', color: '#4338ca' }}>
-            This information helps you calculate your total production cost, cost per unit, break-even price and estimated profit or loss. Your production-cost information is private and is not shown on your public farmer profile.
+    <div className="calc-page">
+      <header className="calc-header">
+        <div className="calc-title-row">
+          <div className="calc-title-icon" aria-hidden="true">
+            <Calculator size={24} />
+          </div>
+          <div>
+            <h1 className="calc-title">Production Cost Calculator</h1>
+            <p className="calc-subtitle">
+              Calculate total production costs, unit breakeven prices, and estimate farm profit margins.
+            </p>
+          </div>
+        </div>
+
+        <div className="calc-info-notice">
+          <div className="calc-info-notice-header">
+            <ShieldCheck size={16} />
+            <span>Confidential & Private Cost Intelligence</span>
+          </div>
+          <p>
+            Your production-cost entries remain 100% private to your account and are never disclosed to buyers, brokers,
+            or shown on public crop listings. This data gives you objective bargaining power during negotiations.
           </p>
-          <button onClick={() => setShowPrivacyModal(true)} style={{ background: 'none', border: 'none', color: '#4f46e5', textDecoration: 'underline', cursor: 'pointer', padding: 0, fontSize: '0.9rem' }}>
-            Learn more
+          <button type="button" className="calc-info-btn" onClick={() => setShowPrivacyModal(true)}>
+            Learn about our farmer privacy guarantee &rarr;
           </button>
         </div>
 
-        <div style={{ padding: '10px', backgroundColor: '#e8f4f8', borderRadius: '4px', marginTop: '10px' }}>
-          <strong>Disclaimer:</strong> This is an information and calculation tool only, based solely on your estimates. It does not constitute financial advice. We do not instruct you to accept or reject any market prices.
+        <div className="calc-disclaimer">
+          <AlertCircle size={18} style={{ flexShrink: 0, marginTop: 2, color: '#f5a623' }} />
+          <div>
+            <strong>Disclaimer:</strong> This is an informational estimation tool based on your self-reported inputs.
+            It does not constitute financial advice or mandatory pricing instructions.
+          </div>
         </div>
       </header>
 
-      {error && (
-        <div style={{ padding: '10px', backgroundColor: '#fee', color: 'red', marginBottom: '20px', borderRadius: '4px' }}>
-          {error}
-        </div>
-      )}
+      {error && <div className="calc-error">{error}</div>}
 
-      <div style={{ display: 'flex', gap: '40px', flexWrap: 'wrap' }}>
-        {/* Form Section */}
-        <div style={{ flex: '1 1 400px', backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-          <h3>{editingId ? 'Edit Information' : 'Add New Calculation'}</h3>
-          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            
-            <div>
-              <label style={{ display: 'block', fontWeight: 'bold' }}>Crop / Product Name *</label>
-              <input type="text" name="cropName" value={formData.cropName} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
+      <div className="calc-grid">
+        {/* ── Form Section ── */}
+        <section className="calc-form-card" aria-label="Calculator Form">
+          <h2 className="calc-form-heading">
+            {editingId ? 'Edit Calculation' : 'Add New Calculation'}
+          </h2>
+          <p className="calc-form-subheading">
+            Enter your expected harvest yield and itemized expenses below.
+          </p>
+
+          <form onSubmit={handleSubmit}>
+            <div className="calc-form-group">
+              <label className="calc-label" htmlFor="calcCropName">
+                Crop / Product Name <span className="calc-required">*</span>
+              </label>
+              <input
+                id="calcCropName"
+                type="text"
+                name="cropName"
+                className="calc-input"
+                value={formData.cropName}
+                onChange={handleChange}
+                placeholder="e.g. Yellow Maize, Hass Avocado, Tomatoes"
+                required
+              />
             </div>
 
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontWeight: 'bold' }}>Expected Yield Quantity *</label>
-                <input type="number" step="0.01" min="0.01" name="expectedQuantity" value={formData.expectedQuantity} onChange={handleChange} required style={{ width: '100%', padding: '8px' }} />
-                <small style={{ color: '#666', display: 'block', marginTop: '4px', fontSize: '0.75rem' }}>
-                  Used to calculate your cost per unit and estimate total revenue when a selling price is provided.
-                </small>
+            <div className="calc-form-row-2">
+              <div className="calc-form-group">
+                <label className="calc-label" htmlFor="calcExpectedQuantity">
+                  Expected Yield Quantity <span className="calc-required">*</span>
+                </label>
+                <input
+                  id="calcExpectedQuantity"
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  name="expectedQuantity"
+                  className="calc-input"
+                  value={formData.expectedQuantity}
+                  onChange={handleChange}
+                  required
+                />
+                <span className="calc-helper-text">
+                  Used to calculate your cost per unit and estimate total revenue.
+                </span>
               </div>
-              <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontWeight: 'bold' }}>Quantity Unit *</label>
-                <select name="quantityUnit" value={formData.quantityUnit} onChange={handleChange} style={{ width: '100%', padding: '8px' }}>
+
+              <div className="calc-form-group">
+                <label className="calc-label" htmlFor="calcQuantityUnit">
+                  Quantity Unit <span className="calc-required">*</span>
+                </label>
+                <select
+                  id="calcQuantityUnit"
+                  name="quantityUnit"
+                  className="calc-select"
+                  value={formData.quantityUnit}
+                  onChange={handleChange}
+                >
                   <option value="kg">KG</option>
                   <option value="tonne">Tonne</option>
                   <option value="bag">90kg Bag</option>
@@ -217,227 +281,418 @@ export const ProductionCalculatorPage: React.FC = () => {
               </div>
             </div>
 
-            <fieldset style={{ border: '1px solid #ccc', padding: '15px', borderRadius: '4px' }}>
-              <legend style={{ fontWeight: 'bold' }}>Production Costs (KES)</legend>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <div>
-                  <label>Seed/Input Cost</label>
-                  <input type="number" min="0" step="0.01" name="seedCost" value={formData.seedCost} onChange={handleChange} style={{ width: '100%', padding: '8px' }} />
+            <fieldset className="calc-fieldset">
+              <legend className="calc-legend">
+                <Coins size={14} /> Production Costs (KES)
+              </legend>
+              <div className="calc-cost-grid">
+                <div className="calc-form-group">
+                  <label className="calc-label" htmlFor="calcSeedCost">Seed / Input Cost</label>
+                  <input
+                    id="calcSeedCost"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="seedCost"
+                    className="calc-input"
+                    value={formData.seedCost}
+                    onChange={handleChange}
+                  />
                 </div>
-                <div>
-                  <label>Fertilizer Cost</label>
-                  <input type="number" min="0" step="0.01" name="fertilizerCost" value={formData.fertilizerCost} onChange={handleChange} style={{ width: '100%', padding: '8px' }} />
+                <div className="calc-form-group">
+                  <label className="calc-label" htmlFor="calcFertilizerCost">Fertilizer Cost</label>
+                  <input
+                    id="calcFertilizerCost"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="fertilizerCost"
+                    className="calc-input"
+                    value={formData.fertilizerCost}
+                    onChange={handleChange}
+                  />
                 </div>
-                <div>
-                  <label>Labour Cost</label>
-                  <input type="number" min="0" step="0.01" name="labourCost" value={formData.labourCost} onChange={handleChange} style={{ width: '100%', padding: '8px' }} />
-                  <small style={{ color: '#666', display: 'block', marginTop: '2px', fontSize: '0.7rem' }}>
-                    Used to calculate your total production cost. This information remains private.
-                  </small>
+                <div className="calc-form-group">
+                  <label className="calc-label" htmlFor="calcLabourCost">Labour Cost</label>
+                  <input
+                    id="calcLabourCost"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="labourCost"
+                    className="calc-input"
+                    value={formData.labourCost}
+                    onChange={handleChange}
+                  />
+                  <span className="calc-helper-text">
+                    Field preparation, weeding & harvesting costs.
+                  </span>
                 </div>
-                <div>
-                  <label>Transport Cost</label>
-                  <input type="number" min="0" step="0.01" name="transportCost" value={formData.transportCost} onChange={handleChange} style={{ width: '100%', padding: '8px' }} />
-                  <small style={{ color: '#666', display: 'block', marginTop: '2px', fontSize: '0.7rem' }}>
-                    Helps include the cost of moving your produce when calculating your production cost.
-                  </small>
+                <div className="calc-form-group">
+                  <label className="calc-label" htmlFor="calcTransportCost">Transport Cost</label>
+                  <input
+                    id="calcTransportCost"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="transportCost"
+                    className="calc-input"
+                    value={formData.transportCost}
+                    onChange={handleChange}
+                  />
+                  <span className="calc-helper-text">
+                    Hauling from farm to storage or collection point.
+                  </span>
                 </div>
-                <div>
-                  <label>Storage Cost</label>
-                  <input type="number" min="0" step="0.01" name="storageCost" value={formData.storageCost} onChange={handleChange} style={{ width: '100%', padding: '8px' }} />
+                <div className="calc-form-group">
+                  <label className="calc-label" htmlFor="calcStorageCost">Storage Cost</label>
+                  <input
+                    id="calcStorageCost"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="storageCost"
+                    className="calc-input"
+                    value={formData.storageCost}
+                    onChange={handleChange}
+                  />
                 </div>
-                <div>
-                  <label>Other Costs</label>
-                  <input type="number" min="0" step="0.01" name="otherCost" value={formData.otherCost} onChange={handleChange} style={{ width: '100%', padding: '8px' }} />
+                <div className="calc-form-group">
+                  <label className="calc-label" htmlFor="calcOtherCost">Other / Contingency</label>
+                  <input
+                    id="calcOtherCost"
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    name="otherCost"
+                    className="calc-input"
+                    value={formData.otherCost}
+                    onChange={handleChange}
+                  />
                 </div>
               </div>
             </fieldset>
 
-            <div>
-              <label style={{ display: 'block', fontWeight: 'bold' }}>Expected Selling Price per {formData.quantityUnit} (Optional)</label>
-              <input type="number" min="0" step="0.01" name="expectedSellingPrice" value={formData.expectedSellingPrice ?? ''} onChange={handleChange} placeholder="e.g. 50" style={{ width: '100%', padding: '8px' }} />
-              <small style={{ color: '#666', display: 'block', marginTop: '4px', fontSize: '0.75rem' }}>
-                Used only to calculate estimated revenue and estimated profit or loss. This is not a market price supplied by MavunoTrust.
-              </small>
+            <div className="calc-form-group">
+              <label className="calc-label" htmlFor="calcSellingPrice">
+                Expected Selling Price per {formData.quantityUnit} (Optional)
+              </label>
+              <input
+                id="calcSellingPrice"
+                type="number"
+                min="0"
+                step="0.01"
+                name="expectedSellingPrice"
+                className="calc-input"
+                value={formData.expectedSellingPrice ?? ''}
+                onChange={handleChange}
+                placeholder="e.g. 50"
+              />
+              <span className="calc-helper-text">
+                Used to project potential gross revenue and profit/loss margins.
+              </span>
             </div>
 
-            <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-              <button type="submit" style={{ flex: 1, padding: '10px', backgroundColor: '#0066cc', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-                {editingId ? 'Save Changes' : 'Calculate & Save'}
+            <div className="calc-form-actions">
+              <button type="submit" className="calc-btn-primary">
+                <Calculator size={17} />
+                <span>{editingId ? 'Save Changes' : 'Calculate & Save'}</span>
               </button>
               {editingId && (
-                <button type="button" onClick={handleCancelEdit} style={{ flex: 1, padding: '10px', backgroundColor: '#e0e0e0', color: '#333', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
+                <button type="button" onClick={handleCancelEdit} className="calc-btn-cancel">
                   Cancel
                 </button>
               )}
             </div>
           </form>
-        </div>
+        </section>
 
-        {/* Results Section */}
-        <div style={{ flex: '1 1 500px' }}>
-          <h3>Your Calculations</h3>
+        {/* ── Results Section ── */}
+        <section className="calc-results-column" aria-label="Saved Calculations">
+          <div className="calc-results-title">
+            <span>Your Calculations</span>
+            {records.length > 0 && (
+              <span className="calc-count-badge">
+                {records.length} {records.length === 1 ? 'record' : 'records'}
+              </span>
+            )}
+          </div>
+
           {loading ? (
-            <p>Loading records...</p>
+            <div style={{ padding: '60px 0' }}>
+              <LoadSpinner size="md" text="Loading calculations..." />
+            </div>
           ) : records.length === 0 ? (
-            <p style={{ color: '#666' }}>No calculations saved yet.</p>
+            <div className="calc-empty-card">
+              <Calculator size={44} opacity={0.35} />
+              <h4>No calculations saved yet</h4>
+              <p style={{ margin: 0, fontSize: '0.86rem', maxWidth: 320 }}>
+                Fill in the form on the left to calculate your unit costs and find your minimum profitable selling price.
+              </p>
+            </div>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {records.map(({ record, metrics }) => {
-                const scenario = scenarios[record._id!] || { quantity: record.expectedQuantity, sellingPrice: record.expectedSellingPrice || 0 };
-                const simQuantity = scenario.quantity > 0 ? scenario.quantity : 1;
-                const simCostPerUnit = metrics.totalCost / simQuantity;
-                const simRevenue = scenario.sellingPrice * simQuantity;
-                const simProfit = simRevenue - metrics.totalCost;
+            records.map(({ record, metrics }) => {
+              const scenario = scenarios[record._id!] || {
+                quantity: record.expectedQuantity,
+                sellingPrice: record.expectedSellingPrice || 0,
+              };
+              const simQuantity = scenario.quantity > 0 ? scenario.quantity : 1;
+              const simCostPerUnit = metrics.totalCost / simQuantity;
+              const simRevenue = scenario.sellingPrice * simQuantity;
+              const simProfit = simRevenue - metrics.totalCost;
 
-                return (
-                  <div key={record._id} style={{ backgroundColor: '#fff', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
-                      <h4 style={{ margin: 0 }}>{record.cropName}</h4>
-                      <div style={{ display: 'flex', gap: '10px' }}>
-                        <button onClick={() => handleEdit(record)} style={{ color: '#0066cc', background: 'none', border: 'none', cursor: 'pointer' }}>Edit Information</button>
-                        <button onClick={() => handleDelete(record._id!)} style={{ color: 'red', background: 'none', border: 'none', cursor: 'pointer' }}>Delete</button>
+              return (
+                <article key={record._id} className="calc-record-card">
+                  {/* Card Header */}
+                  <div className="calc-record-header">
+                    <div className="calc-record-crop-info">
+                      <h3 className="calc-record-crop-name">{record.cropName}</h3>
+                      <span className="calc-record-badge">
+                        {record.expectedQuantity} {record.quantityUnit}
+                      </span>
+                    </div>
+                    <div className="calc-record-actions">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(record)}
+                        className="calc-action-btn calc-action-btn--edit"
+                        title="Edit calculation"
+                      >
+                        <Edit3 size={13} />
+                        <span>Edit</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDelete(record._id!)}
+                        className="calc-action-btn calc-action-btn--del"
+                        title="Delete calculation"
+                      >
+                        <Trash2 size={13} />
+                        <span>Delete</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="calc-record-body">
+                    {/* Primary Metrics */}
+                    <div className="calc-metrics-grid">
+                      <div className="calc-metric-box">
+                        <span className="calc-metric-label">Expected Yield</span>
+                        <span className="calc-metric-value">
+                          {record.expectedQuantity} {record.quantityUnit}
+                        </span>
+                      </div>
+
+                      <div className="calc-metric-box">
+                        <span className="calc-metric-label">Total Production Cost</span>
+                        <span className="calc-metric-value">{renderMoney(metrics.totalCost)}</span>
+                        <details className="calc-why-details">
+                          <summary className="calc-why-summary">
+                            <HelpCircle size={11} /> Why is this calculated?
+                          </summary>
+                          <div className="calc-why-content">
+                            Total amount spent producing this crop based on your itemized inputs.
+                          </div>
+                        </details>
+                      </div>
+
+                      <div className="calc-metric-box calc-metric-box--highlight">
+                        <span className="calc-metric-label">Cost per {record.quantityUnit}</span>
+                        <span className="calc-metric-value">{renderMoney(metrics.costPerUnit)}</span>
+                        <details className="calc-why-details">
+                          <summary className="calc-why-summary">
+                            <HelpCircle size={11} /> Why is this calculated?
+                          </summary>
+                          <div className="calc-why-content">
+                            Represents the baseline expense incurred to produce 1 unit of this crop.
+                          </div>
+                        </details>
+                      </div>
+
+                      <div className="calc-metric-box calc-metric-box--amber">
+                        <span className="calc-metric-label">Break-Even Price</span>
+                        <span className="calc-metric-value">{renderMoney(metrics.breakEvenPrice)}</span>
+                        <details className="calc-why-details">
+                          <summary className="calc-why-summary">
+                            <HelpCircle size={11} /> Why is this calculated?
+                          </summary>
+                          <div className="calc-why-content">
+                            The minimum price per unit you need to receive to recover all recorded expenses.
+                          </div>
+                        </details>
                       </div>
                     </div>
-                    
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginBottom: '20px' }}>
-                      <div style={{ padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
-                        <div style={{ fontSize: '12px', color: '#666' }}>Expected Yield</div>
-                        <div style={{ fontWeight: 'bold' }}>{record.expectedQuantity} {record.quantityUnit}</div>
-                      </div>
-                      <div style={{ padding: '10px', backgroundColor: '#f9f9f9', borderRadius: '4px' }}>
-                        <div style={{ fontSize: '12px', color: '#666' }}>Total production cost</div>
-                        <div style={{ fontWeight: 'bold' }}>{renderMoney(metrics.totalCost)}</div>
-                        <details style={{ marginTop: '8px' }}>
-                          <summary style={{ fontSize: '11px', color: '#666', cursor: 'pointer' }}>ⓘ Why is this calculated?</summary>
-                          <div style={{ fontSize: '11px', color: '#888', marginTop: '4px', lineHeight: '1.3' }}>It shows the estimated total amount you have spent on producing this crop based on the costs you entered.</div>
-                        </details>
-                      </div>
-                      <div style={{ padding: '10px', backgroundColor: '#eef6fb', borderRadius: '4px' }}>
-                        <div style={{ fontSize: '12px', color: '#005b9f' }}>Cost per unit</div>
-                        <div style={{ fontWeight: 'bold' }}>{renderMoney(metrics.costPerUnit)}</div>
-                        <details style={{ marginTop: '8px' }}>
-                          <summary style={{ fontSize: '11px', color: '#005b9f', cursor: 'pointer' }}>ⓘ Why is this calculated?</summary>
-                          <div style={{ fontSize: '11px', color: '#005b9f', opacity: 0.8, marginTop: '4px', lineHeight: '1.3' }}>It helps you understand approximately how much it costs to produce one unit of your crop.</div>
-                        </details>
-                      </div>
-                      <div style={{ padding: '10px', backgroundColor: '#fdf3e9', borderRadius: '4px' }}>
-                        <div style={{ fontSize: '12px', color: '#c76e00' }}>Break-even price</div>
-                        <div style={{ fontWeight: 'bold' }}>{renderMoney(metrics.breakEvenPrice)}</div>
-                        <details style={{ marginTop: '8px' }}>
-                          <summary style={{ fontSize: '11px', color: '#c76e00', cursor: 'pointer' }}>ⓘ Why is this calculated?</summary>
-                          <div style={{ fontSize: '11px', color: '#c76e00', opacity: 0.8, marginTop: '4px', lineHeight: '1.3' }}>It shows the estimated price per unit needed to recover the production costs you entered. It helps you understand the price at which your recorded production costs would be covered.</div>
-                        </details>
-                      </div>
-                    </div>
 
-                    {/* Cost Breakdown Section */}
-                    <div style={{ borderTop: '1px solid #eee', paddingTop: '15px', marginBottom: '15px' }}>
-                      <h5 style={{ margin: '0 0 5px 0' }}>Production Cost Breakdown</h5>
-                      <details style={{ marginBottom: '10px' }}>
-                        <summary style={{ fontSize: '11px', color: '#666', cursor: 'pointer' }}>ⓘ Why do we show this?</summary>
-                        <div style={{ fontSize: '11px', color: '#888', marginTop: '4px', lineHeight: '1.3' }}>It helps you see which production expenses contribute most to your total production cost.</div>
+                    {/* Cost Breakdown Table */}
+                    <div className="calc-section-divider">
+                      <div className="calc-section-title">
+                        <span>Production Cost Breakdown</span>
+                      </div>
+                      <details className="calc-why-details" style={{ marginBottom: 8 }}>
+                        <summary className="calc-why-summary">
+                          <HelpCircle size={11} /> Why do we show this?
+                        </summary>
+                        <div className="calc-why-content">
+                          Identifies which expense categories take up the largest share of your budget.
+                        </div>
                       </details>
-                      
+
                       {metrics.costBreakdown && metrics.costBreakdown.length > 0 ? (
-                        <table style={{ width: '100%', fontSize: '0.85rem', borderCollapse: 'collapse' }}>
+                        <table className="calc-breakdown-table">
                           <tbody>
-                            {metrics.costBreakdown.filter(item => item.amount > 0).map((item, idx) => (
-                              <tr key={idx} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                <td style={{ padding: '4px 0' }}>{item.category.replace(' costs', '')}</td>
-                                <td style={{ textAlign: 'right', padding: '4px 0' }}>{renderMoney(item.amount)}</td>
-                                <td style={{ textAlign: 'right', padding: '4px 0', width: '60px', fontWeight: 'bold' }}>{item.percentage}%</td>
-                              </tr>
-                            ))}
+                            {metrics.costBreakdown
+                              .filter((item) => item.amount > 0)
+                              .map((item, idx) => (
+                                <tr key={idx}>
+                                  <td className="calc-td-category">{item.category.replace(' costs', '')}</td>
+                                  <td className="calc-td-amount">{renderMoney(item.amount)}</td>
+                                  <td className="calc-td-pct">
+                                    <span className="calc-pct-tag">{item.percentage}%</span>
+                                  </td>
+                                </tr>
+                              ))}
                           </tbody>
                         </table>
                       ) : (
-                        <p style={{ fontSize: '0.85rem', color: '#888' }}>No costs recorded.</p>
+                        <p style={{ fontSize: '0.84rem', color: '#6d967a', margin: 0 }}>No itemized costs recorded.</p>
                       )}
                     </div>
 
-                    <div style={{ borderTop: '1px solid #eee', paddingTop: '15px' }}>
-                      <h5 style={{ margin: '0 0 10px 0' }}>Estimates based on Expected Selling Price</h5>
+                    {/* Revenue & Profit Projections */}
+                    <div className="calc-section-divider">
+                      <div className="calc-section-title">
+                        <span>Estimates at Expected Price</span>
+                      </div>
                       {record.expectedSellingPrice != null ? (
-                        <div style={{ display: 'flex', gap: '15px' }}>
-                          <div style={{ flex: 1, padding: '10px', backgroundColor: '#f4fbf4', borderRadius: '4px' }}>
-                            <div style={{ fontSize: '12px', color: '#2d7a2d' }}>Estimated Revenue</div>
-                            <div style={{ fontWeight: 'bold' }}>{renderMoney(metrics.estimatedRevenue)}</div>
-                            <details style={{ marginTop: '8px' }}>
-                              <summary style={{ fontSize: '11px', color: '#2d7a2d', cursor: 'pointer' }}>ⓘ Why is this calculated?</summary>
-                              <div style={{ fontSize: '11px', color: '#2d7a2d', opacity: 0.8, marginTop: '4px', lineHeight: '1.3' }}>It shows the estimated amount you could receive based on the quantity and selling price you entered.</div>
-                            </details>
-                          </div>
-                          <div style={{ flex: 1, padding: '10px', backgroundColor: metrics.estimatedProfitLoss! >= 0 ? '#f4fbf4' : '#fbf4f4', borderRadius: '4px' }}>
-                            <div style={{ fontSize: '12px', color: metrics.estimatedProfitLoss! >= 0 ? '#2d7a2d' : '#a13131' }}>
-                              Estimated {metrics.estimatedProfitLoss! >= 0 ? 'Profit' : 'Loss'}
+                        <div className="calc-rev-grid">
+                          <div className="calc-rev-card">
+                            <span className="calc-metric-label" style={{ color: '#5ec285' }}>
+                              Estimated Gross Revenue
+                            </span>
+                            <div className="calc-metric-value" style={{ color: '#ffffff', marginTop: 4 }}>
+                              {renderMoney(metrics.estimatedRevenue)}
                             </div>
-                            <div style={{ fontWeight: 'bold' }}>{renderMoney(metrics.estimatedProfitLoss)}</div>
-                            <details style={{ marginTop: '8px' }}>
-                              <summary style={{ fontSize: '11px', color: metrics.estimatedProfitLoss! >= 0 ? '#2d7a2d' : '#a13131', cursor: 'pointer' }}>ⓘ Why is this calculated?</summary>
-                              <div style={{ fontSize: '11px', color: metrics.estimatedProfitLoss! >= 0 ? '#2d7a2d' : '#a13131', opacity: 0.8, marginTop: '4px', lineHeight: '1.3' }}>It shows the difference between your estimated revenue and the production costs you entered. It is an estimate, not a guarantee of actual profit or loss.</div>
-                            </details>
+                            <span className="calc-helper-text">
+                              Based on {record.expectedQuantity} {record.quantityUnit} &times; KES {record.expectedSellingPrice}
+                            </span>
+                          </div>
+
+                          <div
+                            className={`calc-rev-card ${
+                              (metrics.estimatedProfitLoss ?? 0) >= 0
+                                ? 'calc-rev-card--profit'
+                                : 'calc-rev-card--loss'
+                            }`}
+                          >
+                            <span
+                              className="calc-metric-label"
+                              style={{
+                                color: (metrics.estimatedProfitLoss ?? 0) >= 0 ? '#5ec285' : '#f87171',
+                              }}
+                            >
+                              Estimated {(metrics.estimatedProfitLoss ?? 0) >= 0 ? 'Net Profit' : 'Net Loss'}
+                            </span>
+                            <div
+                              className="calc-metric-value"
+                              style={{
+                                color: (metrics.estimatedProfitLoss ?? 0) >= 0 ? '#5ec285' : '#f87171',
+                                marginTop: 4,
+                              }}
+                            >
+                              {renderMoney(metrics.estimatedProfitLoss)}
+                            </div>
+                            <span className="calc-helper-text">
+                              Revenue minus total recorded production cost.
+                            </span>
                           </div>
                         </div>
                       ) : (
-                        <p style={{ fontSize: '13px', color: '#666', fontStyle: 'italic', margin: 0 }}>
-                          (No selling price provided. Cannot estimate revenue or profit.)
+                        <p style={{ fontSize: '0.85rem', color: '#6d967a', fontStyle: 'italic', margin: '6px 0 0 0' }}>
+                          No selling price was provided. Add an expected price to see projected profit or loss.
                         </p>
                       )}
                     </div>
 
-                    {/* What-If Scenario Section */}
-                    <div style={{ borderTop: '1px solid #ccc', paddingTop: '15px', marginTop: '20px', backgroundColor: '#f8fafc', padding: '15px', borderRadius: '8px' }}>
-                      <h5 style={{ margin: '0 0 5px 0', color: '#0f172a', display: 'flex', alignItems: 'center' }}>
-                        What-If Scenario 
-                        <span style={{ fontSize: '10px', backgroundColor: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '10px', marginLeft: '8px', fontWeight: 'normal' }}>Simulation</span>
-                      </h5>
-                      <details style={{ marginBottom: '15px' }}>
-                        <summary style={{ fontSize: '11px', color: '#475569', cursor: 'pointer' }}>ⓘ Why do we provide this?</summary>
-                        <div style={{ fontSize: '11px', color: '#475569', opacity: 0.9, marginTop: '4px', lineHeight: '1.3' }}>It lets you explore how changing the quantity or selling price could affect the calculated result without changing your saved production information. This is a simulation and does not change your saved record.</div>
-                      </details>
+                    {/* What-If Simulation Box */}
+                    <div className="calc-sim-box">
+                      <div className="calc-sim-header">
+                        <h4 className="calc-sim-title">
+                          <Sparkles size={15} color="#5ec285" />
+                          <span>What-If Scenario Simulator</span>
+                          <span className="calc-sim-badge">Simulation</span>
+                        </h4>
+                      </div>
+                      <span className="calc-helper-text" style={{ display: 'block', marginBottom: 12 }}>
+                        Simulate changes to yield quantity or target selling prices without modifying your saved record.
+                      </span>
 
-                      <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
-                        <div style={{ flex: 1 }}>
-                          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 'bold' }}>Scenario Quantity</label>
-                          <input type="number" min="0.01" step="0.01" 
-                            value={scenario.quantity} 
-                            onChange={(e) => handleScenarioChange(record._id!, 'quantity', Number(e.target.value))} 
-                            style={{ width: '100%', padding: '6px', fontSize: '0.9rem' }} 
+                      <div className="calc-sim-inputs">
+                        <div>
+                          <label className="calc-label" style={{ fontSize: '0.78rem' }}>Simulated Yield</label>
+                          <input
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            className="calc-input"
+                            style={{ padding: '8px 10px', fontSize: '0.86rem' }}
+                            value={scenario.quantity}
+                            onChange={(e) =>
+                              handleScenarioChange(record._id!, 'quantity', Number(e.target.value))
+                            }
                           />
                         </div>
-                        <div style={{ flex: 1 }}>
-                          <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 'bold' }}>Scenario Selling Price</label>
-                          <input type="number" min="0" step="0.01" 
-                            value={scenario.sellingPrice} 
-                            onChange={(e) => handleScenarioChange(record._id!, 'sellingPrice', Number(e.target.value))} 
-                            style={{ width: '100%', padding: '6px', fontSize: '0.9rem' }} 
+                        <div>
+                          <label className="calc-label" style={{ fontSize: '0.78rem' }}>Simulated Selling Price</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            className="calc-input"
+                            style={{ padding: '8px 10px', fontSize: '0.86rem' }}
+                            value={scenario.sellingPrice}
+                            onChange={(e) =>
+                              handleScenarioChange(record._id!, 'sellingPrice', Number(e.target.value))
+                            }
                           />
                         </div>
                       </div>
 
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '0.85rem' }}>
-                        <div><strong>Scenario Total Cost:</strong> {renderMoney(metrics.totalCost)}</div>
-                        <div><strong>Scenario Cost per Unit:</strong> {renderMoney(simCostPerUnit)}</div>
-                        <div><strong>Scenario Break-Even:</strong> {renderMoney(simCostPerUnit)}</div>
-                        <div><strong>Scenario Revenue:</strong> {renderMoney(simRevenue)}</div>
-                        <div style={{ color: simProfit >= 0 ? 'green' : 'red' }}><strong>Scenario Profit/Loss:</strong> {renderMoney(simProfit)}</div>
+                      <div className="calc-sim-results-grid">
+                        <div>Simulated Total Cost: <strong>{renderMoney(metrics.totalCost)}</strong></div>
+                        <div>Simulated Unit Cost: <strong>{renderMoney(simCostPerUnit)}</strong></div>
+                        <div>Simulated Revenue: <strong>{renderMoney(simRevenue)}</strong></div>
+                        <div>
+                          Simulated Margin:{' '}
+                          <span className={simProfit >= 0 ? 'calc-sim-profit-pos' : 'calc-sim-profit-neg'}>
+                            {renderMoney(simProfit)}
+                          </span>
+                        </div>
                       </div>
 
-                      <div style={{ marginTop: '15px', textAlign: 'right' }}>
-                        <button onClick={() => resetScenario(record._id!, record.expectedQuantity, record.expectedSellingPrice)} style={{ padding: '6px 12px', fontSize: '0.8rem', cursor: 'pointer' }}>
-                          Reset Scenario
+                      <div style={{ textAlign: 'right' }}>
+                        <button
+                          type="button"
+                          className="calc-sim-reset-btn"
+                          onClick={() =>
+                            resetScenario(
+                              record._id!,
+                              record.expectedQuantity,
+                              record.expectedSellingPrice
+                            )
+                          }
+                        >
+                          Reset Simulation
                         </button>
                       </div>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+                </article>
+              );
+            })
           )}
-        </div>
+        </section>
       </div>
-      
+
       {showPrivacyModal && <PrivacyDataModal onClose={() => setShowPrivacyModal(false)} />}
     </div>
   );

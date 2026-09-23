@@ -58,6 +58,20 @@ class SocketService {
     }
   }
 
+  onMessagesRead(callback: (data: { conversationId: string; readerId: string }) => void) {
+    if (this.socket) {
+      this.socket.off('messages_read');
+      this.socket.on('messages_read', callback);
+    }
+  }
+
+  onNewNotification(callback: (notification: any) => void) {
+    if (this.socket) {
+      this.socket.off('new_notification');
+      this.socket.on('new_notification', callback);
+    }
+  }
+
   onError(callback: (error: any) => void) {
     if (this.socket) {
       this.socket.off('error_message');

@@ -1,132 +1,107 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { Briefcase, Building2, Search, ArrowRight } from 'lucide-react';
+import { Briefcase, Building2, Search, ArrowRight, Receipt, MessageSquare } from 'lucide-react';
 
 export const DealerDashboardPlaceholder: React.FC = () => {
   const { user } = useAuth();
 
   return (
-    <div style={{ padding: '32px 24px', maxWidth: '1000px', margin: '0 auto' }}>
-      <div
-        style={{
-          backgroundColor: '#1e293b',
-          border: '1px solid #334155',
-          borderRadius: '16px',
-          padding: '32px',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '16px' }}>
-          <Briefcase size={32} style={{ color: '#60a5fa' }} />
+    <div className="page-wrapper">
+      {/* Page header */}
+      <div className="page-header">
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 14,
+            background: 'linear-gradient(135deg, #1e3a8a, #2563eb)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            color: '#fff', flexShrink: 0,
+          }}>
+            <Briefcase size={24} />
+          </div>
           <div>
-            <h1 style={{ margin: 0, fontSize: '1.75rem', color: '#f8fafc' }}>
-              Dealer Hub
-            </h1>
-            <p style={{ margin: '4px 0 0 0', color: '#94a3b8', fontSize: '0.9rem' }}>
-              Welcome back, <strong>{user?.fullName}</strong> ({user?.email})
+            <h1 className="page-title" style={{ marginBottom: 2 }}>Dealer Hub</h1>
+            <p className="page-subtitle">
+              Welcome back, <strong style={{ color: 'var(--color-text-primary)' }}>{user?.fullName}</strong>
             </p>
           </div>
         </div>
+      </div>
 
-        {/* Action Banner */}
-        <div
-          style={{
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
-            border: '1px solid rgba(59, 130, 246, 0.3)',
-            borderRadius: '12px',
-            padding: '20px',
-            marginTop: '20px',
-            color: '#93c5fd',
-          }}
-        >
-          <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Briefcase size={18} /> Dealer Features Active
-          </h3>
-          <p style={{ margin: '0 0 16px 0', fontSize: '0.9rem', color: '#cbd5e1', lineHeight: 1.5 }}>
-            Update your business profile, specify operating counties and crops dealt, and enter your AFA licence number for verification check.
-          </p>
-          <Link
-            to="/dealer/profile"
-            style={{
-              backgroundColor: '#2563eb',
-              color: '#ffffff',
-              textDecoration: 'none',
-              padding: '10px 18px',
-              borderRadius: '8px',
-              fontSize: '0.9rem',
-              fontWeight: 600,
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <span>Manage Dealer Profile & Licence</span>
-            <ArrowRight size={16} />
-          </Link>
+      {/* Action banner */}
+      <div className="alert-banner blue" style={{ marginBottom: 'var(--space-6)' }}>
+        <h3 style={{
+          margin: '0 0 6px 0', fontSize: '1rem', fontWeight: 700,
+          color: '#93c5fd', display: 'flex', alignItems: 'center', gap: 8,
+        }}>
+          <Briefcase size={17} />
+          Dealer features active
+        </h3>
+        <p style={{ margin: '0 0 16px 0', fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+          Update your business profile, specify operating counties and crops dealt, and
+          enter your AFA licence number for verification.
+        </p>
+        <Link to="/dealer/profile" className="btn btn-outline" style={{ fontSize: '0.875rem', padding: '8px 16px' }}>
+          Manage Profile &amp; Licence <ArrowRight size={15} />
+        </Link>
+      </div>
+
+      {/* Dashboard cards */}
+      <div className="dash-grid">
+        <Link to="/dealer/profile" className="dash-card" style={{ textDecoration: 'none' }}>
+          <div className="dash-card-icon" style={{ background: 'rgba(59,130,246,0.12)', color: '#93c5fd' }}>
+            <Briefcase size={20} />
+          </div>
+          <span className="dash-card-title">Business Profile</span>
+          <p className="dash-card-desc">Configure operating regions, crops dealt, purchasing capacity, and licence number.</p>
+          <span className="dash-card-link">Edit Profile <ArrowRight size={13} /></span>
+        </Link>
+
+        <Link to="/dealer/profile" className="dash-card" style={{ textDecoration: 'none' }}>
+          <div className="dash-card-icon" style={{ background: 'rgba(56,189,248,0.1)', color: '#7dd3fc' }}>
+            <Building2 size={20} />
+          </div>
+          <span className="dash-card-title">AFA Verification</span>
+          <p className="dash-card-desc">Licence status check powered by the AFA Verification Provider.</p>
+          <span className="dash-card-link">View Status <ArrowRight size={13} /></span>
+        </Link>
+
+        <div className="dash-card" style={{ cursor: 'default' }}>
+          <div className="dash-card-icon" style={{ background: 'rgba(39,137,79,0.1)', color: '#5ec285' }}>
+            <Search size={20} />
+          </div>
+          <span className="dash-card-title">Farmer Crop Match</span>
+          <p className="dash-card-desc">Search verified farmer crop listings by county and crop type.</p>
+          <span className="dash-card-link" style={{ color: 'var(--color-text-muted)' }}>Coming soon</span>
         </div>
 
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-            gap: '16px',
-            marginTop: '28px',
-          }}
-        >
-          <div style={cardStyle}>
-            <div style={cardIconStyle}><Briefcase size={22} style={{ color: '#60a5fa' }} /></div>
-            <h4 style={cardTitleStyle}>Business Profile</h4>
-            <p style={cardBodyStyle}>Configure operating regions, crops dealt, purchasing capacity, and licence number.</p>
-            <Link to="/dealer/profile" style={linkStyle}>Edit Profile →</Link>
+        <Link to="/offers" className="dash-card" style={{ textDecoration: 'none' }}>
+          <div className="dash-card-icon" style={{ background: 'rgba(245,166,35,0.1)', color: '#f8c06a' }}>
+            <Search size={20} />
           </div>
-          <div style={cardStyle}>
-            <div style={cardIconStyle}><Building2 size={22} style={{ color: '#60a5fa' }} /></div>
-            <h4 style={cardTitleStyle}>AFA Verification</h4>
-            <p style={cardBodyStyle}>Licence status check powered by Demo AFA Verification Provider.</p>
-            <Link to="/dealer/profile" style={linkStyle}>View Status →</Link>
+          <span className="dash-card-title">Trade Offers</span>
+          <p className="dash-card-desc">Review incoming offers and manage counteroffers with farmers.</p>
+          <span className="dash-card-link">View Offers <ArrowRight size={13} /></span>
+        </Link>
+
+        <Link to="/messages" className="dash-card" style={{ textDecoration: 'none' }}>
+          <div className="dash-card-icon" style={{ background: 'rgba(168,85,247,0.1)', color: '#c084fc' }}>
+            <MessageSquare size={20} />
           </div>
-          <div style={cardStyle}>
-            <div style={cardIconStyle}><Search size={22} style={{ color: '#38bdf8' }} /></div>
-            <h4 style={cardTitleStyle}>Farmer Crop Match</h4>
-            <p style={cardBodyStyle}>Search verified farmer crop listings by county and crop type.</p>
+          <span className="dash-card-title">Messages</span>
+          <p className="dash-card-desc">Private secure real-time chat with farmers.</p>
+          <span className="dash-card-link">Open Messages <ArrowRight size={13} /></span>
+        </Link>
+
+        <Link to="/transactions" className="dash-card" style={{ textDecoration: 'none' }}>
+          <div className="dash-card-icon" style={{ background: 'rgba(52,168,98,0.1)', color: '#5ec285' }}>
+            <Receipt size={20} />
           </div>
-        </div>
+          <span className="dash-card-title">Transactions</span>
+          <p className="dash-card-desc">Track completed deals, payment status, and delivery records.</p>
+          <span className="dash-card-link">View Transactions <ArrowRight size={13} /></span>
+        </Link>
       </div>
     </div>
   );
 };
-
-const cardStyle: React.CSSProperties = {
-  backgroundColor: '#0f172a',
-  border: '1px solid #334155',
-  borderRadius: '12px',
-  padding: '20px',
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'space-between',
-};
-
-const cardIconStyle: React.CSSProperties = {
-  marginBottom: '8px',
-};
-
-const cardTitleStyle: React.CSSProperties = {
-  margin: '0 0 6px 0',
-  color: '#f8fafc',
-  fontSize: '1rem',
-};
-
-const cardBodyStyle: React.CSSProperties = {
-  margin: '0 0 12px 0',
-  color: '#94a3b8',
-  fontSize: '0.85rem',
-  lineHeight: 1.4,
-};
-
-const linkStyle: React.CSSProperties = {
-  color: '#60a5fa',
-  textDecoration: 'none',
-  fontSize: '0.85rem',
-  fontWeight: 600,
-};
-

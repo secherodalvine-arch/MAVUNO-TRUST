@@ -5,6 +5,8 @@ import { getMyDealerProfileApi, updateMyDealerProfileApi, getPublicDealerProfile
 import type { DealerProfileDTO } from '../services/dealerService';
 import { verifyDealerLicenceApi } from '../services/verificationService';
 import type { VerificationResultDTO } from '../services/verificationService';
+import { createOrGetConversation } from '../services/chatService';
+import { ArrowLeft, MessageSquare, HandshakeIcon } from 'lucide-react';
 
 export const DealerProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -15,7 +17,23 @@ export const DealerProfilePage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [startingChat, setStartingChat] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  const handleStartChat = async () => {
+    const targetId = profile?.userId || id;
+    if (!targetId) return;
+    try {
+      setStartingChat(true);
+      const conv = await createOrGetConversation(targetId);
+      navigate(`/messages?conversationId=${conv._id}`);
+    } catch (err: any) {
+      console.error('Failed to open chat from dealer profile:', err);
+      navigate(`/messages?recipientId=${targetId}&name=${encodeURIComponent(profile?.displayName || profile?.businessName || '')}`);
+    } finally {
+      setStartingChat(false);
+    }
+  };
 
   // Form states
   const [businessName, setBusinessName] = useState('');
@@ -381,15 +399,19 @@ export const DealerProfilePage: React.FC = () => {
                   borderRadius: '6px',
                   fontWeight: 600,
                   fontSize: '0.9rem',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
               >
-                ← Back to Dealer Directory
+                <ArrowLeft size={16} /> Back to Dealer Directory
               </button>
 
               <button
                 type="button"
-                onClick={() => navigate('/messages')}
+                onClick={handleStartChat}
+                disabled={startingChat}
                 style={{
                   padding: '10px 18px',
                   backgroundColor: '#2563eb',
@@ -398,10 +420,14 @@ export const DealerProfilePage: React.FC = () => {
                   borderRadius: '6px',
                   fontWeight: 600,
                   fontSize: '0.9rem',
-                  cursor: 'pointer'
+                  cursor: startingChat ? 'wait' : 'pointer',
+                  opacity: startingChat ? 0.75 : 1,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px'
                 }}
               >
-                💬 Start Private Conversation
+                <MessageSquare size={16} /> {startingChat ? 'Connecting to Chat…' : 'Start Private Conversation'}
               </button>
 
               {user?.role === 'FARMER' && (profile?.licence?.status === 'ACTIVE') && (
@@ -416,10 +442,13 @@ export const DealerProfilePage: React.FC = () => {
                     borderRadius: '6px',
                     fontWeight: 600,
                     fontSize: '0.9rem',
-                    cursor: 'pointer'
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '8px'
                   }}
                 >
-                  🤝 Make an Offer
+                  <HandshakeIcon size={16} /> Make an Offer
                 </button>
               )}
             </div>
