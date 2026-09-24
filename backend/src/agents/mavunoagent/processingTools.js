@@ -20,6 +20,7 @@ export const processingTools = {
       commodity: record.commodity ? record.commodity.trim() : null,
       classification: record.classification ? record.classification.trim() : null,
       grade: record.grade ? record.grade.trim() : null,
+      sex: record.sex ? record.sex.trim() : null,
       market: record.market ? record.market.trim() : null,
       county: record.county ? record.county.trim() : null,
       wholesalePrice: wholesale !== null && !isNaN(wholesale) ? wholesale : null,

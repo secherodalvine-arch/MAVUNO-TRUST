@@ -12,8 +12,8 @@ export class AgentService {
   }
 
   initialize() {
-    const key = process.env.MAVUNOAGENT_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-    const model = process.env.MAVUNOAGENT_MODEL || 'gemini-3.5-flash';
+    const key = process.env.MAVUNOAGENT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
+    const model = process.env.MAVUNOAGENT_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash';
     const baseUrl = process.env.KAMIS_BASE_URL || 'https://kamis.kilimo.go.ke';
 
     this.model = model;

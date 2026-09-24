@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MarketDataItem } from '../services/marketDataService';
+import type { MarketDataItem } from '../services/marketDataService';
 import { MapPin, Calendar, ShieldCheck, Info } from 'lucide-react';
 import '../styles/marketTicker.css';
 

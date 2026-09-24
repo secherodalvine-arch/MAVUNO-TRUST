@@ -1,5 +1,4 @@
-import React from 'react';
-import { MarketDataItem } from '../services/marketDataService';
+import type { MarketDataItem } from '../services/marketDataService';
 import { MapPin, Calendar, ExternalLink, ShieldCheck } from 'lucide-react';
 import '../styles/marketTicker.css';
 
@@ -48,7 +47,7 @@ export const MarketPriceDetailModal: React.FC<MarketPriceDetailModalProps> = ({ 
           <div className="kamis-detail-item">
             <span className="kamis-detail-label">Classification / Grade</span>
             <span className="kamis-detail-value">
-              {item.classification || 'Standard'} {item.grade ? `(${item.grade})` : ''}
+              {item.classification || 'Standard'} {item.grade ? `(${item.grade})` : ''} {item.sex ? `• Sex: ${item.sex}` : ''}
             </span>
           </div>
 

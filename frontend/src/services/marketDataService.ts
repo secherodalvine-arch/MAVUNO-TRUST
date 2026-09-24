@@ -8,6 +8,7 @@ export interface KamisMarketItem {
   commodity: string;
   classification?: string | null;
   grade?: string | null;
+  sex?: string | null;
   market: string;
   county?: string | null;
   wholesalePrice?: number | null;
@@ -95,3 +96,7 @@ export const kamisMarketService = {
     }
   },
 };
+
+// Aliases for compatibility with UI components
+export type MarketDataItem = KamisMarketItem;
+export const marketDataService = kamisMarketService;

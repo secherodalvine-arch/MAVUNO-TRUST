@@ -32,6 +32,11 @@ const MarketDataSchema = new Schema(
       trim: true,
       default: null,
     },
+    sex: {
+      type: String,
+      trim: true,
+      default: null,
+    },
     market: {
       type: String,
       required: [true, 'Market location is required'],
