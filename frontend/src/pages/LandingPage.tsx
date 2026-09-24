@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import {
   Search, TrendingUp, Calculator, Lock, FileText, Scale,
-  CheckCircle2, Circle, ArrowRight, Mic,
+  CheckCircle2, ArrowRight, Mic, ShieldCheck,
 } from 'lucide-react';
 import VoiceWidget from '../components/VoiceWidget';
 import '../styles/LandingPage.css';
@@ -24,7 +24,7 @@ const features: Feature[] = [
     icon: <TrendingUp size={22} />,
     title: 'Market Information',
     description:
-      'Access current and recent agricultural market price information powered by ShambaRecords to make informed selling decisions.',
+      'Access current and recent agricultural market price information across key counties to make informed selling decisions.',
   },
   {
     icon: <Calculator size={22} />,
@@ -52,20 +52,50 @@ const features: Feature[] = [
   },
 ];
 
-const buildStatusItems = [
-  { label: 'Project foundation & responsive design', done: true },
-  { label: 'Authentication & Role Security (Farmer/Dealer/Admin)', done: true },
-  { label: 'Farmer profiles & crop listings management', done: true },
-  { label: 'ShambaRecords HMAC live market price engine', done: true },
-  { label: 'Dealer profile & AFA licence verification', done: true },
-  { label: 'Production cost & break-even calculator', done: true },
-  { label: 'Real-time WebSocket private chat', done: true },
-  { label: 'Trade offers, counteroffers & transactions tracking', done: true },
-  { label: 'Farmer Rights Centre & dispute pathways', done: true },
-  { label: 'ElevenLabs AI voice & speech accessibility', done: true },
+const tradeCapabilities = [
+  { label: 'Verified dealer regulatory licence checking' },
+  { label: 'Farmer crop listings & direct buyer matching' },
+  { label: 'Trade offers, counteroffers & agreement tracking' },
+  { label: 'Transparent delivery milestones & payment confirmation' },
+  { label: 'Farmer legal rights centre & dispute resolution' },
+];
+
+const toolCapabilities = [
+  { label: 'Live commodity market price trends across Kenyan counties' },
+  { label: 'Private production cost & break-even calculator' },
+  { label: 'Direct real-time private messaging between trade partners' },
+  { label: 'In-app transaction reminders & milestone alerts' },
+  { label: 'Multi-lingual customer support voice assistant (English & Kiswahili)' },
 ];
 
 const LandingPage = () => {
+  // IntersectionObserver to animate elements inner-to-out as the user scrolls
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('is-emerged');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.12,
+        rootMargin: '0px 0px -40px 0px',
+      }
+    );
+
+    const elements = document.querySelectorAll('.emerge-item');
+    elements.forEach((el) => observer.observe(el));
+
+    return () => observer.disconnect();
+  }, []);
+
+  const handleLaunchVoice = () => {
+    window.dispatchEvent(new CustomEvent('open-voice-widget'));
+  };
+
   return (
     <div className="landing-page">
 
@@ -79,17 +109,13 @@ const LandingPage = () => {
         <div className="hero-grid" aria-hidden="true" />
 
         <div className="container hero-content-relative">
-          <div className="hero-badge" aria-label="MavunoTrust">
-            <img src="/logo.png" alt="MavunoTrust" className="hero-badge-logo" />
-            <span>Empowering Kenya's Agricultural Trade</span>
-          </div>
-
           <h1 className="hero-title" id="hero-heading">
-            <span className="gradient-text">MavunoTrust</span>
+            Verified Connections.<br />
+            <span className="gradient-text">Fairer Agricultural Trade.</span>
           </h1>
 
           <p className="hero-subtitle">
-            Verified connections. Informed decisions. Fairer agricultural trade.
+            Transparent market prices. Direct trade agreements. Real-time dealer verification.
           </p>
 
           <p className="hero-desc">
@@ -101,7 +127,7 @@ const LandingPage = () => {
           <div className="hero-actions">
             <Link
               id="cta-register"
-              className="btn btn-primary"
+              className="btn btn-primary-white"
               to="/register"
             >
               <span>Get Started</span>
@@ -111,27 +137,23 @@ const LandingPage = () => {
               Sign In
             </Link>
           </div>
-
-          <div className="hero-status">
-            <span className="status-dot" aria-hidden="true" />
-            <span>Platform operational · Verified licensing &amp; live market pricing connected</span>
-          </div>
         </div>
       </section>
 
       {/* ══════════ PHOTO GALLERY ══════════ */}
       <section className="landing-gallery" aria-labelledby="gallery-heading">
         <div className="container">
-          <p className="section-label">Real Impact</p>
-          <h2 className="section-title" id="gallery-heading">
-            Farmers at Work Across Kenya
-          </h2>
-          <p className="section-description">
-            MavunoTrust is built for the real people who feed our nation — farmers working
-            the land every day, harvesting with pride, and selling with confidence.
-          </p>
+          <div className="gallery-header emerge-item">
+            <h2 className="section-title" id="gallery-heading">
+              Farmers at Work Across Kenya
+            </h2>
+            <p className="section-description">
+              MavunoTrust is built for the real people who feed our nation — farmers working
+              the land every day, harvesting with pride, and selling with confidence.
+            </p>
+          </div>
           <div className="gallery-grid">
-            <figure className="gallery-item gallery-item--tall">
+            <figure className="gallery-item gallery-item--tall emerge-item">
               <img
                 src="/images/farm1.jpg"
                 alt="Two farmers tilling soil in a green field"
@@ -142,7 +164,7 @@ const LandingPage = () => {
                 <p>Hard-working farmers preparing fertile ground for the next season's harvest.</p>
               </figcaption>
             </figure>
-            <figure className="gallery-item">
+            <figure className="gallery-item emerge-item">
               <img
                 src="/images/farm2.jpg"
                 alt="Farmer standing beside large harvest sacks in a field"
@@ -153,7 +175,7 @@ const LandingPage = () => {
                 <p>A farmer with a successful grain harvest, ready to find the best market price.</p>
               </figcaption>
             </figure>
-            <figure className="gallery-item">
+            <figure className="gallery-item emerge-item">
               <img
                 src="/images/farm3.jpg"
                 alt="Hands harvesting maize cobs from dried stalks"
@@ -169,21 +191,22 @@ const LandingPage = () => {
       </section>
 
       {/* ══════════ FEATURES ══════════ */}
-      <section className="landing-features" aria-labelledby="features-heading">
+      <section id="features" className="landing-features" aria-labelledby="features-heading">
         <div className="container">
-          <p className="section-label">Core Capabilities</p>
-          <h2 className="section-title" id="features-heading">
-            Platform Capabilities &amp; Services
-          </h2>
-          <p className="section-description">
-            Explore the full suite of tools built to empower farmers and transparent
-            agricultural dealers across Kenya.
-          </p>
+          <div className="features-header emerge-item">
+            <h2 className="section-title" id="features-heading">
+              Platform Capabilities &amp; Services
+            </h2>
+            <p className="section-description">
+              Explore the full suite of tools built to empower farmers and transparent
+              agricultural dealers across Kenya.
+            </p>
+          </div>
           <div className="features-grid">
             {features.map((feature) => (
               <article
                 key={feature.title}
-                className="feature-card"
+                className="feature-card emerge-item"
                 aria-label={feature.title}
               >
                 <div className="feature-icon" aria-hidden="true">{feature.icon}</div>
@@ -198,7 +221,7 @@ const LandingPage = () => {
       {/* ══════════ VOICE ASSISTANT ══════════ */}
       <section className="landing-voice" aria-labelledby="voice-heading">
         <div className="container">
-          <div className="voice-card">
+          <div className="voice-card emerge-item">
             <div className="voice-card-icon" aria-hidden="true">
               <Mic size={28} />
             </div>
@@ -211,7 +234,14 @@ const LandingPage = () => {
                 about the platform, get help navigating features, or understand your rights
                 as a farmer — all in a natural conversation.
               </p>
-              <div className="voice-card-cta">
+              <div
+                className="voice-card-cta"
+                onClick={handleLaunchVoice}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') handleLaunchVoice(); }}
+                title="Click to launch AI Voice Assistant"
+              >
                 <span className="voice-indicator" aria-hidden="true">
                   <span className="voice-dot" />
                   <span className="voice-dot" />
@@ -226,29 +256,66 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ══════════ BUILD STATUS ══════════ */}
+      {/* ══════════ PLATFORM CAPABILITIES (2 CARDS) ══════════ */}
       <section className="landing-status" aria-labelledby="status-heading">
         <div className="container">
-          <div className="status-card">
-            <h2 id="status-heading">Platform System Capabilities</h2>
-            <p>
-              MavunoTrust features transparent system status and strict data privacy safeguards.
+          <div className="status-section-header emerge-item">
+            <h2 id="status-heading" className="status-section-title">Key Platform Capabilities</h2>
+            <p className="status-section-subtitle">
+              Practical, transparent tools built for everyday agricultural commerce across Kenya.
             </p>
-            <ul className="status-list" aria-label="Feature checklist">
-              {buildStatusItems.map((item) => (
-                <li key={item.label}>
-                  <span
-                    className={item.done ? 'icon-done' : 'icon-pending'}
-                    aria-label={item.done ? 'Complete' : 'Pending'}
-                  >
-                    {item.done
-                      ? <CheckCircle2 size={15} />
-                      : <Circle size={15} />}
-                  </span>
-                  <span>{item.label}</span>
-                </li>
-              ))}
-            </ul>
+          </div>
+
+          <div className="status-cards-grid">
+            {/* Card 1: Verified Trade & Compliance */}
+            <div className="status-card emerge-item">
+              <div className="status-card-header">
+                <div className="status-card-icon">
+                  <ShieldCheck size={24} />
+                </div>
+                <div>
+                  <h3 className="status-card-title">Trade &amp; Verification</h3>
+                  <p className="status-card-desc">
+                    Direct workflows connecting verified Kenyan farmers and agricultural dealers with full regulatory compliance.
+                  </p>
+                </div>
+              </div>
+              <ul className="status-list" aria-label="Trade and verification capabilities">
+                {tradeCapabilities.map((item) => (
+                  <li key={item.label}>
+                    <span className="icon-done" aria-label="Completed">
+                      <CheckCircle2 size={16} />
+                    </span>
+                    <span>{item.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Card 2: Market Intelligence & Smart Tools */}
+            <div className="status-card emerge-item">
+              <div className="status-card-header">
+                <div className="status-card-icon">
+                  <TrendingUp size={24} />
+                </div>
+                <div>
+                  <h3 className="status-card-title">Market Intelligence &amp; Tools</h3>
+                  <p className="status-card-desc">
+                    Real-time commodity prices, financial calculators, private messaging, and AI voice assistance.
+                  </p>
+                </div>
+              </div>
+              <ul className="status-list" aria-label="Market intelligence and tools capabilities">
+                {toolCapabilities.map((item) => (
+                  <li key={item.label}>
+                    <span className="icon-done" aria-label="Completed">
+                      <CheckCircle2 size={16} />
+                    </span>
+                    <span>{item.label}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
       </section>
@@ -256,12 +323,11 @@ const LandingPage = () => {
       {/* ══════════ CTA STRIP ══════════ */}
       <section className="landing-cta" aria-labelledby="cta-heading">
         <div className="container">
-          <div className="cta-card">
-            <img src="/logo.png" alt="MavunoTrust" className="cta-logo-img" />
+          <div className="cta-card emerge-item">
             <h2 id="cta-heading">Ready to trade with confidence?</h2>
             <p>Join thousands of Kenyan farmers and verified dealers on MavunoTrust.</p>
-            <Link to="/register" className="btn btn-primary">
-              Create Your Account
+            <Link to="/register" className="btn btn-primary-white">
+              <span>Create Your Account</span>
               <ArrowRight size={18} />
             </Link>
           </div>

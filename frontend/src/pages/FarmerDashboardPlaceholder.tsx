@@ -1,58 +1,61 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   User, Leaf, TrendingUp, Calculator, Search,
-  HandshakeIcon, ArrowRight, Sprout,
+  HandshakeIcon, ArrowRight,
 } from 'lucide-react';
+import { MarketTicker } from '../components/MarketTicker';
+import { MarketPriceDetailModal } from '../components/MarketPriceDetailModal';
+import { marketDataService, type MarketDataItem } from '../services/marketDataService';
 
 export const FarmerDashboardPlaceholder: React.FC = () => {
   const { user } = useAuth();
+  const [tickerItems, setTickerItems] = useState<MarketDataItem[]>([]);
+  const [selectedItem, setSelectedItem] = useState<MarketDataItem | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    marketDataService
+      .getMarketPrices({ limit: 50 })
+      .then((res) => {
+        if (isMounted && res.success && res.data?.records) {
+          setTickerItems(res.data.records);
+        }
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   return (
     <div className="page-wrapper">
       {/* Page header */}
       <div className="page-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{
-            width: 48, height: 48, borderRadius: 14,
-            background: 'linear-gradient(135deg, #175230, #34a862)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', flexShrink: 0,
-          }}>
-            <Sprout size={24} />
-          </div>
-          <div>
-            <h1 className="page-title" style={{ marginBottom: 2 }}>Farmer Hub</h1>
-            <p className="page-subtitle">
-              Welcome back, <strong style={{ color: 'var(--color-text-primary)' }}>{user?.fullName}</strong>
-            </p>
-          </div>
+        <div>
+          <h1 className="page-title" style={{ marginBottom: 2 }}>Dashboard</h1>
+          <p className="page-subtitle">
+            Welcome back, <strong style={{ color: 'var(--color-text-primary)' }}>{user?.fullName}</strong>
+          </p>
         </div>
       </div>
 
-      {/* Action banner */}
-      <div className="alert-banner green" style={{ marginBottom: 'var(--space-6)' }}>
-        <h3 style={{
-          margin: '0 0 6px 0', fontSize: '1rem', fontWeight: 700,
-          color: 'var(--color-primary-200)', display: 'flex', alignItems: 'center', gap: 8,
-        }}>
-          <Leaf size={17} />
-          Your farmer features are active
-        </h3>
-        <p style={{ margin: '0 0 16px 0', fontSize: '0.875rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
-          Manage your public farmer profile, control location privacy, and publish available
-          crop listings for dealer matching.
-        </p>
-        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-          <Link to="/farmer/profile" className="btn btn-primary" style={{ fontSize: '0.875rem', padding: '8px 16px' }}>
-            Manage Profile <ArrowRight size={15} />
-          </Link>
-          <Link to="/farmer/crops" className="btn btn-outline" style={{ fontSize: '0.875rem', padding: '8px 16px' }}>
-            Crop Listings <ArrowRight size={15} />
-          </Link>
+      {/* Agricultural Market Observations Live Ticker */}
+      {tickerItems.length > 0 && (
+        <div style={{ marginBottom: 'var(--space-6)' }}>
+          <MarketTicker items={tickerItems} onSelect={(item) => setSelectedItem(item)} />
         </div>
-      </div>
+      )}
+
+      {/* Selected Market Observation Modal */}
+      {selectedItem && (
+        <MarketPriceDetailModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+        />
+      )}
 
       {/* Dashboard cards */}
       <div className="dash-grid">
@@ -88,7 +91,7 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
             <TrendingUp size={20} />
           </div>
           <span className="dash-card-title">Market Prices</span>
-          <p className="dash-card-desc">Real-time reference agricultural prices from ShambaRecords.</p>
+          <p className="dash-card-desc">Real-time reference agricultural prices across Kenyan markets.</p>
           <span className="dash-card-link">Browse Prices <ArrowRight size={13} /></span>
         </Link>
 

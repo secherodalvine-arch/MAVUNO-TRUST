@@ -155,7 +155,7 @@ export const DealerProfilePage: React.FC = () => {
   if (isLoading) {
     return (
       <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-        💼 Loading Dealer Profile...
+        Loading Dealer Profile...
       </div>
     );
   }
@@ -178,7 +178,6 @@ export const DealerProfilePage: React.FC = () => {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <span style={styles.badge}>💼 Dealer / Broker Management</span>
           <h1 style={styles.title}>{isPublicView ? profile?.businessName || profile?.displayName : 'Dealer Business Profile & Verification'}</h1>
           <p style={styles.subtitle}>
             {isPublicView ? profile?.bio : 'Enter business details, purchasing capacity, and verify your AFA licence against the Demo Provider.'}
@@ -188,7 +187,7 @@ export const DealerProfilePage: React.FC = () => {
 
       {!isProfileComplete && !isPublicView && (
         <div style={styles.warningBanner}>
-          ⚠️ <strong>Profile Notice:</strong> Your dealer profile is incomplete. Please enter your business name, operating counties, crops dealt, and licence number below.
+          <strong>Profile Notice:</strong> Your dealer profile is incomplete. Please enter your business name, operating counties, crops dealt, and licence number below.
         </div>
       )}
 
@@ -201,14 +200,14 @@ export const DealerProfilePage: React.FC = () => {
             color: message.type === 'success' ? '#86efac' : '#fca5a5',
           }}
         >
-          {message.type === 'success' ? '✅' : '⚠️'} {message.text}
+          {message.text}
         </div>
       )}
 
       {/* Demo AFA Verification Service Panel */}
       <div style={styles.verificationCard}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-          <h2 style={styles.cardTitle}>🏛️ Demo AFA Dealer Licence Verification Service</h2>
+          <h2 style={styles.cardTitle}>Demo AFA Dealer Licence Verification Service</h2>
           <span style={styles.demoPill}>DEMO AFA VERIFICATION</span>
         </div>
 
@@ -250,7 +249,7 @@ export const DealerProfilePage: React.FC = () => {
                   opacity: isVerifying ? 0.7 : 1,
                 }}
               >
-                {isVerifying ? 'Verifying...' : '⚡ Run AFA Verification Check'}
+                {isVerifying ? 'Verifying...' : 'Run AFA Verification Check'}
               </button>
             </div>
           </>
@@ -313,7 +312,7 @@ export const DealerProfilePage: React.FC = () => {
 
             {/* Mandatory Disclaimer Notice */}
             <div style={styles.disclaimerNotice}>
-              🛡️ <strong>Demonstration only — not a live AFA verification result.</strong>
+              <strong>Demonstration only — not a live AFA verification result.</strong>
               <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px' }}>
                 Verification data is provided by the Demo AFA Verification Provider for hackathon demonstration. It does not represent an official government verification or transaction guarantee.
               </div>
@@ -345,7 +344,7 @@ export const DealerProfilePage: React.FC = () => {
 
       {isPublicView ? (
         <div style={styles.card}>
-          <h2 style={styles.cardTitle}>🏢 Public Business & Operating Details</h2>
+          <h2 style={styles.cardTitle}>Public Business & Operating Details</h2>
 
           <div style={{ display: 'grid', gap: '16px', color: '#cbd5e1', fontSize: '0.95rem' }}>
             {profile?.bio && (
@@ -458,7 +457,7 @@ export const DealerProfilePage: React.FC = () => {
         <form onSubmit={handleSubmit} style={styles.grid}>
           {/* Business Information Form */}
           <div style={styles.card}>
-            <h2 style={styles.cardTitle}>🏢 Business & Operating Details</h2>
+            <h2 style={styles.cardTitle}>Business & Operating Details</h2>
 
             <div style={styles.fieldRow}>
               <div style={styles.field}>

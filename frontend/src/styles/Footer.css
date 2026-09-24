@@ -38,9 +38,28 @@
   color: #a0c4ac;
 }
 
+.footer-links {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.footer-link {
+  color: #7ba388;
+  text-decoration: none;
+  font-size: 0.82rem;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: #e8f5ec;
+}
+
 .footer-copy {
   font-size: 0.8rem;
-  color: #3d5c45;
+  color: #557a60;
 }
 
 @media (max-width: 480px) {

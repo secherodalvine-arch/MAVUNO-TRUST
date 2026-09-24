@@ -1,5 +1,5 @@
 import type { MarketDataItem } from '../services/marketDataService';
-import { MapPin, Calendar, ExternalLink, ShieldCheck } from 'lucide-react';
+import { MapPin, Calendar } from 'lucide-react';
 import '../styles/marketTicker.css';
 
 interface MarketPriceDetailModalProps {
@@ -91,24 +91,14 @@ export const MarketPriceDetailModal: React.FC<MarketPriceDetailModalProps> = ({ 
           </div>
         </div>
 
-        <div className="kamis-modal-footer">
-          <span className="kamis-source-badge">
-            <ShieldCheck size={12} /> Source: {item.source || 'MavunoAgent'}
-          </span>
-
-          {item.sourceUrl ? (
-            <a
-              href={item.sourceUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn btn-sm btn-outline"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
-            >
-              View source reference <ExternalLink size={13} />
-            </a>
-          ) : (
-            <span style={{ fontSize: '0.75rem', color: '#6b7280' }}>Method: {item.sourceMethod}</span>
-          )}
+        <div className="kamis-modal-footer" style={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={onClose}
+          >
+            Close
+          </button>
         </div>
       </div>
     </div>

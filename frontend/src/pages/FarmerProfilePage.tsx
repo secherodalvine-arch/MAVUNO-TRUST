@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getMyFarmerProfileApi, updateMyFarmerProfileApi } from '../services/farmerService';
-import { Sprout, User, CheckCircle2, AlertTriangle, Globe, Lock, Shield } from 'lucide-react';
+import { Sprout, CheckCircle2, AlertTriangle, Globe, Lock, Shield } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
 export const FarmerProfilePage: React.FC = () => {
@@ -86,10 +86,6 @@ export const FarmerProfilePage: React.FC = () => {
     <div style={styles.container}>
       <div style={styles.header}>
         <div>
-          <span style={styles.badge}>
-            <User size={13} style={{ display: 'inline-block', verticalAlign: 'middle', marginRight: '4px' }} />
-            Farmer Management
-          </span>
           <h1 style={styles.title}>My Farmer Profile</h1>
           <p style={styles.subtitle}>
             Manage your public agricultural identity and private location controls.

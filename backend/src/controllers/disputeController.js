@@ -96,10 +96,17 @@ export const createDispute = async (req, res, next) => {
             await createNotification({
                 userId: respondentId,
                 type: 'DISPUTE_RAISED',
-                title: 'Dispute Raised on Transaction',
+                title: `Dispute Raised: ${transaction.cropName}`,
                 body: `${initiatorName} opened a dispute for ${transaction.cropName} (${category}). Please review the claim in Transactions.`,
                 link: '/transactions',
-                meta: { disputeId: newDispute._id, transactionId: transaction._id }
+                meta: {
+                    reminderKey: `tx_dispute_${transaction._id}`,
+                    actionLabel: 'Review Dispute',
+                    category: 'COMPLAINT',
+                    priority: 'high',
+                    disputeId: newDispute._id,
+                    transactionId: transaction._id
+                }
             });
         } catch (notifErr) {
             console.error('Failed to dispatch dispute notification:', notifErr);

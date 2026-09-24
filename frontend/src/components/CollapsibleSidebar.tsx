@@ -18,6 +18,7 @@ import {
   ChevronRight,
   Settings,
   X,
+  Sprout,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import './CollapsibleSidebar.css';
@@ -43,11 +44,12 @@ const farmerNav: NavItem[] = [
 ];
 
 const dealerNav: NavItem[] = [
-  { to: '/dealer/dashboard', label: 'Dashboard',     icon: <LayoutDashboard size={18} /> },
-  { to: '/dealer/profile',   label: 'My Profile',    icon: <Building2 size={18} /> },
-  { to: '/offers',           label: 'Offers',        icon: <HandshakeIcon size={18} /> },
-  { to: '/messages',         label: 'Messages',      icon: <MessageSquare size={18} /> },
-  { to: '/transactions',     label: 'Transactions',  icon: <Receipt size={18} /> },
+  { to: '/dealer/dashboard',  label: 'Dashboard',         icon: <LayoutDashboard size={18} /> },
+  { to: '/dealer/crop-match', label: 'Farmer Crop Match', icon: <Sprout size={18} /> },
+  { to: '/dealer/profile',    label: 'My Profile',        icon: <Building2 size={18} /> },
+  { to: '/offers',            label: 'Offers',            icon: <HandshakeIcon size={18} /> },
+  { to: '/messages',          label: 'Messages',          icon: <MessageSquare size={18} /> },
+  { to: '/transactions',      label: 'Transactions',      icon: <Receipt size={18} /> },
 ];
 
 const adminNav: NavItem[] = [

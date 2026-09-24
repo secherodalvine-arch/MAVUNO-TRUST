@@ -6,14 +6,14 @@ export class AgentService {
   constructor() {
     this.isInitialized = false;
     this.apiKey = null;
-    this.model = 'gemini-3.5-flash';
+    this.model = 'gemini-2.5-flash';
     this.baseUrl = 'https://kamis.kilimo.go.ke';
     this.lastError = null;
   }
 
   initialize() {
     const key = process.env.MAVUNOAGENT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-    const model = process.env.MAVUNOAGENT_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash';
+    const model = process.env.MAVUNOAGENT_MODEL || process.env.GEMINI_MODEL || 'gemini-2.5-flash';
     const baseUrl = process.env.KAMIS_BASE_URL || 'https://kamis.kilimo.go.ke';
 
     this.model = model;

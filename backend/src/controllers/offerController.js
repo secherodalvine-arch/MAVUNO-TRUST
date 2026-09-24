@@ -325,10 +325,16 @@ export const respondToOffer = async (req, res, next) => {
                 await createNotification({
                     userId: creatorId,
                     type: 'OFFER_ACCEPTED',
-                    title: 'Offer Accepted! 🎉',
+                    title: 'Offer Accepted: New Transaction Created!',
                     body: `${responderName} accepted your offer of ${offer.quantity} ${offer.unit} (${offer.currency} ${offer.totalAmount.toLocaleString()}). Milestone tracking is now active.`,
                     link: '/transactions',
-                    meta: { offerId: offer._id }
+                    meta: {
+                        reminderKey: `tx_created_${offer._id}`,
+                        actionLabel: 'Track Transaction',
+                        category: 'TRANSACTION',
+                        priority: 'high',
+                        offerId: offer._id
+                    }
                 });
 
                 // Notify acceptor that transaction is active
@@ -336,9 +342,15 @@ export const respondToOffer = async (req, res, next) => {
                     userId: authUserId,
                     type: 'TRANSACTION_CREATED',
                     title: 'New Transaction Deal Room Created',
-                    body: `You accepted the offer. Milestone tracking and payment coordination are now active.`,
+                    body: `You accepted the offer. Milestone tracking and delivery coordination are now active.`,
                     link: '/transactions',
-                    meta: { offerId: offer._id }
+                    meta: {
+                        reminderKey: `tx_created_acceptor_${offer._id}`,
+                        actionLabel: 'View Transaction',
+                        category: 'TRANSACTION',
+                        priority: 'high',
+                        offerId: offer._id
+                    }
                 });
             } else if (action === 'REJECT') {
                 const creatorId = offer.initiatedBy === 'FARMER' ? offer.farmerId : offer.dealerId;

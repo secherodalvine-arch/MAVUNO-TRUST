@@ -15,7 +15,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
         <div style={{ padding: '24px', background: '#1e293b', borderRadius: '12px', color: '#94a3b8' }}>
-          🔒 Verifying credentials...
+          Verifying credentials...
         </div>
       </div>
     );
@@ -29,7 +29,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
     return (
       <div style={{ padding: '48px', maxWidth: '600px', margin: '40px auto', textAlign: 'center' as any }}>
         <div style={{ background: '#7f1d1d', border: '1px solid #ef4444', padding: '24px', borderRadius: '12px', color: '#fef2f2' }}>
-          <h2>🚫 Access Denied</h2>
+          <h2>Access Denied</h2>
           <p>Your account ({user.role}) does not have permission to view this section.</p>
           <a
             href={

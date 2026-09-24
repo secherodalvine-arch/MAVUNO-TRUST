@@ -8,6 +8,33 @@ export interface AppNotification {
   link: string | null;
   read: boolean;
   createdAt: string;
+  meta?: {
+    reminderKey?: string;
+    actionLabel?: string;
+    category?: string;
+    priority?: string;
+    itemId?: string;
+    [key: string]: any;
+  };
+}
+
+export interface ActivityReminder {
+  reminderKey: string;
+  title: string;
+  body: string;
+  link: string | null;
+  actionLabel: string;
+  category: 'OFFER' | 'TRANSACTION' | 'COMPLAINT' | 'LISTING' | string;
+  priority: 'high' | 'medium' | 'low';
+  notificationId: string | null;
+  read: boolean;
+  createdAt: string;
+}
+
+export interface RemindersResponse {
+  reminders: ActivityReminder[];
+  unreadReminders: ActivityReminder[];
+  hasPendingActivities: boolean;
 }
 
 export interface NotificationsResponse {
@@ -18,6 +45,11 @@ export interface NotificationsResponse {
 export const notificationService = {
   async getAll(): Promise<NotificationsResponse> {
     const res = await apiClient.get('/notifications');
+    return res.data.data;
+  },
+
+  async getReminders(): Promise<RemindersResponse> {
+    const res = await apiClient.get('/notifications/reminders');
     return res.data.data;
   },
 

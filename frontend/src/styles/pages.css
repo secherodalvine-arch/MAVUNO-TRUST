@@ -1388,4 +1388,328 @@
   background: #f1f5f9;
 }
 
+/* ── Price Type Filter High Visibility Pills ── */
+.price-type-selector-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  width: 100%;
+}
+
+.price-pill-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #cbd5e1;
+  border: 1.5px solid rgba(255, 255, 255, 0.16);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  user-select: none;
+}
+
+.price-pill-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.35);
+  transform: translateY(-1px);
+}
+
+.price-pill-btn.active {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #22c55e;
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.25);
+  font-weight: 700;
+}
+
+.price-pill-btn--wholesale.active {
+  background: #047857;
+  color: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+}
+
+.price-pill-btn--retail.active {
+  background: #1d4ed8;
+  color: #ffffff;
+  border-color: #3b82f6;
+  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.25);
+}
+
+.price-pill-btn .pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #94a3b8;
+  display: inline-block;
+  transition: background-color 0.2s;
+}
+
+.price-pill-btn.active .pill-dot {
+  background: #ffffff;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.8);
+}
+
+[data-theme='light'] .price-pill-btn {
+  background: #f8fafc;
+  color: #334155;
+  border: 1.5px solid #cbd5e1;
+}
+
+[data-theme='light'] .price-pill-btn:hover {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+[data-theme='light'] .price-pill-btn.active {
+  background: #15803d;
+  color: #ffffff;
+  border-color: #16a34a;
+}
+
+[data-theme='light'] .price-pill-btn--retail.active {
+  background: #1d4ed8;
+  color: #ffffff;
+  border-color: #2563eb;
+}
+
+/* ── Combo Search Input (Type or Select) ── */
+.combo-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.combo-input-wrapper .form-input {
+  padding-right: 64px;
+}
+
+.combo-input-actions {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  z-index: 2;
+}
+
+.combo-btn-clear,
+.combo-btn-toggle {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.combo-btn-clear:hover,
+.combo-btn-toggle:hover {
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.combo-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 5px);
+  left: 0;
+  right: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #131f16;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+  z-index: 100;
+  padding: 6px 0;
+  margin: 0;
+  list-style: none;
+}
+
+.combo-dropdown-item {
+  padding: 8px 14px;
+  font-size: 0.88rem;
+  color: #cbd5e1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.15s ease;
+}
+
+.combo-dropdown-item:hover {
+  background: rgba(34, 197, 94, 0.16);
+  color: #4ade80;
+}
+
+.combo-dropdown-item.selected {
+  background: rgba(34, 197, 94, 0.22);
+  color: #22c55e;
+  font-weight: 600;
+}
+
+.combo-dropdown-empty {
+  padding: 10px 14px;
+  font-size: 0.82rem;
+  color: #64748b;
+  text-align: center;
+  font-style: italic;
+}
+
+[data-theme='light'] .combo-dropdown-menu {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+[data-theme='light'] .combo-dropdown-item {
+  color: #334155;
+}
+
+[data-theme='light'] .combo-dropdown-item:hover {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+
+[data-theme='light'] .combo-dropdown-item.selected {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+[data-theme='light'] .combo-btn-clear,
+[data-theme='light'] .combo-btn-toggle {
+  color: #64748b;
+}
+
+[data-theme='light'] .combo-btn-clear:hover,
+[data-theme='light'] .combo-btn-toggle:hover {
+  color: #0f172a;
+  background: #f1f5f9;
+}
+
+/* ── Platform Modal System ── */
+.app-modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  background-color: rgba(0, 0, 0, 0.78) !important;
+  backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 99999 !important;
+  padding: 1rem;
+  animation: appModalFadeIn 0.2s ease-out;
+}
+
+.app-modal-dialog {
+  background: #131f16;
+  color: #e8f5ec;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 16px;
+  max-width: 520px;
+  width: 100%;
+  padding: 1.5rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+  position: relative;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: appModalSlideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.app-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  padding-bottom: 0.9rem;
+  margin-bottom: 1.2rem;
+}
+
+.app-modal-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0;
+  font-family: 'Outfit', sans-serif;
+}
+
+.app-modal-close {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.app-modal-close:hover {
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff;
+  transform: scale(1.05);
+}
+
+[data-theme='light'] .app-modal-dialog {
+  background: #ffffff;
+  color: #0f172a;
+  border-color: #cbd5e1;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='light'] .app-modal-header {
+  border-bottom-color: #e2e8f0;
+}
+
+[data-theme='light'] .app-modal-title {
+  color: #0f172a;
+}
+
+[data-theme='light'] .app-modal-close {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+
+[data-theme='light'] .app-modal-close:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+@keyframes appModalFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes appModalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 

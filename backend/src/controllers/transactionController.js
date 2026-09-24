@@ -135,13 +135,21 @@ export const updateFulfilment = async (req, res, next) => {
             const otherUserId = farmerIdStr === cleanAuthUserId ? dealerIdStr : farmerIdStr;
             const updater = await User.findById(authUserId).select('fullName').exec();
             const updaterName = updater?.fullName || 'Partner';
+            const actionLabel = status === FulfilmentStatus.FULFILLED ? 'Complete Deal' : 'Track Delivery';
             await createNotification({
                 userId: otherUserId,
-                type: 'GENERAL',
-                title: 'Transaction Fulfilment Updated',
-                body: `${updaterName} updated fulfilment for ${transaction.cropName} to ${transaction.fulfilment.status}.`,
+                type: 'REMINDER',
+                title: `Fulfilment Updated: ${transaction.cropName}`,
+                body: `${updaterName} updated fulfilment for ${transaction.cropName} to "${transaction.fulfilment.status}".`,
                 link: '/transactions',
-                meta: { transactionId: transaction._id, status: transaction.fulfilment.status }
+                meta: {
+                    reminderKey: `tx_fulfilment_${transaction._id}_${Date.now()}`,
+                    actionLabel,
+                    category: 'TRANSACTION',
+                    priority: 'high',
+                    transactionId: transaction._id,
+                    status: transaction.fulfilment.status
+                }
             });
         } catch (notifErr) {
             console.error('Failed to dispatch fulfilment notification:', notifErr);
@@ -221,11 +229,17 @@ export const completeTransaction = async (req, res, next) => {
             const actorName = actor?.fullName || 'Partner';
             await createNotification({
                 userId: otherUserId,
-                type: 'TRANSACTION_COMPLETED',
-                title: 'Transaction Successfully Completed! 🎉',
-                body: `${actorName} confirmed delivery & payment completion for ${transaction.cropName}. Please take a moment to leave a partner rating.`,
+                type: 'REMINDER',
+                title: `Transaction Completed: ${transaction.cropName}`,
+                body: `${actorName} marked the deal for ${transaction.cropName} as completed. Leave a verified partner rating!`,
                 link: '/transactions',
-                meta: { transactionId: transaction._id }
+                meta: {
+                    reminderKey: `tx_completed_${transaction._id}`,
+                    actionLabel: 'Rate Partner',
+                    category: 'TRANSACTION',
+                    priority: 'high',
+                    transactionId: transaction._id
+                }
             });
         } catch (notifErr) {
             console.error('Failed to dispatch transaction completed notification:', notifErr);
@@ -336,11 +350,18 @@ export const cancelTransaction = async (req, res, next) => {
             const actorName = actor?.fullName || 'Partner';
             await createNotification({
                 userId: otherUserId,
-                type: 'GENERAL',
-                title: 'Transaction Cancelled',
-                body: `${actorName} cancelled the transaction for ${transaction.cropName} (Reason: ${cancellationReason}).`,
+                type: 'REMINDER',
+                title: `Transaction Cancelled: ${transaction.cropName}`,
+                body: `${actorName} cancelled the transaction for ${transaction.cropName} (${cancellationReason}).`,
                 link: '/transactions',
-                meta: { transactionId: transaction._id, cancellationReason }
+                meta: {
+                    reminderKey: `tx_cancelled_${transaction._id}`,
+                    actionLabel: 'View Details',
+                    category: 'TRANSACTION',
+                    priority: 'high',
+                    transactionId: transaction._id,
+                    cancellationReason
+                }
             });
         } catch (notifErr) {
             console.error('Failed to dispatch transaction cancellation notification:', notifErr);

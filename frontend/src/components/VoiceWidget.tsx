@@ -3,21 +3,25 @@ import { Mic, MicOff, X, WifiOff } from 'lucide-react';
 import apiClient from '../services/apiClient';
 import './VoiceWidget.css';
 
+const DEFAULT_HOMEPAGE_AGENT_ID = 'agent_6201m324f8y1fz8bx69fbxxr75dy';
+
 /**
  * MavunoTrust AI Voice Assistant Widget
  *
  * Custom-branded FAB toggler + slide-up panel.
- * The widget FAB always renders; if the backend is unreachable the panel
- * shows a friendly "unavailable" state instead of disappearing entirely.
+ * Always renders; reliably opens and closes on FAB click, close button,
+ * backdrop click, or Escape key.
  */
 export const VoiceWidget: React.FC = () => {
-  const [agentId, setAgentId] = useState<string | null>(null);
+  const [agentId, setAgentId] = useState<string>(
+    () => import.meta.env.VITE_ELEVENLABS_AGENT_ID || DEFAULT_HOMEPAGE_AGENT_ID
+  );
   const [backendError, setBackendError] = useState(false);
   const [open, setOpen] = useState(false);
   const [scriptLoaded, setScriptLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  /* Fetch agent ID from backend */
+  /* Fetch agent ID from backend if available */
   useEffect(() => {
     apiClient
       .get('/voice/config')
@@ -26,13 +30,10 @@ export const VoiceWidget: React.FC = () => {
         if (id) {
           setAgentId(id);
           setBackendError(false);
-        } else {
-          setBackendError(true);
         }
       })
       .catch(() => {
-        // Backend not running or agent not configured — show unavailable state
-        setBackendError(true);
+        // Fallback agent ID is already pre-set so voice assistant remains functional
       });
   }, []);
 
@@ -55,9 +56,18 @@ export const VoiceWidget: React.FC = () => {
 
   /* Close on Escape */
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpen(false); };
-    document.addEventListener('keydown', onKey);
-    return () => document.removeEventListener('keydown', onKey);
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  /* Listen for external trigger from LandingPage */
+  useEffect(() => {
+    const handleOpen = () => setOpen(true);
+    window.addEventListener('open-voice-widget', handleOpen);
+    return () => window.removeEventListener('open-voice-widget', handleOpen);
   }, []);
 
   return (
@@ -87,14 +97,22 @@ export const VoiceWidget: React.FC = () => {
             <div>
               <span className="vw-panel-name">MavunoTrust AI</span>
               <span className="vw-panel-status">
-                {backendError
-                  ? <><span className="vw-dot vw-dot--offline" aria-hidden="true" />Unavailable</>
-                  : <><span className="vw-dot" aria-hidden="true" />Voice Assistant</>
-                }
+                {backendError ? (
+                  <>
+                    <span className="vw-dot vw-dot--offline" aria-hidden="true" />
+                    Unavailable
+                  </>
+                ) : (
+                  <>
+                    <span className="vw-dot" aria-hidden="true" />
+                    Voice Assistant
+                  </>
+                )}
               </span>
             </div>
           </div>
           <button
+            type="button"
             className="vw-close-btn"
             onClick={() => setOpen(false)}
             aria-label="Close voice assistant"
@@ -129,7 +147,11 @@ export const VoiceWidget: React.FC = () => {
 
       {/* ── Trigger FAB — always visible ── */}
       <button
-        className={`vw-fab ${open ? 'vw-fab--active' : ''} ${backendError ? 'vw-fab--offline' : ''}`}
+        type="button"
+        id="voice-assistant-fab"
+        className={`vw-fab ${open ? 'vw-fab--active' : ''} ${
+          backendError ? 'vw-fab--offline' : ''
+        }`}
         onClick={() => setOpen((v) => !v)}
         aria-label={open ? 'Close voice assistant' : 'Open MavunoTrust AI voice assistant'}
         aria-expanded={open}
@@ -139,7 +161,9 @@ export const VoiceWidget: React.FC = () => {
         </span>
         {!open && !backendError && <span className="vw-fab-ring" aria-hidden="true" />}
         {!open && (
-          <span className="vw-fab-badge" aria-hidden="true">AI</span>
+          <span className="vw-fab-badge" aria-hidden="true">
+            AI
+          </span>
         )}
       </button>
     </>

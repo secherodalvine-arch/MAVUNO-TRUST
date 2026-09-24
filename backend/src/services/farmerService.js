@@ -123,7 +123,7 @@ export async function getPublicCropListings(filter) {
     if (filter?.cropName) {
         query.cropName = { $regex: filter.cropName, $options: 'i' };
     }
-    return FarmerCropListing.find(query).sort({ createdAt: -1 });
+    return FarmerCropListing.find(query).populate('farmerId', 'fullName email phoneNumber').sort({ createdAt: -1 });
 }
 /**
  * Get single crop listing by ID

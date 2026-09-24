@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Star } from 'lucide-react';
 import { getTransactions, updateFulfilment, completeTransaction, cancelTransaction } from '../services/transactionService';
 import type { TransactionDTO } from '../services/transactionService';
 import { useAuthContext } from '../context/AuthContext';
@@ -44,7 +45,7 @@ const TransactionCompletionSection: React.FC<{
           <h4 style={{ margin: '0 0 4px 0', color: '#14532d', fontSize: '0.95rem', fontWeight: 700 }}>Transaction Completion</h4>
           {isCompleted ? (
             <div style={{ fontSize: '0.85rem', color: '#166534', fontWeight: 600 }}>
-              ✓ Transaction marked as Completed
+              Transaction marked as Completed
               {transaction.completedAt && ` on ${new Date(transaction.completedAt).toLocaleString()}`}.
             </div>
           ) : isEligible ? (
@@ -162,7 +163,7 @@ const TransactionCancellationSection: React.FC<{
           <h4 style={{ margin: '0 0 4px 0', color: isCancelled ? '#991b1b' : '#b45309', fontSize: '0.95rem', fontWeight: 700 }}>Transaction Cancellation</h4>
           {isCancelled ? (
             <div style={{ fontSize: '0.85rem', color: '#b91c1c' }}>
-              ✕ Transaction Cancelled {transaction.cancelledAt && ` on ${new Date(transaction.cancelledAt).toLocaleString()}`}.
+              Transaction Cancelled {transaction.cancelledAt && ` on ${new Date(transaction.cancelledAt).toLocaleString()}`}.
               <div style={{ marginTop: '2px' }}>Reason: <strong style={{ color: '#7f1d1d' }}>{formatReason(transaction.cancellationReason)}</strong></div>
               {transaction.cancellationNote && <div style={{ fontStyle: 'italic', marginTop: '2px', color: '#991b1b' }}>"{transaction.cancellationNote}"</div>}
             </div>
@@ -359,7 +360,7 @@ const TransactionDisputeSection: React.FC<{
             </div>
           ) : closedDispute ? (
             <div style={{ fontSize: '0.85rem', color: '#475569' }}>
-              ✓ Case <strong style={{ color: '#0f172a' }}>{closedDispute.caseId}</strong> was closed on {closedDispute.closedAt ? new Date(closedDispute.closedAt).toLocaleDateString() : 'earlier date'}.
+              Case <strong style={{ color: '#0f172a' }}>{closedDispute.caseId}</strong> was closed on {closedDispute.closedAt ? new Date(closedDispute.closedAt).toLocaleDateString() : 'earlier date'}.
             </div>
           ) : (
             <div style={{ fontSize: '0.85rem', color: '#475569' }}>
@@ -702,7 +703,18 @@ const TransactionRatingSection: React.FC<{ transactionId: string, currentUserId:
   const theirRating = ratings.find((r: any) => r.reviewerId._id !== currentUserId);
 
   const renderStars = (rating: number) => {
-    return '★'.repeat(rating) + '☆'.repeat(5 - rating);
+    return (
+      <div style={{ display: 'inline-flex', gap: '2px', alignItems: 'center' }}>
+        {[1, 2, 3, 4, 5].map((val) => (
+          <Star
+            key={val}
+            size={18}
+            fill={val <= rating ? '#f59e0b' : 'none'}
+            color={val <= rating ? '#f59e0b' : '#cbd5e1'}
+          />
+        ))}
+      </div>
+    );
   };
 
   return (
@@ -715,7 +727,7 @@ const TransactionRatingSection: React.FC<{ transactionId: string, currentUserId:
           {myRating ? (
             <>
               <div style={{ fontWeight: 700, marginBottom: '6px', color: '#0f172a' }}>Your rating</div>
-              <div style={{ color: '#f59e0b', fontSize: '1.25rem', marginBottom: '6px' }}>{renderStars(myRating.rating)}</div>
+              <div style={{ marginBottom: '6px' }}>{renderStars(myRating.rating)}</div>
               {myRating.comment && <div style={{ fontSize: '0.9rem', color: '#334155', fontStyle: 'italic' }}>"{myRating.comment}"</div>}
             </>
           ) : (
@@ -723,13 +735,19 @@ const TransactionRatingSection: React.FC<{ transactionId: string, currentUserId:
               <div style={{ fontWeight: 700, marginBottom: '10px', color: '#0f172a' }}>Rate your experience with this {counterpartyLabel}</div>
               <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
                 {[1, 2, 3, 4, 5].map(star => (
-                  <span 
+                  <button 
                     key={star} 
+                    type="button"
                     onClick={() => setSelectedRating(star)}
-                    style={{ cursor: 'pointer', color: selectedRating >= star ? '#f59e0b' : '#cbd5e1', fontSize: '1.5rem', userSelect: 'none' }}
+                    style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'inline-flex' }}
+                    aria-label={`${star} star`}
                   >
-                    ★
-                  </span>
+                    <Star
+                      size={22}
+                      fill={selectedRating >= star ? '#f59e0b' : 'none'}
+                      color={selectedRating >= star ? '#f59e0b' : '#cbd5e1'}
+                    />
+                  </button>
                 ))}
               </div>
               <textarea 
@@ -770,7 +788,7 @@ const TransactionRatingSection: React.FC<{ transactionId: string, currentUserId:
           <div style={{ fontWeight: 700, marginBottom: '6px', color: '#0f172a' }}>Their rating</div>
           {theirRating ? (
             <>
-              <div style={{ color: '#f59e0b', fontSize: '1.25rem', marginBottom: '6px' }}>{renderStars(theirRating.rating)}</div>
+              <div style={{ marginBottom: '6px' }}>{renderStars(theirRating.rating)}</div>
               {theirRating.comment && <div style={{ fontSize: '0.9rem', color: '#334155', fontStyle: 'italic' }}>"{theirRating.comment}"</div>}
             </>
           ) : (

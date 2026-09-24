@@ -117,12 +117,6 @@ export const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({
   >([]);
 
   const conversationRef = useRef<any>(null);
-  const transcriptEndRef = useRef<HTMLDivElement>(null);
-
-  // Auto-scroll transcript
-  useEffect(() => {
-    transcriptEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [transcript]);
 
   // Fetch updated Agent ID from backend if available
   useEffect(() => {
@@ -424,7 +418,6 @@ export const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({
                   </div>
                 ))
               )}
-              <div ref={transcriptEndRef} />
             </div>
           </div>
 
@@ -489,7 +482,7 @@ export const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({
           </div>
 
           <div className="csw-footer-note">
-            MavunoTrust Custom Voice Assistant • Huduma kwa Wateja kwa Sauti
+            MavunoTrust Voice Assistant • Huduma kwa Wateja kwa Sauti
           </div>
         </div>
       </div>

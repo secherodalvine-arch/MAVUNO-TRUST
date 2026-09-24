@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import type { MarketDataItem } from '../services/marketDataService';
-import { MapPin, Calendar, ShieldCheck, Info } from 'lucide-react';
+import { MapPin, Calendar, Info } from 'lucide-react';
 import '../styles/marketTicker.css';
 
 interface MarketTickerProps {
@@ -36,9 +36,6 @@ export const MarketTicker: React.FC<MarketTickerProps> = ({ items, onSelect }) =
       <div className="kamis-ticker-header">
         <div className="kamis-ticker-title">
           <span>Agricultural Market Observations</span>
-          <span className="kamis-source-badge">
-            <ShieldCheck size={12} /> Source: MavunoAgent
-          </span>
         </div>
         <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
           <Info size={12} /> Hover or touch to pause ticker
@@ -101,7 +98,6 @@ export const MarketTicker: React.FC<MarketTickerProps> = ({ items, onSelect }) =
                   <Calendar size={11} style={{ display: 'inline', marginRight: 3 }} />
                   Observed: {formatDate(item.observedDate)}
                 </span>
-                <span style={{ fontWeight: 600, color: '#059669' }}>MavunoAgent</span>
               </div>
             </div>
           ))}

@@ -5,6 +5,7 @@ import {
   updateCropListingApi,
   deleteCropListingApi
 } from '../services/cropService';
+import { Sprout } from 'lucide-react';
 import type { CropListingDTO } from '../services/cropService';
 
 export const MyCropsPage: React.FC = () => {
@@ -128,7 +129,6 @@ export const MyCropsPage: React.FC = () => {
     <div style={styles.container}>
       <div style={styles.headerRow}>
         <div>
-          <span style={styles.badge}>🌱 Agricultural Offerings</span>
           <h1 style={styles.title}>My Crop Listings</h1>
           <p style={styles.subtitle}>
             Publish available crop yields for verified dealer matching.
@@ -141,7 +141,7 @@ export const MyCropsPage: React.FC = () => {
 
       {/* Non-prescriptive notice */}
       <div style={styles.infoBanner}>
-        ℹ️ <strong>Platform Notice:</strong> Crop listings provide transparent product information to help potential matching. MavunoTrust does not calculate market prices or tell you when to sell.
+        <strong>Platform Notice:</strong> Crop listings provide transparent product information to help potential matching. MavunoTrust does not calculate market prices or tell you when to sell.
       </div>
 
       {message && (
@@ -159,11 +159,11 @@ export const MyCropsPage: React.FC = () => {
 
       {isLoading ? (
         <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-          🌾 Loading listings...
+          Loading listings...
         </div>
       ) : listings.length === 0 ? (
         <div style={styles.emptyState}>
-          <div style={{ fontSize: '2.5rem', marginBottom: '12px' }}>🌾</div>
+          <Sprout size={36} style={{ color: '#475569', marginBottom: '12px' }} />
           <h3 style={{ margin: '0 0 6px 0', color: '#f8fafc' }}>No crop listings yet</h3>
           <p style={{ margin: '0 0 20px 0', color: '#94a3b8', fontSize: '0.9rem' }}>
             You haven't posted any crop offerings. Create your first listing to connect with dealers.

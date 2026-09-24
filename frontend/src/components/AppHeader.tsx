@@ -4,12 +4,13 @@ import {
   Menu, Bell, User, Settings, LogOut,
   CheckCheck, Trash2, ChevronDown, X,
   MessageSquare, HandshakeIcon, Receipt, AlertTriangle,
-  Sprout, Info, Headphones,
+  Sprout, Info, Headphones, Clock,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { notificationService, type AppNotification } from '../services/notificationService';
 import { socketService } from '../services/socketService';
 import CustomerSupportWidget from './CustomerSupportWidget';
+import InAppReminderPopup from './InAppReminderPopup';
 import './AppHeader.css';
 
 const routeTitles: Record<string, string> = {
@@ -40,6 +41,7 @@ const notifTypeIcon: Record<string, React.ReactNode> = {
   MESSAGE_RECEIVED:     <MessageSquare size={14} />,
   DISPUTE_RAISED:       <AlertTriangle size={14} />,
   GENERAL:              <Info size={14} />,
+  REMINDER:             <Clock size={14} />,
 };
 
 interface AppHeaderProps {
@@ -267,7 +269,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
                       {notifTypeIcon[n.type] || <Info size={14} />}
                     </div>
                     <div className="ah-notif-content">
-                      <p className="ah-notif-title">{n.title}</p>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
+                        <p className="ah-notif-title">{n.title}</p>
+                        {n.meta?.actionLabel && (
+                          <span style={{
+                            fontSize: '0.68rem',
+                            fontWeight: 600,
+                            padding: '2px 6px',
+                            borderRadius: '4px',
+                            background: 'rgba(34, 197, 94, 0.16)',
+                            color: '#4ade80',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            {n.meta.actionLabel}
+                          </span>
+                        )}
+                      </div>
                       <p className="ah-notif-body">{n.body}</p>
                       <span className="ah-notif-time">{timeAgo(n.createdAt)}</span>
                     </div>
@@ -355,6 +372,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
         isOpen={supportOpen}
         onClose={() => setSupportOpen(false)}
       />
+
+      {/* ── In-App Interactive Activity Reminder Popup ── */}
+      <InAppReminderPopup onRefreshNotifications={fetchNotifications} />
     </header>
   );
 };

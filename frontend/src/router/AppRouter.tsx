@@ -9,6 +9,7 @@ import LoadSpinner from '../components/LoadSpinner';
 
 // ── Public pages (eager — small) ──
 import LandingPage from '../pages/LandingPage';
+import AboutPage from '../pages/AboutPage';
 import { LoginPage } from '../pages/LoginPage';
 import { RegisterPage } from '../pages/RegisterPage';
 import NotFoundPage from '../pages/NotFoundPage';
@@ -30,6 +31,7 @@ const Offers              = lazy(() => import('../pages/OffersPage').then(m => (
 const CreateOffer         = lazy(() => import('../pages/CreateOfferPage').then(m => ({ default: m.CreateOfferPage })));
 const CounterOffer        = lazy(() => import('../pages/CounterOfferPage').then(m => ({ default: m.CounterOfferPage })));
 const Messages            = lazy(() => import('../pages/MessagesPage').then(m => ({ default: m.MessagesPage })));
+const DealerCropMatch     = lazy(() => import('../pages/DealerCropMatchPage').then(m => ({ default: m.DealerCropMatchPage })));
 const SettingsPage        = lazy(() => import('../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
 
 const PageLoader = () => (
@@ -41,9 +43,10 @@ const AppRouter = () => {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
-          {/* ── Homepage (Landing Page) ── */}
+          {/* ── Homepage (Landing Page) & Public pages ── */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<AboutPage />} />
           </Route>
 
           {/* ── Auth pages — isolated full-screen layout ── */}
@@ -149,6 +152,14 @@ const AppRouter = () => {
               element={
                 <ProtectedRoute allowedRoles={['DEALER']}>
                   <Suspense fallback={<PageLoader />}><DealerDashboard /></Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dealer/crop-match"
+              element={
+                <ProtectedRoute allowedRoles={['DEALER', 'ADMIN']}>
+                  <Suspense fallback={<PageLoader />}><DealerCropMatch /></Suspense>
                 </ProtectedRoute>
               }
             />

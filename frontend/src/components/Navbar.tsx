@@ -16,6 +16,19 @@ const Navbar: React.FC = () => {
           <span className="pub-nav-name">MavunoTrust</span>
         </Link>
 
+        {/* Desktop nav links */}
+        <div className="pub-nav-links">
+          <a href="/#features" className="pub-nav-link">
+            Features
+          </a>
+          <Link
+            to="/about"
+            className={`pub-nav-link ${pathname === '/about' ? 'pub-nav-link--active' : ''}`}
+          >
+            About Us
+          </Link>
+        </div>
+
         {/* Desktop auth buttons */}
         <div className="pub-nav-actions">
           <Link
@@ -46,6 +59,16 @@ const Navbar: React.FC = () => {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="pub-nav-mobile" role="menu">
+          <a href="/#features" className="pub-nav-mobile-link" onClick={() => setMobileOpen(false)}>
+            Features
+          </a>
+          <Link
+            to="/about"
+            className={`pub-nav-mobile-link ${pathname === '/about' ? 'pub-nav-link--active' : ''}`}
+            onClick={() => setMobileOpen(false)}
+          >
+            About Us
+          </Link>
           <Link to="/login" className="pub-nav-mobile-link" onClick={() => setMobileOpen(false)}>
             Sign In
           </Link>

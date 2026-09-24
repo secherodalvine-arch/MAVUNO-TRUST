@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { Volume2, Pause } from 'lucide-react';
 import apiClient from '../services/apiClient';
 
 interface AudioButtonProps {
@@ -84,7 +85,9 @@ export const AudioButton: React.FC<AudioButtonProps> = ({ textId, lang, label })
       }}
       aria-label={displayLabel}
     >
-      <span>{isPlaying ? '⏸️' : '🔊'}</span>
+      <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+        {isPlaying ? <Pause size={15} /> : <Volume2 size={15} />}
+      </span>
       <span>{loading ? '...' : (error ? 'Error' : displayLabel)}</span>
     </button>
   );
