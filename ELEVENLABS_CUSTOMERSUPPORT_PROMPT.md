@@ -8,7 +8,7 @@
 > 4. Under **System Prompt**, copy and paste the entire block below.
 > 5. Generate your **Customer Support API Key** and copy your **Agent ID** from ElevenLabs.
 > 6. Add them to `backend/.env` under their dedicated environment variables:
->    ```env
+>    `env
 >    ELEVENLABS_CUSTOMER_SUPPORT_API_KEY=your_customer_support_api_key_here
 >    ELEVENLABS_CUSTOMER_SUPPORT_AGENT_ID=agent_your_customer_support_agent_id_here
 >    ```
