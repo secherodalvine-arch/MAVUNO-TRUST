@@ -248,7 +248,7 @@ const LandingPage = () => {
                   <span className="voice-dot" />
                 </span>
                 <span className="voice-cta-text">
-                  Click the green microphone button in the bottom-right corner to start
+                  Click here or press the green microphone button to launch AI Voice Assistant
                 </span>
               </div>
             </div>

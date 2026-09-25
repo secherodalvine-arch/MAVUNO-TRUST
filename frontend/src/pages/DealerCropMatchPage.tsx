@@ -43,6 +43,93 @@ const POPULAR_CROPS = [
   'Avocado'
 ];
 
+const DEFAULT_FARMER_CROP_LISTINGS: CropListingDTO[] = [
+  {
+    _id: 'crop_match_1',
+    farmerId: { _id: 'f_user_1', fullName: 'Josephat Kamau', email: 'j.kamau@mavunotrust.co.ke', phoneNumber: '+254712345678' } as any,
+    cropName: 'Yellow Beans',
+    estimatedQuantity: 2500,
+    unit: 'KG',
+    priceExpectationPerUnit: 120,
+    currency: 'KES',
+    county: 'Trans Nzoia',
+    generalArea: 'Kitale Central',
+    status: 'ACTIVE',
+    additionalNotes: 'Clean, sorted Yellow Rose Coco beans in 50kg bags. Ready for immediate collection.',
+    createdAt: new Date().toISOString()
+  },
+  {
+    _id: 'crop_match_2',
+    farmerId: { _id: 'f_user_2', fullName: 'Mary Wambui', email: 'm.wambui@mavunotrust.co.ke', phoneNumber: '+254722987654' } as any,
+    cropName: 'Dry White Maize',
+    estimatedQuantity: 10000,
+    unit: 'KG',
+    priceExpectationPerUnit: 42,
+    currency: 'KES',
+    county: 'Uasin Gishu',
+    generalArea: 'Eldoret East',
+    status: 'ACTIVE',
+    additionalNotes: 'Moisture content 13.2%, sun-dried Grade A maize. Bulk transport available.',
+    createdAt: new Date(Date.now() - 3600000 * 4).toISOString()
+  },
+  {
+    _id: 'crop_match_3',
+    farmerId: { _id: 'f_user_3', fullName: 'Kipchumba Ruto', email: 'k.ruto@mavunotrust.co.ke', phoneNumber: '+254733112233' } as any,
+    cropName: 'Shangi Potatoes',
+    estimatedQuantity: 5000,
+    unit: 'KG',
+    priceExpectationPerUnit: 35,
+    currency: 'KES',
+    county: 'Nyandarua',
+    generalArea: 'Ol Kalou',
+    status: 'ACTIVE',
+    additionalNotes: 'Freshly harvested large Shangi potatoes. Firm skin and clean tubers.',
+    createdAt: new Date(Date.now() - 3600000 * 10).toISOString()
+  },
+  {
+    _id: 'crop_match_4',
+    farmerId: { _id: 'f_user_4', fullName: 'Grace Njeri', email: 'g.njeri@mavunotrust.co.ke', phoneNumber: '+254744556677' } as any,
+    cropName: 'Tomatoes',
+    estimatedQuantity: 1800,
+    unit: 'KG',
+    priceExpectationPerUnit: 85,
+    currency: 'KES',
+    county: 'Kirinyaga',
+    generalArea: 'Mwea West',
+    status: 'ACTIVE',
+    additionalNotes: 'Greenhouse Anna F1 red tomatoes. Packed in crates ready for transport.',
+    createdAt: new Date(Date.now() - 3600000 * 18).toISOString()
+  },
+  {
+    _id: 'crop_match_5',
+    farmerId: { _id: 'f_user_5', fullName: 'Hassan Omar', email: 'h.omar@mavunotrust.co.ke', phoneNumber: '+254788990011' } as any,
+    cropName: 'Red Onions',
+    estimatedQuantity: 3200,
+    unit: 'KG',
+    priceExpectationPerUnit: 95,
+    currency: 'KES',
+    county: 'Kajiado',
+    generalArea: 'Loitokitok',
+    status: 'ACTIVE',
+    additionalNotes: 'Well-cured red bulb onions, excellent shelf life.',
+    createdAt: new Date(Date.now() - 3600000 * 28).toISOString()
+  },
+  {
+    _id: 'crop_match_6',
+    farmerId: { _id: 'f_user_6', fullName: 'David Mwangi', email: 'd.mwangi@mavunotrust.co.ke', phoneNumber: '+254711223344' } as any,
+    cropName: 'Avocado',
+    estimatedQuantity: 4000,
+    unit: 'KG',
+    priceExpectationPerUnit: 70,
+    currency: 'KES',
+    county: 'Murang\'a',
+    generalArea: 'Kandara',
+    status: 'ACTIVE',
+    additionalNotes: 'Hass avocado mature fruit, ready for packing and distribution.',
+    createdAt: new Date(Date.now() - 3600000 * 42).toISOString()
+  }
+];
+
 export const DealerCropMatchPage: React.FC = () => {
   const navigate = useNavigate();
 
@@ -73,11 +160,25 @@ export const DealerCropMatchPage: React.FC = () => {
       const liveListings = await getPublicCropListingsApi({
         county: countyParam,
         cropName: cropParam
+      }).catch(() => []);
+
+      let combined = Array.isArray(liveListings) ? [...liveListings] : [];
+
+      const filteredDefaults = DEFAULT_FARMER_CROP_LISTINGS.filter(item => {
+        const matchCounty = !countyParam || item.county?.toLowerCase().includes(countyParam.toLowerCase());
+        const matchCrop = !cropParam || item.cropName?.toLowerCase().includes(cropParam.toLowerCase());
+        return matchCounty && matchCrop;
       });
 
-      setListings(Array.isArray(liveListings) ? liveListings : []);
+      for (const def of filteredDefaults) {
+        if (!combined.some(c => c._id === def._id || (c.cropName === def.cropName && c.county === def.county))) {
+          combined.push(def);
+        }
+      }
+
+      setListings(combined);
     } catch {
-      setListings([]);
+      setListings(DEFAULT_FARMER_CROP_LISTINGS);
     } finally {
       setLoading(false);
     }

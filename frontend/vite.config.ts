@@ -7,7 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icon-192.png', 'icon-512.png'],
+      includeAssets: ['favicon.png', 'logo.png', 'icon-192.png', 'icon-512.png'],
       manifest: {
         name: 'MavunoTrust',
         short_name: 'MavunoTrust',
@@ -15,9 +15,11 @@ export default defineConfig({
         theme_color: '#0a2e1a',
         background_color: '#0a2e1a',
         display: 'standalone',
+        orientation: 'portrait-primary',
         start_url: '/',
         icons: [
-          { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/logo.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+          { src: '/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
         ],
       },
