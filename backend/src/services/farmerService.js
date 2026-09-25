@@ -116,13 +116,15 @@ export async function getMyCropListings(userId) {
  * Public listing of active crop offerings for search/matching
  */
 export async function getPublicCropListings(filter) {
-    const query = { status: ListingStatus.ACTIVE };
+    const query = {};
     if (filter?.county) {
         query.county = { $regex: filter.county, $options: 'i' };
     }
     if (filter?.cropName) {
         query.cropName = { $regex: filter.cropName, $options: 'i' };
     }
+    // Exclude cancelled or sold listings if status exists
+    query.status = { $nin: ['SOLD', 'CANCELLED', 'EXPIRED'] };
     return FarmerCropListing.find(query).populate('farmerId', 'fullName email phoneNumber').sort({ createdAt: -1 });
 }
 /**

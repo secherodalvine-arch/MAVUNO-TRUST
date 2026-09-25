@@ -209,11 +209,12 @@
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
-  .settings-theme-grid { grid-template-columns: 1fr 1fr; }
+  .settings-theme-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
   .settings-theme-grid > :last-child { grid-column: 1 / -1; }
+  .settings-toggle-row { gap: 12px; }
 }
 
-@media (max-width: 400px) {
+@media (max-width: 440px) {
   .settings-theme-grid { grid-template-columns: 1fr; }
   .settings-theme-grid > :last-child { grid-column: auto; }
 }

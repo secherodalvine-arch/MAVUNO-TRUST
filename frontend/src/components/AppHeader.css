@@ -493,17 +493,46 @@
 .ah-profile-menu-item--danger:hover { background: rgba(224,82,82,0.08); color: #f87171; }
 
 /* ── Responsive ── */
-@media (max-width: 600px) {
+@media (max-width: 640px) {
+  .app-header {
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .app-header-heading {
+    font-size: 0.95rem;
+  }
+
   .ah-profile-name { display: none; }
   .ah-profile-role { display: none; }
   .ah-chevron { display: none; }
-  .ah-profile-btn { padding: 4px; }
-  .ah-notif-panel { width: 300px; right: -60px; }
+  .ah-profile-btn { padding: 3px; }
+
+  .ah-profile-panel {
+    position: fixed;
+    top: var(--header-height, 60px);
+    right: 12px;
+    left: auto;
+    width: min(280px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75);
+  }
+
+  .ah-notif-panel {
+    position: fixed;
+    top: var(--header-height, 60px);
+    right: 12px;
+    left: auto;
+    width: min(340px, calc(100vw - 24px));
+    max-width: calc(100vw - 24px);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.75);
+  }
 }
 
 @media (max-width: 380px) {
-  .app-header { padding: 0 12px; gap: 8px; }
-  .ah-notif-panel { width: calc(100vw - 24px); right: -16px; }
+  .app-header { padding: 0 8px; gap: 6px; }
+  .app-header-heading { font-size: 0.88rem; }
+  .ah-notif-panel, .ah-profile-panel { right: 8px; width: calc(100vw - 16px); }
 }
 
 /* ══════════════════════════════════════════════════════
