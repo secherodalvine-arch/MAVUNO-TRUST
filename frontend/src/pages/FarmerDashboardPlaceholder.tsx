@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { MarketTicker } from '../components/MarketTicker';
 import { MarketPriceDetailModal } from '../components/MarketPriceDetailModal';
+import { MarketRecommendationSection } from '../components/MarketRecommendationSection';
 import { marketDataService, type MarketDataItem } from '../services/marketDataService';
 
 export const FarmerDashboardPlaceholder: React.FC = () => {
@@ -56,6 +57,9 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
           onClose={() => setSelectedItem(null)}
         />
       )}
+
+      {/* Stage 2 Gemini B Market Intelligence Recommendation Section */}
+      <MarketRecommendationSection />
 
       {/* Dashboard cards */}
       <div className="dash-grid">
