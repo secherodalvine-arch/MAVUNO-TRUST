@@ -28,6 +28,7 @@ app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
 
 const allowedOrigins = [
+  'https://mavunotrust.vercel.app',
   process.env.FRONTEND_URL,
   process.env.CORS_ORIGIN,
 ]
@@ -35,13 +36,19 @@ const allowedOrigins = [
   .flatMap((val) => val.split(',').map((s) => s.trim()))
   .filter(Boolean);
 
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (allowedOrigins.includes(origin)) return true;
+  if (/^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/.test(origin)) return true;
+  return false;
+};
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, origin);
+    if (isAllowedOrigin(origin)) {
+      return callback(null, true);
     }
-    return callback(new Error(`Origin '${origin}' not allowed by CORS`));
+    return callback(null, false);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
