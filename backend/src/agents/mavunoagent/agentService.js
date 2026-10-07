@@ -60,7 +60,7 @@ export class AgentService {
   }
 
   /**
-   * Generates agent decisions using Gemini 3.5 Flash API with exponential backoff retries for transient errors (HTTP 503, 429, 5xx).
+   * Generates agent decisions using Gemini API with exponential backoff retries for transient errors (HTTP 503, 429, 5xx).
    */
   async generateAgentDecision(prompt, availableTools = [], maxRetries = 2) {
     const status = this.getStatus();
