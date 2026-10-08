@@ -1,5 +1,6 @@
 import { syncWorker } from './syncWorker.js';
 import { runWRSCSync } from '../../services/wrscSyncWorker.js';
+import { runFAOSync } from '../../services/faoSyncWorker.js';
 
 class Scheduler {
   constructor() {
@@ -46,6 +47,13 @@ class Scheduler {
       console.log(`[MavunoAgent] WRSC Sync completed: Processed ${wrscResult.recordsProcessed || 0} records.`);
     } catch (err) {
       console.error(`[MavunoAgent] Error during WRSC extraction task: ${err.message}`);
+    }
+
+    try {
+      const faoResult = await runFAOSync();
+      console.log(`[MavunoAgent] FAO Sync completed: Processed ${faoResult?.recordsProcessed || 0} records.`);
+    } catch (err) {
+      console.error(`[MavunoAgent] Error during FAO extraction task: ${err.message}`);
     }
   }
 

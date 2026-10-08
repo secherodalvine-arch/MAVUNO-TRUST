@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { getMarketPrices, getMarketDetails, getNationalBenchmarks } from './tools/marketTools.js';
+import { getMarketPrices, getMarketDetails, getNationalBenchmarks, getFaoPriceHistory } from './tools/marketTools.js';
 import { findBuyers, getDealerDetails } from './tools/dealerTools.js';
 
 // Setup environment variables
@@ -63,6 +63,30 @@ server.tool(
       return {
         isError: true,
         content: [{ type: "text", text: `Error fetching national benchmarks: ${error.message}` }],
+      };
+    }
+  }
+);
+
+server.tool(
+  "get_fao_price_history",
+  "This data represents historical monthly price context and should not be interpreted as today's local market price or guaranteed selling price. Use this for analyzing seasonality and trends.",
+  {
+    commodity: z.string().optional().describe("Filter by commodity (e.g., Maize, Beans)"),
+    market: z.string().optional().describe("Filter by market (e.g., Nairobi, Mombasa)"),
+    startDate: z.string().optional().describe("Start date (YYYY-MM-DD)"),
+    endDate: z.string().optional().describe("End date (YYYY-MM-DD)"),
+  },
+  async ({ commodity, market, startDate, endDate }) => {
+    try {
+      const history = await getFaoPriceHistory({ commodity, market, startDate, endDate });
+      return {
+        content: [{ type: "text", text: JSON.stringify(history, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Error fetching historical FAO prices: ${error.message}` }],
       };
     }
   }

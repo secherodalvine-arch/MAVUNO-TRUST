@@ -1,5 +1,6 @@
 import MarketPrice from '../../models/MarketPrice.js';
 import WRSCWeeklyPrice from '../../models/WRSCWeeklyPrice.js';
+import FAOPriceHistory from '../../models/FAOPriceHistory.js';
 export const getMarketPrices = async ({ crop, county, market, limit = 50 }) => {
   const query = {};
   if (crop) {
@@ -96,6 +97,42 @@ export const getNationalBenchmarks = async ({ commodity, limit = 50 }) => {
       currency: b.currency,
       publicationDate: b.publicationDate ? b.publicationDate.toISOString() : null,
       postUrl: b.postUrl,
+    };
+  });
+};
+
+export const getFaoPriceHistory = async ({ commodity, market, startDate, endDate, limit = 100 }) => {
+  const query = {};
+  if (commodity) {
+    query.commodity = { $regex: new RegExp(commodity, 'i') };
+  }
+  if (market) {
+    query.market = { $regex: new RegExp(market, 'i') };
+  }
+  if (startDate || endDate) {
+    query.date = {};
+    if (startDate) query.date.$gte = new Date(startDate);
+    if (endDate) query.date.$lte = new Date(endDate);
+  }
+
+  const history = await FAOPriceHistory.find(query)
+    .sort({ date: -1 })
+    .limit(limit)
+    .lean();
+
+  return history.map(h => {
+    return {
+      historicalContext: true,
+      source: h.source,
+      dataset: h.dataset,
+      dataType: h.dataType,
+      commodity: h.commodity,
+      market: h.market,
+      date: h.date ? h.date.toISOString() : null,
+      value: h.value,
+      unit: h.unit,
+      currency: h.currency,
+      priceType: h.priceType,
     };
   });
 };
