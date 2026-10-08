@@ -15,8 +15,8 @@ export class MavunoAgentMarketDataProvider {
       let records = await MarketPrice.find().sort({ observedAt: -1, createdAt: -1 }).limit(50).lean();
 
       if (!records || records.length === 0) {
-        await syncWorker.runSync();
-        records = await MarketPrice.find().sort({ observedAt: -1, createdAt: -1 }).limit(50).lean();
+        // Data should be populated by the background scheduler.
+        // We do not run synchronous scraping here to avoid API timeouts.
       }
 
       return records.map((r) => ({
@@ -57,8 +57,7 @@ export class MavunoAgentMarketDataProvider {
       let records = await MarketPrice.find(query).sort({ observedAt: -1, createdAt: -1 }).limit(50).lean();
 
       if ((!records || records.length === 0) && !filter.cropName && !filter.county && !filter.market) {
-        await syncWorker.runSync();
-        records = await MarketPrice.find(query).sort({ observedAt: -1, createdAt: -1 }).limit(50).lean();
+        // Data should be populated by the background scheduler.
       }
 
       return records.map((r) => ({

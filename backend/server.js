@@ -80,6 +80,12 @@ const startServer = async () => {
   httpServer.listen(PORT, () => {
     console.log(`\nMavunoTrust API running on http://localhost:${PORT}`);
     console.log(`   Health check: http://localhost:${PORT}/api/health\n`);
+    
+    // Start MavunoAgent background scheduler (KAMIS extraction)
+    // Run immediately only if needed, otherwise rely on interval
+    import('./src/agents/mavunoagent/scheduler.js').then(({ startMavunoAgentScheduler }) => {
+      startMavunoAgentScheduler(false);
+    });
   });
 };
 

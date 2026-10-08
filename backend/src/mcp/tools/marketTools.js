@@ -19,18 +19,26 @@ export const getMarketPrices = async ({ crop, county, market, limit = 50 }) => {
     .limit(limit)
     .lean();
 
-  return prices.map(p => ({
-    commodity: p.cropName,
-    market: p.market,
-    county: p.county,
-    wholesalePrice: p.minimumPrice,
-    retailPrice: p.maximumPrice,
-    unit: p.unit,
-    observedDate: p.observedAt ? p.observedAt.toISOString() : null,
-    source: p.source,
-    provider: p.provider,
-    qualityGrade: p.qualityGrade || null,
-  }));
+  return prices.map(p => {
+    let dataAgeDays = null;
+    if (p.observedAt) {
+      const msDiff = Date.now() - new Date(p.observedAt).getTime();
+      dataAgeDays = Math.round(msDiff / (1000 * 60 * 60 * 24));
+    }
+    return {
+      commodity: p.cropName,
+      market: p.market,
+      county: p.county,
+      wholesalePrice: p.minimumPrice,
+      retailPrice: p.maximumPrice,
+      unit: p.unit,
+      observedDate: p.observedAt ? p.observedAt.toISOString() : null,
+      dataAgeDays,
+      source: p.source,
+      provider: p.provider,
+      qualityGrade: p.qualityGrade || null,
+    };
+  });
 };
 
 export const getMarketDetails = async ({ market }) => {
