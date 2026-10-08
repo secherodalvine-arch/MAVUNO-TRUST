@@ -1,4 +1,5 @@
 import { syncWorker } from './syncWorker.js';
+import { runWRSCSync } from '../../services/wrscSyncWorker.js';
 
 class Scheduler {
   constructor() {
@@ -34,10 +35,17 @@ class Scheduler {
     try {
       const result = await syncWorker.runSync();
       this.lastResult = result;
-      console.log(`[MavunoAgent] Sync completed: Saved ${result.recordsSaved} records, rejected ${result.recordsRejected}.`);
+      console.log(`[MavunoAgent] KAMIS Sync completed: Saved ${result.recordsSaved} records, rejected ${result.recordsRejected}.`);
     } catch (err) {
-      console.error(`[MavunoAgent] Error during extraction task: ${err.message}`);
+      console.error(`[MavunoAgent] Error during KAMIS extraction task: ${err.message}`);
       this.lastResult = { success: false, error: err.message };
+    }
+
+    try {
+      const wrscResult = await runWRSCSync();
+      console.log(`[MavunoAgent] WRSC Sync completed: Processed ${wrscResult.recordsProcessed || 0} records.`);
+    } catch (err) {
+      console.error(`[MavunoAgent] Error during WRSC extraction task: ${err.message}`);
     }
   }
 

@@ -1,5 +1,5 @@
 import MarketPrice from '../../models/MarketPrice.js';
-
+import WRSCWeeklyPrice from '../../models/WRSCWeeklyPrice.js';
 export const getMarketPrices = async ({ crop, county, market, limit = 50 }) => {
   const query = {};
   if (crop) {
@@ -71,4 +71,31 @@ export const getMarketDetails = async ({ market }) => {
     recentObservationsCount: prices.length,
     latestObservationDate: prices[0].observedAt ? prices[0].observedAt.toISOString() : null,
   };
+};
+
+export const getNationalBenchmarks = async ({ commodity, limit = 50 }) => {
+  const query = {};
+  if (commodity) {
+    query.commodity = { $regex: new RegExp(commodity, 'i') };
+  }
+
+  // Find recent benchmarks, sorted by publication date descending
+  const benchmarks = await WRSCWeeklyPrice.find(query)
+    .sort({ publicationDate: -1 })
+    .limit(limit)
+    .lean();
+
+  return benchmarks.map(b => {
+    return {
+      source: 'WRSC',
+      dataType: 'weekly national benchmark',
+      commodity: b.commodity,
+      variety: b.variety,
+      unit: b.unit,
+      price: b.price,
+      currency: b.currency,
+      publicationDate: b.publicationDate ? b.publicationDate.toISOString() : null,
+      postUrl: b.postUrl,
+    };
+  });
 };

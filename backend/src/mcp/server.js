@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
-import { getMarketPrices, getMarketDetails } from './tools/marketTools.js';
+import { getMarketPrices, getMarketDetails, getNationalBenchmarks } from './tools/marketTools.js';
 import { findBuyers, getDealerDetails } from './tools/dealerTools.js';
 
 // Setup environment variables
@@ -41,6 +41,28 @@ server.tool(
       return {
         isError: true,
         content: [{ type: "text", text: `Error fetching market prices: ${error.message}` }],
+      };
+    }
+  }
+);
+
+server.tool(
+  "get_national_benchmarks",
+  "Retrieve weekly national benchmark prices for commodities from WRSC.",
+  {
+    commodity: z.string().optional().describe("Filter by commodity (e.g., Maize, Beans)"),
+    limit: z.number().optional().describe("Maximum number of records to return (default: 50)"),
+  },
+  async ({ commodity, limit }) => {
+    try {
+      const benchmarks = await getNationalBenchmarks({ commodity, limit });
+      return {
+        content: [{ type: "text", text: JSON.stringify(benchmarks, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Error fetching national benchmarks: ${error.message}` }],
       };
     }
   }
