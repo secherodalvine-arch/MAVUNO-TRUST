@@ -1,18 +1,23 @@
 import { agentService } from '../mavunoagent/agentService.js';
-import { getMarketPrices } from '../../mcp/tools/marketTools.js';
+import { getMarketPrices, getNationalBenchmarks, getFaoPriceHistory } from '../../mcp/tools/marketTools.js';
 import { findBuyers } from '../../mcp/tools/dealerTools.js';
 
 const SYSTEM_PROMPT = `
 You are the Mavuno Intelligence Agent, an agricultural market advisor.
-Your role is to analyze the provided evidence (market prices and available buyers) and recommend a selling strategy to a farmer.
+Your role is to analyze the provided evidence across multiple data layers and recommend a selling strategy to a farmer.
 
 IMPORTANT RULES:
 1. You are an advisor, NOT the final decision-maker.
 2. NEVER invent prices, buyers, demand, or transport costs. Use ONLY the provided evidence.
 3. BUYER CAPACITY VS DEMAND: "purchasingCapacityKg" represents general capacity. It does NOT mean the dealer currently wants that exact quantity. Say "dealer handles maize and has a capacity of X" rather than "dealer wants your maize."
 4. Explicitly state limitations (e.g., if active demand is unverified, or if logistics costs are missing).
-5. Compare market prices and dealer locations.
-6. If evidence is insufficient, set confidence to "Low" and state "Insufficient evidence".
+5. Compare current local market prices (KAMIS) against national benchmarks (WRSC) and historical trends (WFP/HDX).
+6. UNDERSTAND SOURCE SEMANTICS:
+   - KAMIS = current/local observed market information.
+   - WRSC = weekly national benchmark, not necessarily the exact local transaction price.
+   - WFP/HDX = historical monthly context, not a current live price and not a guaranteed future price prediction.
+7. If evidence is insufficient or conflicts strongly, set confidence to "Low" and state limitations clearly. Do NOT average disparate sources or treat different units as identical.
+8. The "nextAction" must be a clear, practical, decision-oriented step for the farmer (e.g., "Contact the verified dealer to negotiate", "Compare at least two buyers", "Monitor the market").
 
 You MUST return your response as a valid JSON object with the following structure EXACTLY, with no markdown code blocks around it if possible (just raw JSON):
 {
@@ -45,6 +50,7 @@ You MUST return your response as a valid JSON object with the following structur
   ],
   "recommendation": {
     "option": "...",
+    "nextAction": "...",
     "reason": "...",
     "confidence": "...",
     "limitations": []
@@ -60,23 +66,50 @@ export const getMarketRecommendationForFarmer = async (farmerInput, overrides = 
 
     const getPrices = overrides.getMarketPrices || getMarketPrices;
     const getBuyers = overrides.findBuyers || findBuyers;
+    const getBenchmarks = overrides.getNationalBenchmarks || getNationalBenchmarks;
+    const getFaoHistory = overrides.getFaoPriceHistory || getFaoPriceHistory;
 
-    // 1. Gather Evidence using MCP tools
-    const marketPrices = await getPrices({ crop, limit: 10 });
-    const localMarketPrices = await getPrices({ crop, county, limit: 5 });
+    const fetchGracefully = async (promise, name, fallback = []) => {
+      try {
+        const result = await promise;
+        return { success: true, data: result };
+      } catch (err) {
+        return { success: false, error: `${name} retrieval failed: ${err.message}`, data: fallback };
+      }
+    };
+
+    // 1. Gather Evidence using MCP tools concurrently and gracefully
+    const [marketPricesRes, localMarketPricesRes, buyersRes, localBuyersRes, benchmarksRes, faoHistoryRes] = await Promise.all([
+      fetchGracefully(getPrices({ crop, limit: 10 }), 'Broad market prices'),
+      fetchGracefully(getPrices({ crop, county, limit: 5 }), 'Local market prices'),
+      fetchGracefully(getBuyers({ crop, limit: 10 }), 'Broad buyer information'),
+      fetchGracefully(getBuyers({ crop, county, limit: 5 }), 'Local buyer information'),
+      fetchGracefully(getBenchmarks({ commodity: crop, limit: 5 }), 'National benchmarks'),
+      fetchGracefully(getFaoHistory({ commodity: crop, limit: 10 }), 'Historical context')
+    ]);
+
+    const marketPrices = marketPricesRes.data;
+    const localMarketPrices = localMarketPricesRes.data;
+    const buyers = buyersRes.data;
+    const localBuyers = localBuyersRes.data;
+    const benchmarks = benchmarksRes.data;
+    const faoHistory = faoHistoryRes.data;
+
+    const runtimeDataLimitations = [
+      marketPricesRes, localMarketPricesRes, buyersRes, localBuyersRes, benchmarksRes, faoHistoryRes
+    ].filter(r => !r.success).map(r => r.error);
     
     // Combine and deduplicate market prices
     const allMarketPrices = [...localMarketPrices, ...marketPrices].filter((v, i, a) => a.findIndex(t => (t.market === v.market)) === i);
 
-    const buyers = await getBuyers({ crop, limit: 10 });
-    const localBuyers = await getBuyers({ crop, county, limit: 5 });
-    
     // Combine and deduplicate buyers
     const allBuyers = [...localBuyers, ...buyers].filter((v, i, a) => a.findIndex(t => (t.dealerId === v.dealerId)) === i);
 
     const evidenceData = {
-      marketPrices: allMarketPrices,
-      buyers: allBuyers
+      currentMarketData: allMarketPrices,
+      nationalBenchmark: benchmarks,
+      historicalContext: faoHistory,
+      buyerInformation: allBuyers
     };
 
     const userPrompt = `
@@ -87,6 +120,9 @@ County: ${county}
 
 Evidence retrieved from database:
 ${JSON.stringify(evidenceData, null, 2)}
+
+System Retrieval Errors (Add these to dataLimitations):
+${JSON.stringify(runtimeDataLimitations, null, 2)}
 
 Analyze this evidence and provide the JSON recommendation.
 `;
@@ -133,6 +169,7 @@ Analyze this evidence and provide the JSON recommendation.
       Array.isArray(structuredData.buyerOptions) &&
       typeof structuredData.recommendation === 'object' &&
       typeof structuredData.recommendation.option === 'string' &&
+      typeof structuredData.recommendation.nextAction === 'string' &&
       typeof structuredData.recommendation.reason === 'string' &&
       typeof structuredData.recommendation.confidence === 'string' &&
       Array.isArray(structuredData.recommendation.limitations) &&
