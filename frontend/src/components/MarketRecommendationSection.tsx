@@ -535,6 +535,24 @@ export const MarketRecommendationSection: React.FC = () => {
               {result.recommendation?.reason}
             </p>
 
+            {/* Next Action UI */}
+            <div
+              style={{
+                marginTop: '16px',
+                padding: '12px 16px',
+                background: 'rgba(94, 194, 133, 0.1)',
+                borderLeft: '4px solid #5ec285',
+                borderRadius: '0 8px 8px 0',
+              }}
+            >
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#5ec285', marginBottom: '4px', textTransform: 'uppercase' }}>
+                Recommended Next Step
+              </div>
+              <div style={{ fontSize: '0.95rem', color: '#e5e7eb', lineHeight: 1.5 }}>
+                {result.recommendation?.nextAction || 'No next step is available yet. Review the evidence and limitations before deciding.'}
+              </div>
+            </div>
+
             {/* Recommendation Limitations */}
             {result.recommendation?.limitations && result.recommendation.limitations.length > 0 && (
               <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>

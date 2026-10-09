@@ -29,6 +29,7 @@ export interface BuyerOptionItem {
 
 export interface RecommendationDetail {
   option: string;
+  nextAction?: string;
   reason: string;
   confidence: string;
   limitations: string[];

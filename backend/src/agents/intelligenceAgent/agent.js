@@ -1,6 +1,7 @@
 import { agentService } from '../mavunoagent/agentService.js';
 import { getMarketPrices, getNationalBenchmarks, getFaoPriceHistory } from '../../mcp/tools/marketTools.js';
 import { findBuyers } from '../../mcp/tools/dealerTools.js';
+import { normalizeMarketPrice } from '../../utils/unitNormalizer.js';
 
 const SYSTEM_PROMPT = `
 You are the Mavuno Intelligence Agent, an agricultural market advisor.
@@ -17,7 +18,9 @@ IMPORTANT RULES:
    - WRSC = weekly national benchmark, not necessarily the exact local transaction price.
    - WFP/HDX = historical monthly context, not a current live price and not a guaranteed future price prediction.
 7. If evidence is insufficient or conflicts strongly, set confidence to "Low" and state limitations clearly. Do NOT average disparate sources or treat different units as identical.
-8. The "nextAction" must be a clear, practical, decision-oriented step for the farmer (e.g., "Contact the verified dealer to negotiate", "Compare at least two buyers", "Monitor the market").
+8. Use "normalizedPricePerKg" ONLY when normalization succeeded ("normalizationStatus": "SUCCESS"). Do not compare incompatible units or currencies.
+9. Clearly communicate missing, stale, ambiguous, or non-comparable evidence (where normalizationStatus is "FAILED"). Do not invent prices or conversions.
+10. The "nextAction" must be a clear, practical, decision-oriented step for the farmer (e.g., "Contact the verified dealer to negotiate", "Compare at least two buyers", "Monitor the market").
 
 You MUST return your response as a valid JSON object with the following structure EXACTLY, with no markdown code blocks around it if possible (just raw JSON):
 {
@@ -100,15 +103,18 @@ export const getMarketRecommendationForFarmer = async (farmerInput, overrides = 
     ].filter(r => !r.success).map(r => r.error);
     
     // Combine and deduplicate market prices
-    const allMarketPrices = [...localMarketPrices, ...marketPrices].filter((v, i, a) => a.findIndex(t => (t.market === v.market)) === i);
+    const allMarketPrices = [...localMarketPrices, ...marketPrices]
+      .filter((v, i, a) => a.findIndex(t => (t.market === v.market)) === i)
+      .map(normalizeMarketPrice);
 
     // Combine and deduplicate buyers
-    const allBuyers = [...localBuyers, ...buyers].filter((v, i, a) => a.findIndex(t => (t.dealerId === v.dealerId)) === i);
+    const allBuyers = [...localBuyers, ...buyers]
+      .filter((v, i, a) => a.findIndex(t => (t.dealerId === v.dealerId)) === i);
 
     const evidenceData = {
       currentMarketData: allMarketPrices,
-      nationalBenchmark: benchmarks,
-      historicalContext: faoHistory,
+      nationalBenchmark: benchmarks.map(normalizeMarketPrice),
+      historicalContext: faoHistory.map(normalizeMarketPrice),
       buyerInformation: allBuyers
     };
 
