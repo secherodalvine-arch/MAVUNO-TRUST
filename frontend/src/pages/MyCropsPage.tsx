@@ -8,6 +8,7 @@ import {
 } from '../services/cropService';
 import { Sprout } from 'lucide-react';
 import type { CropListingDTO } from '../services/cropService';
+import apiClient from '../services/apiClient';
 
 export const MyCropsPage: React.FC = () => {
   const location = useLocation();
@@ -148,6 +149,24 @@ export const MyCropsPage: React.FC = () => {
     }
   };
 
+  const [matchModalListing, setMatchModalListing] = useState<CropListingDTO | null>(null);
+  const [matchResults, setMatchResults] = useState<any[]>([]);
+  const [loadingMatches, setLoadingMatches] = useState(false);
+
+  const fetchDemandsMatch = async (listing: CropListingDTO) => {
+    setMatchModalListing(listing);
+    setLoadingMatches(true);
+    try {
+      const res = await apiClient.get<{ data: { matches: any[] } }>(`/demands/match/${listing._id}`);
+      setMatchResults(res.data.data.matches || []);
+    } catch (err) {
+      console.error(err);
+      setMatchResults([]);
+    } finally {
+      setLoadingMatches(false);
+    }
+  };
+
   return (
     <div style={styles.container}>
       <div style={styles.headerRow}>
@@ -261,6 +280,9 @@ export const MyCropsPage: React.FC = () => {
               </div>
 
               <div style={styles.cardFooter}>
+                <button onClick={() => fetchDemandsMatch(item)} style={{ ...styles.editBtn, backgroundColor: '#0284c7', color: '#fff' }}>
+                  Check Demand
+                </button>
                 <button onClick={() => openEditModal(item)} style={styles.editBtn}>
                   Edit Listing
                 </button>
@@ -394,6 +416,76 @@ export const MyCropsPage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Demand Match Modal */}
+      {matchModalListing && (
+        <div style={styles.modalOverlay}>
+          <div style={{ ...styles.modalCard, maxWidth: '600px' }}>
+            <h2 style={styles.modalTitle}>Buyer Demands for {matchModalListing.cropName}</h2>
+            {loadingMatches ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>Checking active demands...</div>
+            ) : matchResults.length === 0 ? (
+              <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
+                No active buyer demands match this crop at the moment.
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '8px' }}>
+                {matchResults.map((m, idx) => (
+                  <div key={idx} style={{ padding: '16px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', background: 'rgba(255,255,255,0.02)' }}>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: '#f8fafc' }}>{m.demand.dealerId?.fullName || 'Verified Dealer'}</h3>
+                    <div style={{ fontSize: '0.9rem', color: '#cbd5e1', marginBottom: '8px' }}>
+                      <strong>Wants:</strong> {m.demand.quantity} {m.demand.unit}
+                    </div>
+                    {m.demand.targetPricePerUnit && (
+                      <div style={{ fontSize: '0.9rem', color: '#cbd5e1', marginBottom: '8px' }}>
+                        <strong>Target Price:</strong> {m.demand.currency} {m.demand.targetPricePerUnit} / {m.demand.unit}
+                      </div>
+                    )}
+                    
+                    <div style={{ marginTop: '12px' }}>
+                      <strong style={{ fontSize: '0.85rem', color: '#4ade80' }}>Match Reasons:</strong>
+                      <ul style={{ margin: '4px 0 8px 0', paddingLeft: '20px', fontSize: '0.85rem', color: '#94a3b8' }}>
+                        {m.reasons.map((r: string, i: number) => <li key={i}>{r}</li>)}
+                      </ul>
+                    </div>
+
+                    {m.limitations.length > 0 && (
+                      <div style={{ marginTop: '8px' }}>
+                        <strong style={{ fontSize: '0.85rem', color: '#fca5a5' }}>Mismatches / Limitations:</strong>
+                        <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', fontSize: '0.85rem', color: '#94a3b8' }}>
+                          {m.limitations.map((l: string, i: number) => <li key={i}>{l}</li>)}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={() => {
+                          setMatchModalListing(null);
+                          navigate(`/farmer/offers/create/${m.demand.dealerId?._id}?crop=${encodeURIComponent(m.demand.cropName)}&qty=${encodeURIComponent(m.demand.quantity)}&unit=${encodeURIComponent(m.demand.unit)}`);
+                        }}
+                        style={{ ...styles.submitBtn, width: 'auto', padding: '6px 16px', fontSize: '0.85rem' }}
+                      >
+                        Initiate Offer
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            
+            <div style={{ ...styles.formActions, marginTop: '20px' }}>
+              <button
+                type="button"
+                onClick={() => setMatchModalListing(null)}
+                style={styles.cancelBtn}
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

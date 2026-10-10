@@ -20,6 +20,7 @@ const DealerDashboard     = lazy(() => import('../pages/DealerDashboardPlacehold
 const AdminDashboard      = lazy(() => import('../pages/AdminDashboardPlaceholder').then(m => ({ default: m.AdminDashboardPlaceholder })));
 const FarmerProfile       = lazy(() => import('../pages/FarmerProfilePage').then(m => ({ default: m.FarmerProfilePage })));
 const DealerProfile       = lazy(() => import('../pages/DealerProfilePage').then(m => ({ default: m.DealerProfilePage })));
+const DealerDemands       = lazy(() => import('../pages/DealerDemandsPage').then(m => ({ default: m.DealerDemandsPage })));
 const ProductionCalc      = lazy(() => import('../pages/ProductionCalculatorPage').then(m => ({ default: m.ProductionCalculatorPage })));
 const MyCrops             = lazy(() => import('../pages/MyCropsPage').then(m => ({ default: m.MyCropsPage })));
 const DealerSearch        = lazy(() => import('../pages/DealerSearchPage').then(m => ({ default: m.DealerSearchPage })));
@@ -168,6 +169,14 @@ const AppRouter = () => {
               element={
                 <ProtectedRoute allowedRoles={['DEALER']}>
                   <Suspense fallback={<PageLoader />}><DealerProfile /></Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/dealer/demands"
+              element={
+                <ProtectedRoute allowedRoles={['DEALER']}>
+                  <Suspense fallback={<PageLoader />}><DealerDemands /></Suspense>
                 </ProtectedRoute>
               }
             />

@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   Briefcase, Building2, Search, ArrowRight, Receipt, MessageSquare,
-  Sprout, ShieldCheck, MapPin, Handshake,
+  Sprout, ShieldCheck, MapPin, Handshake, Target,
 } from 'lucide-react';
 import { getPublicCropListingsApi, type CropListingDTO } from '../services/cropService';
 import LoadSpinner from '../components/LoadSpinner';
@@ -234,6 +234,15 @@ export const DealerDashboardPlaceholder: React.FC = () => {
           <span className="dash-card-title">Farmer Crop Match</span>
           <p className="dash-card-desc">Search verified farmer crop listings by county and crop type.</p>
           <span className="dash-card-link">Search Verified Crops <ArrowRight size={13} /></span>
+        </Link>
+
+        <Link to="/dealer/demands" className="dash-card" style={{ textDecoration: 'none' }}>
+          <div className="dash-card-icon" style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444' }}>
+            <Target size={20} />
+          </div>
+          <span className="dash-card-title">Buyer Demands</span>
+          <p className="dash-card-desc">Post your specific crop requirements so farmers can match their harvests to you.</p>
+          <span className="dash-card-link">Manage Demands <ArrowRight size={13} /></span>
         </Link>
 
         <Link to="/offers" className="dash-card" style={{ textDecoration: 'none' }}>

@@ -15,6 +15,7 @@ import disputeRoutes from './disputeRoutes.js';
 import notificationRoutes from './notificationRoutes.js';
 import agentAdminRoutes from './agentAdminRoutes.js';
 import aiRoutes from './aiRoutes.js';
+import demandRoutes from './demandRoutes.js';
 import { getMarketPrices } from '../controllers/marketDataController.js';
 
 const router = Router();
@@ -24,6 +25,7 @@ router.use('/health', healthRoutes);
 router.use('/auth', authRoutes);
 router.use('/farmers', farmerRoutes);
 router.use('/dealers', dealerRoutes);
+router.use('/demands', demandRoutes);
 router.use('/admin/agent', agentAdminRoutes);
 router.use('/admin', adminRoutes);
 router.use('/crops', cropRoutes);
