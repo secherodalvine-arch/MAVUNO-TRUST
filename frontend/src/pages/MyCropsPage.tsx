@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   getMyCropListingsApi,
   createCropListingApi,
@@ -9,6 +10,15 @@ import { Sprout } from 'lucide-react';
 import type { CropListingDTO } from '../services/cropService';
 
 export const MyCropsPage: React.FC = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = new URLSearchParams(location.search);
+  const urlModal = searchParams.get('modal') === 'true';
+  const urlCrop = searchParams.get('crop') || '';
+  const urlQty = searchParams.get('qty') || '';
+  const urlUnit = searchParams.get('unit') || '';
+  const urlDealerId = searchParams.get('dealerId') || '';
+
   const [listings, setListings] = useState<CropListingDTO[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -40,7 +50,20 @@ export const MyCropsPage: React.FC = () => {
 
   useEffect(() => {
     fetchListings();
-  }, []);
+
+    if (urlModal) {
+      setEditingListing(null);
+      setCropName(urlCrop);
+      setEstimatedQuantity(urlQty ? Number(urlQty) : '');
+      setUnit(urlUnit || 'bags (90kg)');
+      setPriceExpectation('');
+      setCounty('');
+      setGeneralArea('');
+      setAdditionalNotes('');
+      setStatus('ACTIVE');
+      setIsModalOpen(true);
+    }
+  }, [urlModal, urlCrop, urlQty, urlUnit]);
 
   const openCreateModal = () => {
     setEditingListing(null);
@@ -151,9 +174,20 @@ export const MyCropsPage: React.FC = () => {
             backgroundColor: message.type === 'success' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
             borderColor: message.type === 'success' ? 'rgba(34, 197, 94, 0.3)' : 'rgba(239, 68, 68, 0.3)',
             color: message.type === 'success' ? '#86efac' : '#fca5a5',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
           }}
         >
-          {message.text}
+          <span>{message.text}</span>
+          {message.type === 'success' && urlDealerId && (
+            <button
+              onClick={() => navigate(`/farmer/offers/create/${urlDealerId}?crop=${encodeURIComponent(cropName)}&qty=${encodeURIComponent(estimatedQuantity)}&unit=${encodeURIComponent(unit)}`)}
+              style={{ padding: '6px 12px', background: '#16a34a', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '0.85rem' }}
+            >
+              Continue to Make Offer →
+            </button>
+          )}
         </div>
       )}
 

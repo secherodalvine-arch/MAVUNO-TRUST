@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ArrowLeft, X, Handshake, AlertTriangle, CheckCircle, Sprout } from 'lucide-react';
 import { createOffer } from '../services/offerService';
 import { getMyCropListingsApi } from '../services/cropService';
@@ -9,6 +9,12 @@ import '../styles/pages.css';
 export const CreateOfferPage: React.FC = () => {
   const { dealerId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const searchParams = new URLSearchParams(location.search);
+  const urlCrop = searchParams.get('crop') || '';
+  const urlQty = searchParams.get('qty') || '';
+  const urlUnit = searchParams.get('unit') || '';
 
   const [listings, setListings] = useState<CropListingDTO[]>([]);
   const [formData, setFormData] = useState({
@@ -22,6 +28,7 @@ export const CreateOfferPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [fetchingListings, setFetchingListings] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [matchWarning, setMatchWarning] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
 
   // Safe exit handler
@@ -51,11 +58,33 @@ export const CreateOfferPage: React.FC = () => {
         const activeListings = data.filter(l => l.status === 'ACTIVE');
         setListings(activeListings);
         if (activeListings.length > 0) {
-          setFormData(prev => ({
-            ...prev,
-            listingId: activeListings[0]._id || '',
-            unit: activeListings[0].unit || 'KG'
-          }));
+          let exactMatch;
+          if (urlCrop) {
+            exactMatch = activeListings.find(l =>
+              l.cropName.toLowerCase() === urlCrop.toLowerCase() &&
+              (!urlUnit || l.unit.toLowerCase() === urlUnit.toLowerCase()) &&
+              (!urlQty || l.estimatedQuantity >= Number(urlQty))
+            );
+          }
+
+          if (exactMatch) {
+            setFormData(prev => ({
+              ...prev,
+              listingId: exactMatch._id || '',
+              unit: exactMatch.unit || 'KG',
+              quantity: urlQty || prev.quantity
+            }));
+          } else {
+            if (urlCrop) {
+              setMatchWarning(`No exact listing found for ${urlCrop} with sufficient capacity (${urlQty || 'any'} ${urlUnit || ''}). Please select an alternative listing or create a new one.`);
+            }
+            setFormData(prev => ({
+              ...prev,
+              listingId: '',
+              unit: urlUnit || prev.unit,
+              quantity: urlQty || prev.quantity
+            }));
+          }
         }
       })
       .catch(err => {
@@ -100,6 +129,19 @@ export const CreateOfferPage: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const selectedListing = listings.find(l => l._id === formData.listingId);
+  const maxQty = selectedListing?.estimatedQuantity;
+  const currentQty = Number(formData.quantity);
+
+  let quantityError: string | null = null;
+  if (formData.listingId && formData.quantity !== '') {
+    if (isNaN(currentQty) || currentQty <= 0) {
+      quantityError = 'Quantity must be a valid positive number.';
+    } else if (maxQty !== undefined && currentQty > maxQty) {
+      quantityError = `Requested quantity exceeds available listing stock (${maxQty} ${selectedListing?.unit || ''}). Please adjust it.`;
+    }
+  }
 
   return (
     <div className="page-wrapper" style={{ maxWidth: '680px', margin: '0 auto', paddingBottom: '3rem' }}>
@@ -180,6 +222,25 @@ export const CreateOfferPage: React.FC = () => {
           </div>
         )}
 
+        {/* Warning notification */}
+        {matchWarning && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            padding: '12px 16px',
+            backgroundColor: 'rgba(245, 158, 11, 0.12)',
+            color: '#fbbf24',
+            border: '1px solid rgba(245, 158, 11, 0.3)',
+            borderRadius: '10px',
+            marginBottom: '20px',
+            fontSize: '0.9rem'
+          }}>
+            <AlertTriangle size={18} style={{ flexShrink: 0 }} />
+            <span>{matchWarning}</span>
+          </div>
+        )}
+
         {/* Success notification */}
         {success && (
           <div style={{
@@ -219,7 +280,15 @@ export const CreateOfferPage: React.FC = () => {
               <button
                 type="button"
                 className="btn btn-primary"
-                onClick={() => navigate('/farmer/crops')}
+                onClick={() => {
+                  const qParams = new URLSearchParams();
+                  if (dealerId) qParams.set('dealerId', dealerId);
+                  if (urlCrop) qParams.set('crop', urlCrop);
+                  if (urlQty) qParams.set('qty', urlQty);
+                  if (urlUnit) qParams.set('unit', urlUnit);
+                  qParams.set('modal', 'true');
+                  navigate(`/farmer/crops?${qParams.toString()}`);
+                }}
               >
                 Create Crop Listing
               </button>
@@ -263,9 +332,9 @@ export const CreateOfferPage: React.FC = () => {
                   onChange={e => setFormData({ ...formData, quantity: e.target.value })}
                   min="0.01"
                   step="any"
-                  max={listings.find(l => l._id === formData.listingId)?.estimatedQuantity || undefined}
+                  max={maxQty || undefined}
                   required
-                  style={{ flex: 1 }}
+                  style={{ flex: 1, borderColor: quantityError ? '#ef4444' : undefined }}
                   placeholder="e.g. 50"
                 />
                 <input
@@ -282,6 +351,12 @@ export const CreateOfferPage: React.FC = () => {
                   }}
                 />
               </div>
+              {quantityError && (
+                <div style={{ fontSize: '0.82rem', color: '#ef4444', marginTop: '6px', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 500 }}>
+                  <AlertTriangle size={14} />
+                  {quantityError}
+                </div>
+              )}
             </div>
 
             <div className="form-field">
@@ -324,7 +399,7 @@ export const CreateOfferPage: React.FC = () => {
 
               <button
                 type="submit"
-                disabled={loading || success}
+                disabled={loading || success || !!quantityError}
                 className="btn btn-primary"
                 style={{ padding: '10px 24px' }}
               >

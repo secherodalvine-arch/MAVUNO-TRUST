@@ -10,8 +10,12 @@ import {
   FileText,
   AlertTriangle,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  MessageSquare,
+  Handshake
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { createOrGetConversation } from '../services/chatService';
 import {
   getMarketRecommendationApi,
   type MarketRecommendationData,
@@ -59,6 +63,23 @@ const KENYA_COUNTIES = [
 const QUANTITY_UNITS = ['bags', 'KG', 'tonnes', 'crates', 'sacks', 'buckets'];
 
 export const MarketRecommendationSection: React.FC = () => {
+  const navigate = useNavigate();
+  const [startingChatId, setStartingChatId] = useState<string | null>(null);
+
+  const handleStartChat = async (dealerId: string, dealerName: string) => {
+    if (!dealerId) return;
+    try {
+      setStartingChatId(dealerId);
+      const conv = await createOrGetConversation(dealerId);
+      navigate(`/messages?conversationId=${conv._id}`);
+    } catch (err: any) {
+      console.error('Failed to open chat from recommendation:', err);
+      navigate(`/messages?recipientId=${dealerId}&name=${encodeURIComponent(dealerName)}`);
+    } finally {
+      setStartingChatId(null);
+    }
+  };
+
   // Form State
   const [crop, setCrop] = useState('Maize');
   const [quantity, setQuantity] = useState<number | string>(100);
@@ -700,10 +721,37 @@ export const MarketRecommendationSection: React.FC = () => {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', lineHeight: 1.4, flexGrow: 1 }}>
                       <div><strong>Counties Served:</strong> {b.countiesServed?.join(', ') || 'N/A'}</div>
                       <div><strong>Crops Dealt:</strong> {b.cropsDealt?.join(', ') || 'N/A'}</div>
                       <div><strong>AFA Source:</strong> {b.verificationSource || 'AFA_DEMO'}</div>
+                    </div>
+
+                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                      <button
+                        type="button"
+                        style={{ flex: 1, padding: '8px', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}
+                        onClick={() => navigate(`/dealers/${b.dealerId}`)}
+                      >
+                        View Profile
+                      </button>
+                      <button
+                        type="button"
+                        disabled={startingChatId === b.dealerId}
+                        style={{ flex: 1, padding: '8px', background: '#2563eb', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: startingChatId === b.dealerId ? 'wait' : 'pointer', fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px', opacity: startingChatId === b.dealerId ? 0.75 : 1 }}
+                        onClick={() => handleStartChat(b.dealerId, b.displayName)}
+                      >
+                        <MessageSquare size={14} />
+                        {startingChatId === b.dealerId ? 'Connecting…' : 'Message'}
+                      </button>
+                      <button
+                        type="button"
+                        style={{ flex: 1, padding: '8px', background: '#10b981', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                        onClick={() => navigate(`/farmer/offers/create/${b.dealerId}?crop=${encodeURIComponent(crop)}&qty=${encodeURIComponent(quantity)}&unit=${encodeURIComponent(unit)}`)}
+                      >
+                        <Handshake size={14} />
+                        Make Offer
+                      </button>
                     </div>
                   </div>
                 ))}
