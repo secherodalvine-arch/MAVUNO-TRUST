@@ -48,7 +48,7 @@ export const requireAuth = async (req, res, next) => {
             });
             return;
         }
-        req.user = { userId: payload.userId, role: payload.role };
+        req.user = { userId: payload.userId, role: user.role || payload.role };
         next();
     }
     catch {
