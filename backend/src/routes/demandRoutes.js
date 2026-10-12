@@ -1,5 +1,6 @@
 import express from 'express';
-import { requireAuth, requireRole } from '../middleware/authMiddleware.js';
+import { requireAuth } from '../middleware/requireAuth.js';
+import { requireRole } from '../middleware/requireRole.js';
 import { UserRole } from '../models/User.js';
 import {
     createDemand,
