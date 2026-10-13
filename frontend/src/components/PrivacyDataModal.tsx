@@ -6,16 +6,16 @@ interface PrivacyDataModalProps {
 
 export const PrivacyDataModal: React.FC<PrivacyDataModalProps> = ({ onClose }) => {
   return (
-    <div style={{
+    <div className="mt-privacy-overlay" style={{
       position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
       backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
     }}>
-      <div style={{
+      <div className="mt-privacy-card" style={{
         backgroundColor: '#fff', padding: '30px', borderRadius: '8px', maxWidth: '600px', width: '90%', maxHeight: '90vh', overflowY: 'auto'
       }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
           <h2 style={{ margin: 0 }}>Privacy & Data Use</h2>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer' }}>&times;</button>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'inherit' }}>&times;</button>
         </div>
 
         <section style={{ marginBottom: '20px' }}>

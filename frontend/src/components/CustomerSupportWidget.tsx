@@ -140,14 +140,36 @@ export const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({
       setCallState('connecting');
       setIsCalling(true);
 
+      // Request microphone up-front so permission problems surface clearly
+      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      micStream.getTracks().forEach((t) => t.stop());
+
       const Conversation = await loadElevenLabsClient();
 
+      // Prefer a signed URL (works for private agents); fall back to public agentId
+      let sessionAuth: Record<string, any> = { agentId, connectionType: 'websocket' };
+      try {
+        const res = await apiClient.get('/voice/customer-support/signed-url', {
+          params: { agentId },
+        });
+        const signedUrl = res.data?.data?.signedUrl;
+        if (signedUrl) {
+          sessionAuth = { signedUrl, connectionType: 'websocket' };
+        }
+      } catch {
+        // fall back to public agent
+      }
+
       const conversation = await Conversation.startSession({
-        agentId,
+        ...sessionAuth,
         onConnect: () => {
           setCallState('listening');
         },
-        onDisconnect: () => {
+        onDisconnect: (details: any) => {
+          console.warn('[Mavuno Support] Disconnected:', details);
+          if (details?.reason === 'error' && details?.message) {
+            setCallError(`Call ended: ${details.message}`);
+          }
           setCallState('idle');
           setIsCalling(false);
           conversationRef.current = null;

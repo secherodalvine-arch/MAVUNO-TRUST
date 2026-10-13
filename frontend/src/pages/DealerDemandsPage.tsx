@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Tag, Calendar, MapPin, Search } from 'lucide-react';
 import apiClient from '../services/apiClient';
+import './DealerDemandsPage.css';
 
 interface Demand {
   _id: string;
@@ -119,9 +120,9 @@ export const DealerDemandsPage: React.FC = () => {
         ) : (
           <div style={{ display: 'grid', gap: '16px', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))' }}>
             {demands.map(d => (
-              <div key={d._id} className="content-card" style={{ padding: '20px', position: 'relative' }}>
+              <div key={d._id} className="dd-card" style={{ padding: '20px', position: 'relative' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
-                  <h3 style={{ margin: 0, fontSize: '1.2rem', color: '#0f172a' }}>{d.cropName}</h3>
+                  <h3 className="dd-card-title">{d.cropName}</h3>
                   <span style={{ 
                     padding: '4px 8px', 
                     borderRadius: '4px', 
@@ -134,7 +135,7 @@ export const DealerDemandsPage: React.FC = () => {
                   </span>
                 </div>
                 
-                <div style={{ fontSize: '0.9rem', color: '#475569', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <div className="dd-card-meta">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Tag size={14} /> <strong>Quantity:</strong> {d.quantity} {d.unit}
                   </div>
@@ -180,34 +181,27 @@ export const DealerDemandsPage: React.FC = () => {
       </div>
 
       {showModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
-          <div className="content-card" style={{ width: '100%', maxWidth: '500px', padding: '24px', position: 'relative' }}>
+        <div className="dd-overlay" onClick={() => { setShowModal(false); setModalError(null); }}>
+          <div className="dd-modal" role="dialog" aria-modal="true" onClick={e => e.stopPropagation()}>
             <button 
+              className="dd-close"
+              aria-label="Close"
               onClick={() => { setShowModal(false); setModalError(null); }}
-              style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
             >
               <X size={20} />
             </button>
-            <h2 style={{ marginTop: 0, marginBottom: '24px', fontSize: '1.4rem' }}>Create Buyer Demand</h2>
+            <h2 className="dd-modal-title">Create Buyer Demand</h2>
             {modalError && (
-              <div style={{
-                marginBottom: '16px',
-                padding: '10px 14px',
-                borderRadius: '6px',
-                backgroundColor: '#fee2e2',
-                color: '#b91c1c',
-                fontSize: '0.875rem',
-                border: '1px solid #fca5a5'
-              }}>
+              <div className="dd-error">
                 {modalError}
               </div>
             )}
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <form onSubmit={handleSubmit} className="dd-form">
               <div className="form-group">
                 <label className="form-label">Crop Name</label>
                 <input type="text" className="form-control" required value={cropName} onChange={e => setCropName(e.target.value)} placeholder="e.g. Maize, Potatoes" />
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+              <div className="dd-row">
                 <div className="form-group">
                   <label className="form-label">Quantity required</label>
                   <input type="number" step="0.01" min="0.01" className="form-control" required value={quantity} onChange={e => setQuantity(e.target.value)} />

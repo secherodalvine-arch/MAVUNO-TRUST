@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu, Bell, User, Settings, LogOut,
@@ -68,6 +69,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const notifPanelRef = useRef<HTMLDivElement>(null);
+  const profilePanelRef = useRef<HTMLDivElement>(null);
 
   const title = routeTitles[pathname] ?? 'MavunoTrust';
 
@@ -108,8 +111,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
   // Close panels on outside click
   useEffect(() => {
     const handler = (e: MouseEvent) => {
-      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setNotifOpen(false);
-      if (profileRef.current && !profileRef.current.contains(e.target as Node)) setProfileOpen(false);
+      const t = e.target as Node;
+      if (notifRef.current && !notifRef.current.contains(t) && !notifPanelRef.current?.contains(t)) setNotifOpen(false);
+      if (profileRef.current && !profileRef.current.contains(t) && !profilePanelRef.current?.contains(t)) setProfileOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -225,8 +229,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
           </button>
 
           {/* Notification Panel */}
-          {notifOpen && (
-            <div className="ah-panel ah-notif-panel" role="dialog" aria-label="Notifications">
+          {notifOpen && createPortal(
+            <div ref={notifPanelRef} className="ah-panel ah-notif-panel ah-portal" role="dialog" aria-label="Notifications">
               <div className="ah-panel-header">
                 <span className="ah-panel-title">
                   <Bell size={14} /> Notifications
@@ -298,7 +302,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
                   </div>
                 ))}
               </div>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
 
@@ -321,8 +326,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
           </button>
 
           {/* Profile Dropdown */}
-          {profileOpen && (
-            <div className="ah-panel ah-profile-panel" role="menu">
+          {profileOpen && createPortal(
+            <div ref={profilePanelRef} className="ah-panel ah-profile-panel ah-portal" role="menu">
               {/* Identity block */}
               <div className="ah-profile-identity">
                 <div className="ah-profile-avatar-lg" aria-hidden="true">
@@ -362,7 +367,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
               >
                 <LogOut size={15} /> Sign Out
               </button>
-            </div>
+            </div>,
+            document.body
           )}
         </div>
       </div>

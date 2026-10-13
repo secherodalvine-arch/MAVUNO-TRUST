@@ -629,3 +629,35 @@ table {
   }
 }
 
+
+/* -- Shared modal theme tokens -- */
+:root {
+  --mt-overlay: rgba(0, 0, 0, 0.7);
+  --mt-modal-bg: #1a2c1e;
+  --mt-modal-border: rgba(255, 255, 255, 0.12);
+  --mt-modal-title: #e8f5ec;
+  --mt-modal-label: #a0c4ac;
+  --mt-input-bg: #0f1c12;
+  --mt-input-border: rgba(255, 255, 255, 0.15);
+}
+[data-theme='light'] {
+  --mt-overlay: rgba(15, 35, 25, 0.45);
+  --mt-modal-bg: #ffffff;
+  --mt-modal-border: #d2e3d7;
+  --mt-modal-title: #0d2315;
+  --mt-modal-label: #2e573b;
+  --mt-input-bg: #ffffff;
+  --mt-input-border: #c2d9c8;
+}
+
+/* Market price detail modal (kamis) + privacy modal */
+.kamis-modal-overlay, .mt-privacy-overlay { background-color: var(--mt-overlay) !important; }
+.kamis-modal-content, .mt-privacy-card {
+  background: var(--mt-modal-bg) !important;
+  border: 1px solid var(--mt-modal-border);
+  color: var(--mt-modal-title);
+}
+.kamis-modal-title, .kamis-detail-value, .mt-privacy-card h2, .mt-privacy-card h4 { color: var(--mt-modal-title) !important; }
+.kamis-detail-label, .kamis-modal-close, .mt-privacy-card p, .mt-privacy-card ul { color: var(--mt-modal-label) !important; }
+.kamis-modal-header, .kamis-modal-footer { border-color: var(--mt-modal-border) !important; }
+.kamis-modal-close:hover { background: rgba(128, 128, 128, 0.2) !important; }

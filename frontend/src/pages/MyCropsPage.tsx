@@ -646,7 +646,7 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: 'var(--mt-overlay, rgba(0,0,0,0.7))',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
@@ -656,8 +656,8 @@ const styles: Record<string, React.CSSProperties> = {
   modalCard: {
     width: '100%',
     maxWidth: '540px',
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
+    backgroundColor: 'var(--mt-modal-bg, #1e293b)',
+    border: '1px solid var(--mt-modal-border, #334155)',
     borderRadius: '16px',
     padding: '28px',
     maxHeight: '90vh',
@@ -667,7 +667,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: '0 0 20px 0',
     fontSize: '1.4rem',
     fontWeight: 700,
-    color: '#f8fafc',
+    color: 'var(--mt-modal-title, #f8fafc)',
   },
   form: {
     display: 'flex',
@@ -687,15 +687,15 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '0.85rem',
     fontWeight: 600,
-    color: '#cbd5e1',
+    color: 'var(--mt-modal-label, #cbd5e1)',
   },
   input: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #475569',
+    backgroundColor: 'var(--mt-input-bg, #0f172a)',
+    border: '1px solid var(--mt-input-border, #475569)',
     borderRadius: '8px',
     padding: '10px 12px',
     fontSize: '0.9rem',
-    color: '#f8fafc',
+    color: 'var(--mt-modal-title, #f8fafc)',
     outline: 'none',
   },
   textarea: {
