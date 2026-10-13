@@ -143,7 +143,8 @@ export async function checkAndSyncReminders(userId, userRole) {
     }
 
     // 5. Farmer with no active crop listings
-    if (userRole === 'FARMER') {
+    const normalizedRole = (userRole || '').toUpperCase().trim();
+    if (normalizedRole === 'FARMER') {
       const activeListingsCount = await FarmerCropListing.countDocuments({
         farmerId: userId,
         status: 'ACTIVE'
@@ -161,6 +162,13 @@ export async function checkAndSyncReminders(userId, userRole) {
           itemId: userId.toString(),
         });
       }
+    } else {
+      // Non-farmer accounts (e.g. DEALER/BROKER) must never receive crop listing reminders.
+      // Clean up any stale no_crops notifications in the database for this user.
+      await Notification.deleteMany({
+        userId,
+        'meta.reminderKey': `no_crops_${userId}`
+      });
     }
 
     // For each detected reminder, ensure a Notification document exists in MongoDB
@@ -241,15 +249,22 @@ router.get('/reminders', async (req, res, next) => {
       }
     });
 
-    const enrichedReminders = reminders.map(r => {
-      const match = notifMap.get(r.reminderKey);
-      return {
-        ...r,
-        notificationId: match ? match._id.toString() : null,
-        read: match ? !!match.read : false,
-        createdAt: match ? match.createdAt : new Date().toISOString(),
-      };
-    });
+    const enrichedReminders = reminders
+      .filter(r => {
+        if (req.user?.role === 'DEALER' && (r.category === 'LISTING' || r.link?.startsWith('/farmer/crops') || r.reminderKey?.startsWith('no_crops_'))) {
+          return false;
+        }
+        return true;
+      })
+      .map(r => {
+        const match = notifMap.get(r.reminderKey);
+        return {
+          ...r,
+          notificationId: match ? match._id.toString() : null,
+          read: match ? !!match.read : false,
+          createdAt: match ? match.createdAt : new Date().toISOString(),
+        };
+      });
 
     // Unread reminders prioritized for interactive popup
     const unreadReminders = enrichedReminders.filter(r => !r.read);

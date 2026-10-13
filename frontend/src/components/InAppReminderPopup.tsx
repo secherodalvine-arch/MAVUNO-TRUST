@@ -16,6 +16,7 @@ import {
   notificationService,
   type ActivityReminder,
 } from '../services/notificationService';
+import { useAuth } from '../hooks/useAuth';
 import './InAppReminderPopup.css';
 
 interface InAppReminderPopupProps {
@@ -28,6 +29,7 @@ const SNOOZE_DURATION_MS = 10 * 60 * 1000; // 10 minutes
 export const InAppReminderPopup: React.FC<InAppReminderPopupProps> = ({
   onRefreshNotifications,
 }) => {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [reminders, setReminders] = useState<ActivityReminder[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -66,8 +68,12 @@ export const InAppReminderPopup: React.FC<InAppReminderPopupProps> = ({
       const now = Date.now();
       const currentSnoozes = snoozedKeys;
 
-      // Filter out items that are marked read or currently snoozed
+      // Filter out items that are marked read, currently snoozed, or farmer-only for dealers
       const activeUnread = (data.unreadReminders || []).filter((r) => {
+        // Guard: dealers / brokers must never see farmer crop listing reminders
+        if (user?.role === 'DEALER' && (r.category === 'LISTING' || r.link?.startsWith('/farmer/crops') || r.reminderKey?.startsWith('no_crops_'))) {
+          return false;
+        }
         const snoozeExpiry = currentSnoozes[r.reminderKey];
         if (snoozeExpiry && snoozeExpiry > now) {
           return false;
@@ -84,7 +90,7 @@ export const InAppReminderPopup: React.FC<InAppReminderPopupProps> = ({
     } catch {
       // Non-critical background reminder fetch
     }
-  }, [snoozedKeys]);
+  }, [snoozedKeys, user?.role]);
 
   useEffect(() => {
     fetchReminders();
@@ -151,6 +157,13 @@ export const InAppReminderPopup: React.FC<InAppReminderPopupProps> = ({
     if (currentReminder.notificationId) {
       await notificationService.markRead(currentReminder.notificationId).catch(() => {});
     }
+
+    // Persist dismissal so recurring polling doesn't immediately resurface it
+    const nextSnoozes = {
+      ...snoozedKeys,
+      [currentReminder.reminderKey]: Date.now() + 24 * 60 * 60 * 1000,
+    };
+    cleanAndSaveSnoozes(nextSnoozes);
 
     if (onRefreshNotifications) {
       onRefreshNotifications();

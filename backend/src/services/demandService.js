@@ -6,24 +6,44 @@ import { assertOwner } from '../utils/authorizationUtils.js';
 import { normalizeMarketPrice } from '../utils/unitNormalizer.js';
 
 export async function createDemand(userId, input) {
-    if (!input.quantity || input.quantity <= 0) {
+    if (!input.cropName || !input.cropName.trim()) {
+        throw Object.assign(new Error('Crop name is required.'), { statusCode: 400 });
+    }
+    const qty = Number(input.quantity);
+    if (!input.quantity || isNaN(qty) || qty <= 0) {
         throw Object.assign(new Error('Quantity must be greater than 0.'), { statusCode: 400 });
     }
     if (!input.unit || !input.unit.trim()) {
         throw Object.assign(new Error('Unit is required.'), { statusCode: 400 });
+    }
+    let targetPrice = undefined;
+    if (input.targetPricePerUnit !== undefined && input.targetPricePerUnit !== null && input.targetPricePerUnit !== '') {
+        const price = Number(input.targetPricePerUnit);
+        if (isNaN(price) || price < 0) {
+            throw Object.assign(new Error('Target price cannot be negative.'), { statusCode: 400 });
+        }
+        targetPrice = price;
+    }
+    let deliveryDate = undefined;
+    if (input.desiredDeliveryDate) {
+        const d = new Date(input.desiredDeliveryDate);
+        if (isNaN(d.getTime())) {
+            throw Object.assign(new Error('Invalid desired delivery date.'), { statusCode: 400 });
+        }
+        deliveryDate = d;
     }
 
     const dealerProfile = await DealerProfile.findOne({ userId });
     
     const demand = await BuyerDemand.create({
         dealerId: userId,
-        cropName: input.cropName?.trim() || 'General Produce',
+        cropName: input.cropName.trim(),
         cropId: input.cropId,
-        quantity: input.quantity,
+        quantity: qty,
         unit: input.unit.trim(),
-        targetPricePerUnit: input.targetPricePerUnit,
+        targetPricePerUnit: targetPrice,
         currency: input.currency || 'KES',
-        desiredDeliveryDate: input.desiredDeliveryDate ? new Date(input.desiredDeliveryDate) : undefined,
+        desiredDeliveryDate: deliveryDate,
         countiesServed: input.countiesServed || dealerProfile?.countiesServed || [],
         buyerReference: input.buyerReference?.trim(),
         status: DemandStatus.ACTIVE
@@ -47,14 +67,31 @@ export async function updateDemand(userId, demandId, input) {
     const demand = await getDemandById(demandId);
     assertOwner({ userId, role: UserRole.DEALER }, demand.dealerId);
 
-    if (input.cropName !== undefined) demand.cropName = input.cropName.trim();
-    if (input.quantity !== undefined) {
-        if (input.quantity <= 0) throw Object.assign(new Error('Quantity must be greater than 0.'), { statusCode: 400 });
-        demand.quantity = input.quantity;
+    if (input.cropName !== undefined) {
+        if (!input.cropName.trim()) throw Object.assign(new Error('Crop name cannot be empty.'), { statusCode: 400 });
+        demand.cropName = input.cropName.trim();
     }
-    if (input.unit !== undefined) demand.unit = input.unit.trim();
-    if (input.targetPricePerUnit !== undefined) demand.targetPricePerUnit = input.targetPricePerUnit;
-    if (input.desiredDeliveryDate !== undefined) demand.desiredDeliveryDate = input.desiredDeliveryDate ? new Date(input.desiredDeliveryDate) : undefined;
+    if (input.quantity !== undefined) {
+        const q = Number(input.quantity);
+        if (isNaN(q) || q <= 0) throw Object.assign(new Error('Quantity must be greater than 0.'), { statusCode: 400 });
+        demand.quantity = q;
+    }
+    if (input.unit !== undefined) {
+        if (!input.unit.trim()) throw Object.assign(new Error('Unit cannot be empty.'), { statusCode: 400 });
+        demand.unit = input.unit.trim();
+    }
+    if (input.targetPricePerUnit !== undefined) {
+        if (input.targetPricePerUnit !== null && input.targetPricePerUnit !== '') {
+            const p = Number(input.targetPricePerUnit);
+            if (isNaN(p) || p < 0) throw Object.assign(new Error('Target price cannot be negative.'), { statusCode: 400 });
+            demand.targetPricePerUnit = p;
+        } else {
+            demand.targetPricePerUnit = undefined;
+        }
+    }
+    if (input.desiredDeliveryDate !== undefined) {
+        demand.desiredDeliveryDate = input.desiredDeliveryDate ? new Date(input.desiredDeliveryDate) : undefined;
+    }
     if (input.countiesServed !== undefined) demand.countiesServed = input.countiesServed;
     if (input.buyerReference !== undefined) demand.buyerReference = input.buyerReference.trim();
     if (input.status !== undefined) demand.status = input.status;
@@ -63,10 +100,13 @@ export async function updateDemand(userId, demandId, input) {
     return demand;
 }
 
-export async function matchFarmerListingToDemands(listingId) {
+export async function matchFarmerListingToDemands(listingId, userId) {
     const listing = await FarmerCropListing.findById(listingId).populate('farmerId');
     if (!listing) {
         throw Object.assign(new Error('Farmer listing not found.'), { statusCode: 404 });
+    }
+    if (userId) {
+        assertOwner({ userId, role: UserRole.FARMER }, listing.farmerId);
     }
 
     // Find active demands for similar crop

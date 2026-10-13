@@ -32,7 +32,8 @@ export const updateDemand = async (req, res, next) => {
 
 export const matchListingToDemands = async (req, res, next) => {
     try {
-        const matchResults = await demandService.matchFarmerListingToDemands(req.params.listingId);
+        const userId = req.user.userId || req.user.id;
+        const matchResults = await demandService.matchFarmerListingToDemands(req.params.listingId, userId);
         res.status(200).json({ success: true, data: matchResults });
     } catch (err) {
         next(err);

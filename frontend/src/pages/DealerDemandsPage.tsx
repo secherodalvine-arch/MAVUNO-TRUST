@@ -20,6 +20,8 @@ export const DealerDemandsPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modalError, setModalError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   // Form State
   const [cropName, setCropName] = useState('');
@@ -31,11 +33,13 @@ export const DealerDemandsPage: React.FC = () => {
   const fetchDemands = async () => {
     try {
       setLoading(true);
+      setError(null);
       const res = await apiClient.get<{ data: Demand[] }>('/demands/me');
       setDemands(res.data.data || []);
     } catch (err: any) {
       console.error(err);
-      setError('Failed to load demands.');
+      const errorMsg = err.response?.data?.error?.message || err.response?.data?.message || 'Failed to load demands.';
+      setError(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -48,11 +52,12 @@ export const DealerDemandsPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      setError(null);
+      setSubmitting(true);
+      setModalError(null);
       await apiClient.post('/demands', {
-        cropName,
+        cropName: cropName.trim(),
         quantity: Number(quantity),
-        unit,
+        unit: unit.trim(),
         targetPricePerUnit: targetPricePerUnit ? Number(targetPricePerUnit) : undefined,
         desiredDeliveryDate: desiredDeliveryDate || undefined
       });
@@ -64,10 +69,13 @@ export const DealerDemandsPage: React.FC = () => {
       setTargetPricePerUnit('');
       setDesiredDeliveryDate('');
       
-      fetchDemands();
+      await fetchDemands();
     } catch (err: any) {
       console.error(err);
-      setError(err.response?.data?.message || 'Failed to create demand.');
+      const errorMsg = err.response?.data?.error?.message || err.response?.data?.message || 'Failed to create demand.';
+      setModalError(errorMsg);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -75,9 +83,10 @@ export const DealerDemandsPage: React.FC = () => {
     try {
       await apiClient.put(`/demands/${id}`, { status: newStatus });
       fetchDemands();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to update status.');
+      const errorMsg = err.response?.data?.error?.message || err.response?.data?.message || 'Failed to update status.';
+      alert(errorMsg);
     }
   };
 
@@ -97,7 +106,10 @@ export const DealerDemandsPage: React.FC = () => {
         {loading ? (
           <div>Loading...</div>
         ) : error ? (
-          <div style={{ color: 'red' }}>{error}</div>
+          <div className="state-card" style={{ padding: '30px 20px', textAlign: 'center' }}>
+            <p style={{ color: '#dc2626', marginBottom: '12px', fontWeight: 500 }}>{error}</p>
+            <button className="btn btn-outline" onClick={fetchDemands}>Retry</button>
+          </div>
         ) : demands.length === 0 ? (
           <div className="state-card" style={{ padding: '40px 20px', textAlign: 'center' }}>
             <Search size={32} color="#94a3b8" style={{ marginBottom: '16px' }} />
@@ -171,12 +183,25 @@ export const DealerDemandsPage: React.FC = () => {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
           <div className="content-card" style={{ width: '100%', maxWidth: '500px', padding: '24px', position: 'relative' }}>
             <button 
-              onClick={() => setShowModal(false)}
+              onClick={() => { setShowModal(false); setModalError(null); }}
               style={{ position: 'absolute', top: '16px', right: '16px', background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}
             >
               <X size={20} />
             </button>
             <h2 style={{ marginTop: 0, marginBottom: '24px', fontSize: '1.4rem' }}>Create Buyer Demand</h2>
+            {modalError && (
+              <div style={{
+                marginBottom: '16px',
+                padding: '10px 14px',
+                borderRadius: '6px',
+                backgroundColor: '#fee2e2',
+                color: '#b91c1c',
+                fontSize: '0.875rem',
+                border: '1px solid #fca5a5'
+              }}>
+                {modalError}
+              </div>
+            )}
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div className="form-group">
                 <label className="form-label">Crop Name</label>
@@ -206,8 +231,8 @@ export const DealerDemandsPage: React.FC = () => {
                 <label className="form-label">Desired Delivery Date (Optional)</label>
                 <input type="date" className="form-control" value={desiredDeliveryDate} onChange={e => setDesiredDeliveryDate(e.target.value)} />
               </div>
-              <button type="submit" className="btn btn-primary" style={{ marginTop: '8px' }}>
-                Post Demand
+              <button type="submit" className="btn btn-primary" style={{ marginTop: '8px' }} disabled={submitting}>
+                {submitting ? 'Posting...' : 'Post Demand'}
               </button>
             </form>
           </div>
