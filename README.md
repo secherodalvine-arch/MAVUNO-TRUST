@@ -212,8 +212,8 @@ The repository includes a ready-to-use [`render.yaml`](render.yaml) blueprint.
 6. Fill in the required secret environment variables in the Render dashboard:
    - `MONGODB_URI`: Your MongoDB Atlas connection URI.
    - `JWT_SECRET`: A secure 64-character random string.
-   - `FRONTEND_URL`: Your production frontend domain (e.g., `https://mavunotrust.vercel.app`).
-   - `CORS_ORIGIN`: Your production frontend domain (e.g., `https://mavunotrust.vercel.app`).
+   - `FRONTEND_URL`: Your production frontend domain (e.g., `https://mavunotrust.vercel.app`)
+   - `CORS_ORIGIN`: Your production frontend domain(e.g., `https://mavunotrust.vercel.app`).
    - `GEMINI_API_KEY`: Google Gemini API key for KAMIS market data extraction.
    - `ELEVENLABS_API_KEY` & `ELEVENLABS_AGENT_ID`: Homepage voice agent credentials.
    - `ELEVENLABS_CUSTOMER_SUPPORT_API_KEY` & `ELEVENLABS_CUSTOMER_SUPPORT_AGENT_ID`: Customer support voice credentials.
