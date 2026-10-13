@@ -4,7 +4,7 @@
 .app-header {
   height: var(--header-height, 60px);
   background: #0d1b10;
-  border-bottom: 1px solid rgba(255,255,255,0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -17,8 +17,8 @@
 
 /* ── Hamburger menu ── */
 .app-header-menu-btn {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: #a0c4ac;
   border-radius: 8px;
   width: 36px;
@@ -32,7 +32,7 @@
 }
 
 .app-header-menu-btn:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: #e8f5ec;
 }
 
@@ -66,8 +66,8 @@
 
 /* ── Icon button base ── */
 .app-header-icon-btn {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   color: #6b9276;
   border-radius: 8px;
   width: 36px;
@@ -82,7 +82,7 @@
 }
 
 .app-header-icon-btn:hover {
-  background: rgba(255,255,255,0.1);
+  background: rgba(255, 255, 255, 0.1);
   color: #e8f5ec;
 }
 
@@ -178,27 +178,32 @@
 }
 
 .ah-badge-inline {
-  background: rgba(224,82,82,0.2);
-  color: #f87171;
-  border: 1px solid rgba(224,82,82,0.35);
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.35);
   border-radius: 999px;
-  font-size: 0.65rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  padding: 1px 6px;
-  margin-left: 4px;
+  padding: 2px 7px;
+  letter-spacing: 0.02em;
 }
 
-/* ── Shared panel base ── */
+/* ══════════════════════════════════════════════════════
+   DROPDOWN MODAL PANELS (ANCHORED TOP-RIGHT OF SCREEN)
+   ══════════════════════════════════════════════════════ */
 .ah-panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
+  position: fixed !important;
+  top: calc(var(--header-height, 60px) + 8px) !important;
+  bottom: auto !important;
+  right: 20px !important;
+  left: auto !important;
   background: #142419;
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.05);
-  z-index: 500;
+  z-index: 1000 !important;
   animation: ahFadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 @keyframes ahFadeIn {
@@ -209,8 +214,8 @@
 /* ── Notification panel ── */
 .ah-notif-panel {
   width: 390px;
-  max-width: min(390px, calc(100vw - 32px));
-  max-height: min(520px, calc(100vh - var(--header-height, 60px) - 24px));
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - var(--header-height, 60px) - 24px);
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -241,17 +246,6 @@
   color: #f1f8f3;
   font-family: 'Outfit', sans-serif;
   letter-spacing: -0.01em;
-}
-
-.ah-badge-inline {
-  background: rgba(34, 197, 94, 0.18);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.35);
-  border-radius: 999px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 2px 7px;
-  letter-spacing: 0.02em;
 }
 
 .ah-panel-actions {
@@ -471,15 +465,15 @@
   color: #f87171;
 }
 
-/* ── Profile button ── */
+/* ── Profile button in Header ── */
 .ah-profile-wrap { position: relative; }
 
 .ah-profile-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255,255,255,0.04);
-  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 10px;
   padding: 4px 8px 4px 4px;
   cursor: pointer;
@@ -488,8 +482,8 @@
 }
 
 .ah-profile-btn:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(94,194,133,0.25);
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(94, 194, 133, 0.25);
 }
 
 .app-header-avatar {
@@ -544,12 +538,14 @@
 
 /* ── Profile dropdown panel ── */
 .ah-profile-panel {
-  width: 290px;
-  max-width: min(290px, calc(100vw - 32px));
+  width: 300px;
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - var(--header-height, 60px) - 24px);
   padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
+  overflow-y: auto;
 }
 
 .ah-profile-identity {
@@ -733,7 +729,7 @@
   color: #ffffff;
 }
 
-/* ── Responsive ── */
+/* ── Responsive Screen Rules ── */
 @media (max-width: 640px) {
   .app-header {
     padding: 0 12px;
@@ -750,33 +746,26 @@
   .ah-profile-btn { padding: 3px; }
 
   .ah-notif-panel {
-    position: fixed;
-    top: calc(var(--header-height, 60px) + 8px);
-    right: 12px;
-    left: 12px;
-    width: auto;
-    max-width: none;
-    max-height: calc(100vh - var(--header-height, 60px) - 20px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75);
-    z-index: 1000;
+    right: 12px !important;
+    left: 12px !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(100vh - var(--header-height, 60px) - 20px) !important;
   }
 
   .ah-profile-panel {
-    position: fixed;
-    top: calc(var(--header-height, 60px) + 8px);
-    right: 12px;
-    left: auto;
-    width: min(290px, calc(100vw - 24px));
-    max-width: calc(100vw - 24px);
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.75);
-    z-index: 1000;
+    right: 12px !important;
+    left: auto !important;
+    width: min(300px, calc(100vw - 24px)) !important;
+    max-width: calc(100vw - 24px) !important;
   }
 }
 
 @media (max-width: 380px) {
   .app-header { padding: 0 8px; gap: 6px; }
   .app-header-heading { font-size: 0.88rem; }
-  .ah-notif-panel, .ah-profile-panel { right: 8px; width: calc(100vw - 16px); }
+  .ah-notif-panel { right: 8px !important; left: 8px !important; }
+  .ah-profile-panel { right: 8px !important; width: calc(100vw - 16px) !important; }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -984,5 +973,3 @@
 [data-theme='light'] .ah-support-icon {
   color: #27894f;
 }
-
-
