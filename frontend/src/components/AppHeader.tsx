@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { createPortal } from 'react-dom';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Menu, Bell, User, Settings, LogOut,
-  CheckCheck, Trash2, ChevronDown, X,
+  CheckCheck, Trash2, ChevronDown, ChevronRight, X,
   MessageSquare, HandshakeIcon, Receipt, AlertTriangle,
   Sprout, Info, Headphones, Clock,
 } from 'lucide-react';
@@ -69,8 +68,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
-  const notifPanelRef = useRef<HTMLDivElement>(null);
-  const profilePanelRef = useRef<HTMLDivElement>(null);
 
   const title = routeTitles[pathname] ?? 'MavunoTrust';
 
@@ -112,8 +109,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
-      if (notifRef.current && !notifRef.current.contains(t) && !notifPanelRef.current?.contains(t)) setNotifOpen(false);
-      if (profileRef.current && !profileRef.current.contains(t) && !profilePanelRef.current?.contains(t)) setProfileOpen(false);
+      if (notifRef.current && !notifRef.current.contains(t)) setNotifOpen(false);
+      if (profileRef.current && !profileRef.current.contains(t)) setProfileOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -229,14 +226,16 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
           </button>
 
           {/* Notification Panel */}
-          {notifOpen && createPortal(
-            <div ref={notifPanelRef} className="ah-panel ah-notif-panel ah-portal" role="dialog" aria-label="Notifications">
+          {notifOpen && (
+            <div className="ah-panel ah-notif-panel" role="dialog" aria-label="Notifications">
               <div className="ah-panel-header">
-                <span className="ah-panel-title">
-                  <Bell size={14} /> Notifications
-                  {unreadCount > 0 && <span className="ah-badge-inline">{unreadCount}</span>}
-                </span>
-                <div style={{ display: 'flex', gap: 6 }}>
+                <div className="ah-panel-title-wrap">
+                  <span className="ah-panel-title">
+                    <Bell size={15} /> Notifications
+                  </span>
+                  {unreadCount > 0 && <span className="ah-badge-inline">{unreadCount} new</span>}
+                </div>
+                <div className="ah-panel-actions">
                   {unreadCount > 0 && (
                     <button className="ah-text-btn" onClick={handleMarkAllRead} title="Mark all read">
                       <CheckCheck size={14} /> Mark all read
@@ -244,7 +243,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
                   )}
                   {notifications.length > 0 && (
                     <button className="ah-text-btn ah-text-btn--danger" onClick={handleClearAll} title="Clear all">
-                      <Trash2 size={14} />
+                      <Trash2 size={14} /> Clear
                     </button>
                   )}
                 </div>
@@ -252,12 +251,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
 
               <div className="ah-notif-list">
                 {notifLoading && notifications.length === 0 && (
-                  <div className="ah-notif-empty">Loading…</div>
+                  <div className="ah-notif-empty">Loading notifications…</div>
                 )}
                 {!notifLoading && notifications.length === 0 && (
                   <div className="ah-notif-empty">
-                    <Bell size={22} />
-                    <span>You're all caught up</span>
+                    <div className="ah-empty-icon-wrap"><Bell size={22} /></div>
+                    <span className="ah-empty-title">All caught up</span>
+                    <span className="ah-empty-desc">You have no unread notifications right now.</span>
                   </div>
                 )}
                 {notifications.map(n => (
@@ -273,18 +273,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
                       {notifTypeIcon[n.type] || <Info size={14} />}
                     </div>
                     <div className="ah-notif-content">
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '6px' }}>
-                        <p className="ah-notif-title">{n.title}</p>
+                      <div className="ah-notif-top">
+                        <span className="ah-notif-title">{n.title}</span>
                         {n.meta?.actionLabel && (
-                          <span style={{
-                            fontSize: '0.68rem',
-                            fontWeight: 600,
-                            padding: '2px 6px',
-                            borderRadius: '4px',
-                            background: 'rgba(34, 197, 94, 0.16)',
-                            color: '#4ade80',
-                            whiteSpace: 'nowrap'
-                          }}>
+                          <span className="ah-notif-action-tag">
                             {n.meta.actionLabel}
                           </span>
                         )}
@@ -296,14 +288,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
                       className="ah-notif-del"
                       onClick={(e) => handleDelete(e, n._id)}
                       aria-label="Delete notification"
+                      title="Delete notification"
                     >
-                      <X size={12} />
+                      <X size={13} />
                     </button>
                   </div>
                 ))}
               </div>
-            </div>,
-            document.body
+            </div>
           )}
         </div>
 
@@ -326,37 +318,48 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
           </button>
 
           {/* Profile Dropdown */}
-          {profileOpen && createPortal(
-            <div ref={profilePanelRef} className="ah-panel ah-profile-panel ah-portal" role="menu">
+          {profileOpen && (
+            <div className="ah-panel ah-profile-panel" role="menu">
               {/* Identity block */}
               <div className="ah-profile-identity">
                 <div className="ah-profile-avatar-lg" aria-hidden="true">
                   {user?.fullName?.charAt(0).toUpperCase() ?? 'U'}
                 </div>
-                <div>
-                  <p className="ah-identity-name">{user?.fullName}</p>
-                  <p className="ah-identity-email">{(user as any)?.email}</p>
-                  <span className={`ah-identity-role ${roleClass}`}>{roleLabel}</span>
+                <div className="ah-profile-meta">
+                  <div className="ah-identity-name">{user?.fullName || 'User'}</div>
+                  <div className="ah-identity-email">{(user as any)?.email || ''}</div>
+                  <div className="ah-identity-role-badge">
+                    <span className={`ah-role-pill ${roleClass}`}>
+                      <span className="ah-role-dot" />
+                      {roleLabel}
+                    </span>
+                  </div>
                 </div>
               </div>
 
               <div className="ah-profile-divider" />
 
-              <button
-                className="ah-profile-menu-item"
-                role="menuitem"
-                onClick={() => { setProfileOpen(false); navigate(user?.role === 'FARMER' ? '/farmer/profile' : '/dealer/profile'); }}
-              >
-                <User size={15} /> My Profile
-              </button>
+              <div className="ah-profile-menu">
+                <button
+                  className="ah-profile-menu-item"
+                  role="menuitem"
+                  onClick={() => { setProfileOpen(false); navigate(user?.role === 'FARMER' ? '/farmer/profile' : '/dealer/profile'); }}
+                >
+                  <div className="ah-menu-icon-wrap"><User size={15} /></div>
+                  <span className="ah-menu-label">My Profile</span>
+                  <ChevronRight size={14} className="ah-menu-arrow" />
+                </button>
 
-              <button
-                className="ah-profile-menu-item"
-                role="menuitem"
-                onClick={() => { setProfileOpen(false); navigate('/settings'); }}
-              >
-                <Settings size={15} /> Settings
-              </button>
+                <button
+                  className="ah-profile-menu-item"
+                  role="menuitem"
+                  onClick={() => { setProfileOpen(false); navigate('/settings'); }}
+                >
+                  <div className="ah-menu-icon-wrap"><Settings size={15} /></div>
+                  <span className="ah-menu-label">Settings</span>
+                  <ChevronRight size={14} className="ah-menu-arrow" />
+                </button>
+              </div>
 
               <div className="ah-profile-divider" />
 
@@ -365,10 +368,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
                 role="menuitem"
                 onClick={handleLogout}
               >
-                <LogOut size={15} /> Sign Out
+                <div className="ah-menu-icon-wrap ah-menu-icon-wrap--danger"><LogOut size={15} /></div>
+                <span className="ah-menu-label">Sign Out</span>
               </button>
-            </div>,
-            document.body
+            </div>
           )}
         </div>
       </div>

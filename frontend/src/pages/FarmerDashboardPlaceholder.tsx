@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   User, Leaf, TrendingUp, Calculator, Search,
-  HandshakeIcon, ArrowRight,
+  HandshakeIcon, ArrowRight, Truck,
 } from 'lucide-react';
 import { MarketTicker } from '../components/MarketTicker';
 import { MarketPriceDetailModal } from '../components/MarketPriceDetailModal';
 import { MarketRecommendationSection } from '../components/MarketRecommendationSection';
+import { TransportIntelligenceSection } from '../components/TransportIntelligenceSection';
 import { marketDataService, type MarketDataItem } from '../services/marketDataService';
 
 export const FarmerDashboardPlaceholder: React.FC = () => {
@@ -61,8 +62,20 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
       {/* Stage 2 Gemini B Market Intelligence Recommendation Section */}
       <MarketRecommendationSection />
 
+      {/* Shared Transport-Cost Intelligence Section */}
+      <TransportIntelligenceSection />
+
       {/* Dashboard cards */}
       <div className="dash-grid">
+        <Link to="/transport" className="dash-card" style={{ textDecoration: 'none' }}>
+          <div className="dash-card-icon" style={{ background: 'rgba(13,148,136,0.14)', color: '#2dd4bf' }}>
+            <Truck size={20} />
+          </div>
+          <span className="dash-card-title">Transport Intel</span>
+          <p className="dash-card-desc">OpenStreetMap road distances &amp; shared haulier cost estimates across Kenya.</p>
+          <span className="dash-card-link">Calculate Transport <ArrowRight size={13} /></span>
+        </Link>
+
         <Link to="/dealers" className="dash-card" style={{ textDecoration: 'none' }}>
           <div className="dash-card-icon" style={{ background: 'rgba(59,130,246,0.12)', color: '#93c5fd' }}>
             <Search size={20} />

@@ -24,8 +24,6 @@ interface SuggestedQuery {
   category: string;
 }
 
-const DEFAULT_AGENT_ID = 'agent_2201m378q8bwfnvb481vqz49wkgz';
-
 const SUGGESTED_QUERIES: SuggestedQuery[] = [
   // English questions
   {
@@ -95,13 +93,7 @@ export const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({
   isOpen,
   onClose,
 }) => {
-  const [agentId, setAgentId] = useState<string>(() => {
-    return (
-      import.meta.env.VITE_ELEVENLABS_CUSTOMER_SUPPORT_AGENT_ID ||
-      localStorage.getItem('mavuno_customer_support_agent_id') ||
-      DEFAULT_AGENT_ID
-    );
-  });
+  const [agentId, setAgentId] = useState<string>('');
 
   const [selectedLang, setSelectedLang] = useState<'all' | 'en' | 'sw'>('all');
 
@@ -118,7 +110,7 @@ export const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({
 
   const conversationRef = useRef<any>(null);
 
-  // Fetch updated Agent ID from backend if available
+  // Fetch Agent ID from backend config
   useEffect(() => {
     apiClient
       .get('/voice/customer-support/config')
@@ -128,8 +120,8 @@ export const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({
           setAgentId(id);
         }
       })
-      .catch(() => {
-        // Fallback already pre-set to DEFAULT_AGENT_ID
+      .catch((err) => {
+        console.warn('[Mavuno Support] Failed to fetch voice config:', err);
       });
   }, []);
 
@@ -140,28 +132,27 @@ export const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({
       setCallState('connecting');
       setIsCalling(true);
 
-      // Request microphone up-front so permission problems surface clearly
-      const micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      micStream.getTracks().forEach((t) => t.stop());
+      let activeAgentId = agentId;
+      if (!activeAgentId) {
+        try {
+          const res = await apiClient.get('/voice/customer-support/config');
+          activeAgentId = res.data?.data?.agentId;
+          if (activeAgentId) {
+            setAgentId(activeAgentId);
+          }
+        } catch (e) {
+          // backend fetch failed
+        }
+      }
+
+      if (!activeAgentId) {
+        throw new Error('Customer support voice agent is not configured on the backend.');
+      }
 
       const Conversation = await loadElevenLabsClient();
 
-      // Prefer a signed URL (works for private agents); fall back to public agentId
-      let sessionAuth: Record<string, any> = { agentId, connectionType: 'websocket' };
-      try {
-        const res = await apiClient.get('/voice/customer-support/signed-url', {
-          params: { agentId },
-        });
-        const signedUrl = res.data?.data?.signedUrl;
-        if (signedUrl) {
-          sessionAuth = { signedUrl, connectionType: 'websocket' };
-        }
-      } catch {
-        // fall back to public agent
-      }
-
       const conversation = await Conversation.startSession({
-        ...sessionAuth,
+        agentId: activeAgentId,
         onConnect: () => {
           setCallState('listening');
         },
@@ -203,7 +194,7 @@ export const CustomerSupportWidget: React.FC<CustomerSupportWidgetProps> = ({
       conversationRef.current = conversation;
     } catch (err: any) {
       console.error('[Mavuno Support] Failed to start voice session:', err);
-      let friendlyMsg = 'Failed to connect voice agent. Please try again.';
+      let friendlyMsg = err?.message || 'Failed to connect voice agent. Please try again.';
       const msg = err?.message?.toLowerCase() || '';
       if (
         msg.includes('mic') ||
