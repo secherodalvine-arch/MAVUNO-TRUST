@@ -81,16 +81,57 @@ export interface MarketRecommendationResponse {
 export const getMarketRecommendationApi = async (
   query: MarketRecommendationQuery
 ): Promise<MarketRecommendationData> => {
-  const response = await apiClient.post<MarketRecommendationResponse>(
-    '/ai/market-recommendation',
-    query
-  );
-
-  if (!response.data || response.data.success === false) {
-    throw new Error(
-      response.data?.error?.message || 'Failed to retrieve market recommendation.'
+  try {
+    const response = await apiClient.post<MarketRecommendationResponse>(
+      '/ai/market-recommendation',
+      query
     );
-  }
 
-  return response.data.data;
+    // Axios resolves on 2xx; a success:false body at HTTP 200 is a logic error.
+    if (!response.data || response.data.success === false) {
+      throw new Error(
+        response.data?.error?.message || 'Failed to retrieve market recommendation.'
+      );
+    }
+
+    return response.data.data;
+  } catch (err: unknown) {
+    // Re-shape Axios HTTP errors so the component receives the backend's
+    // human-readable message instead of the generic "Request failed with status code N".
+    if (
+      err &&
+      typeof err === 'object' &&
+      'response' in err &&
+      err.response &&
+      typeof err.response === 'object'
+    ) {
+      const axiosErr = err as {
+        response: { status: number; data?: { error?: { message?: string }; message?: string } };
+        message: string;
+      };
+      const status = axiosErr.response.status;
+      const serverMsg =
+        axiosErr.response.data?.error?.message ||
+        axiosErr.response.data?.message;
+
+      if (serverMsg) {
+        // Preserve the original server message and attach the HTTP status for context.
+        throw new Error(`${serverMsg} (HTTP ${status})`);
+      }
+
+      // Fallback messages for common statuses.
+      if (status === 503) {
+        throw new Error(
+          'The market recommendation AI service is temporarily unavailable. Please try again in a moment.'
+        );
+      }
+      if (status === 502) {
+        throw new Error(
+          'The AI service returned an unexpected response. Please try again shortly.'
+        );
+      }
+    }
+    // Re-throw everything else as-is.
+    throw err;
+  }
 };

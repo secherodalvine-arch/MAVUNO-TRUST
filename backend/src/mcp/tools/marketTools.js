@@ -1,17 +1,18 @@
 import MarketPrice from '../../models/MarketPrice.js';
 import WRSCWeeklyPrice from '../../models/WRSCWeeklyPrice.js';
 import FAOPriceHistory from '../../models/FAOPriceHistory.js';
+import { escapeRegex } from '../../utils/escapeRegex.js';
 export const getMarketPrices = async ({ crop, county, market, limit = 50 }) => {
   const query = {};
   if (crop) {
-    // Case-insensitive regex search for crop name
-    query.cropName = { $regex: new RegExp(crop, 'i') };
+    // Case-insensitive literal search for crop name
+    query.cropName = { $regex: new RegExp(escapeRegex(crop), 'i') };
   }
   if (county) {
-    query.county = { $regex: new RegExp(county, 'i') };
+    query.county = { $regex: new RegExp(escapeRegex(county), 'i') };
   }
   if (market) {
-    query.market = { $regex: new RegExp(market, 'i') };
+    query.market = { $regex: new RegExp(escapeRegex(market), 'i') };
   }
 
   // Find recent prices, sorted by observation date descending
@@ -33,7 +34,7 @@ export const getMarketPrices = async ({ crop, county, market, limit = 50 }) => {
       wholesalePrice: p.minimumPrice,
       retailPrice: p.maximumPrice,
       unit: p.unit,
-      observedDate: p.observedAt ? p.observedAt.toISOString() : null,
+      observedDate: p.observedAt ? new Date(p.observedAt).toISOString() : null,
       dataAgeDays,
       source: p.source,
       provider: p.provider,
@@ -77,7 +78,7 @@ export const getMarketDetails = async ({ market }) => {
 export const getNationalBenchmarks = async ({ commodity, limit = 50 }) => {
   const query = {};
   if (commodity) {
-    query.commodity = { $regex: new RegExp(commodity, 'i') };
+    query.commodity = { $regex: new RegExp(escapeRegex(commodity), 'i') };
   }
 
   // Find recent benchmarks, sorted by publication date descending
@@ -104,10 +105,10 @@ export const getNationalBenchmarks = async ({ commodity, limit = 50 }) => {
 export const getFaoPriceHistory = async ({ commodity, market, startDate, endDate, limit = 100 }) => {
   const query = {};
   if (commodity) {
-    query.commodity = { $regex: new RegExp(commodity, 'i') };
+    query.commodity = { $regex: new RegExp(escapeRegex(commodity), 'i') };
   }
   if (market) {
-    query.market = { $regex: new RegExp(market, 'i') };
+    query.market = { $regex: new RegExp(escapeRegex(market), 'i') };
   }
   if (startDate || endDate) {
     query.date = {};
