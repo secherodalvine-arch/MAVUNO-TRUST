@@ -16,6 +16,7 @@ import notificationRoutes from './notificationRoutes.js';
 import agentAdminRoutes from './agentAdminRoutes.js';
 import aiRoutes from './aiRoutes.js';
 import demandRoutes from './demandRoutes.js';
+import transportRoutes from './transportRoutes.js';
 import { getMarketPrices } from '../controllers/marketDataController.js';
 
 const router = Router();
@@ -32,6 +33,7 @@ router.use('/crops', cropRoutes);
 router.use('/verifications', verificationRoutes);
 router.use('/verification', verificationRoutes);
 router.use('/ai', aiRoutes);
+router.use('/transport', transportRoutes);
 router.get('/market-prices', getMarketPrices);
 router.use('/market', marketRoutes);
 router.use('/production-costs', productionCostRoutes);

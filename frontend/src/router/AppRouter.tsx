@@ -34,6 +34,7 @@ const CounterOffer        = lazy(() => import('../pages/CounterOfferPage').then(
 const Messages            = lazy(() => import('../pages/MessagesPage').then(m => ({ default: m.MessagesPage })));
 const DealerCropMatch     = lazy(() => import('../pages/DealerCropMatchPage').then(m => ({ default: m.DealerCropMatchPage })));
 const SettingsPage        = lazy(() => import('../pages/SettingsPage').then(m => ({ default: m.SettingsPage })));
+const TransportPage       = lazy(() => import('../pages/TransportPage').then(m => ({ default: m.TransportPage })));
 
 const PageLoader = () => (
   <LoadSpinner fullPage={false} size="lg" text="Loading page…" />
@@ -211,6 +212,14 @@ const AppRouter = () => {
               element={
                 <ProtectedRoute allowedRoles={['FARMER', 'DEALER']}>
                   <Suspense fallback={<PageLoader />}><Transactions /></Suspense>
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/transport"
+              element={
+                <ProtectedRoute allowedRoles={['FARMER', 'DEALER', 'ADMIN']}>
+                  <Suspense fallback={<PageLoader />}><TransportPage /></Suspense>
                 </ProtectedRoute>
               }
             />

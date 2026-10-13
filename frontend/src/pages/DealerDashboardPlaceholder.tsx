@@ -3,9 +3,10 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import {
   Briefcase, Building2, Search, ArrowRight, Receipt, MessageSquare,
-  Sprout, ShieldCheck, MapPin, Handshake, Target,
+  Sprout, ShieldCheck, MapPin, Handshake, Target, Truck,
 } from 'lucide-react';
 import { getPublicCropListingsApi, type CropListingDTO } from '../services/cropService';
+import { TransportIntelligenceSection } from '../components/TransportIntelligenceSection';
 import LoadSpinner from '../components/LoadSpinner';
 
 export const DealerDashboardPlaceholder: React.FC = () => {
@@ -207,8 +208,20 @@ export const DealerDashboardPlaceholder: React.FC = () => {
         )}
       </div>
 
+      {/* Sourcing & Collection Transport Logistics */}
+      <TransportIntelligenceSection initialOrigin="Nakuru Town" initialDestination="Nairobi - Wakulima Market" />
+
       {/* Dashboard cards */}
       <div className="dash-grid">
+        <Link to="/transport" className="dash-card" style={{ textDecoration: 'none' }}>
+          <div className="dash-card-icon" style={{ background: 'rgba(13,148,136,0.14)', color: '#2dd4bf' }}>
+            <Truck size={20} />
+          </div>
+          <span className="dash-card-title">Transport Intel</span>
+          <p className="dash-card-desc">OpenStreetMap road distances &amp; shared haulier cost estimates for farm collection.</p>
+          <span className="dash-card-link">Calculate Logistics <ArrowRight size={13} /></span>
+        </Link>
+
         <Link to="/dealer/profile" className="dash-card" style={{ textDecoration: 'none' }}>
           <div className="dash-card-icon" style={{ background: 'rgba(59,130,246,0.12)', color: '#93c5fd' }}>
             <Briefcase size={20} />

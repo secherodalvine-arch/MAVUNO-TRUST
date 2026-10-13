@@ -20,6 +20,7 @@ import {
   X,
   Sprout,
   Target,
+  Truck,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import './CollapsibleSidebar.css';
@@ -31,21 +32,23 @@ interface NavItem {
 }
 
 const farmerNav: NavItem[] = [
-  { to: '/farmer/dashboard', label: 'Dashboard',     icon: <LayoutDashboard size={18} /> },
-  { to: '/farmer/profile',   label: 'My Profile',    icon: <User size={18} /> },
-  { to: '/farmer/crops',     label: 'My Crops',      icon: <Leaf size={18} /> },
-  { to: '/farmer/market',    label: 'Market Prices', icon: <TrendingUp size={18} /> },
-  { to: '/farmer/calculator',label: 'Calculator',    icon: <Calculator size={18} /> },
-  { to: '/dealers',          label: 'Find Dealers',  icon: <Search size={18} /> },
-  { to: '/offers',           label: 'Offers',        icon: <HandshakeIcon size={18} /> },
-  { to: '/messages',         label: 'Messages',      icon: <MessageSquare size={18} /> },
-  { to: '/transactions',     label: 'Transactions',  icon: <Receipt size={18} /> },
-  { to: '/farmer/rights',    label: 'Rights Centre', icon: <Scale size={18} /> },
-  { to: '/farmer/complaints',label: 'My Complaints', icon: <ScrollText size={18} /> },
+  { to: '/farmer/dashboard', label: 'Dashboard',       icon: <LayoutDashboard size={18} /> },
+  { to: '/transport',        label: 'Transport Intel', icon: <Truck size={18} /> },
+  { to: '/farmer/profile',   label: 'My Profile',      icon: <User size={18} /> },
+  { to: '/farmer/crops',     label: 'My Crops',        icon: <Leaf size={18} /> },
+  { to: '/farmer/market',    label: 'Market Prices',   icon: <TrendingUp size={18} /> },
+  { to: '/farmer/calculator',label: 'Calculator',      icon: <Calculator size={18} /> },
+  { to: '/dealers',          label: 'Find Dealers',    icon: <Search size={18} /> },
+  { to: '/offers',           label: 'Offers',          icon: <HandshakeIcon size={18} /> },
+  { to: '/messages',         label: 'Messages',        icon: <MessageSquare size={18} /> },
+  { to: '/transactions',     label: 'Transactions',    icon: <Receipt size={18} /> },
+  { to: '/farmer/rights',    label: 'Rights Centre',   icon: <Scale size={18} /> },
+  { to: '/farmer/complaints',label: 'My Complaints',   icon: <ScrollText size={18} /> },
 ];
 
 const dealerNav: NavItem[] = [
   { to: '/dealer/dashboard',  label: 'Dashboard',         icon: <LayoutDashboard size={18} /> },
+  { to: '/transport',         label: 'Transport Intel',   icon: <Truck size={18} /> },
   { to: '/dealer/crop-match', label: 'Farmer Crop Match', icon: <Sprout size={18} /> },
   { to: '/dealer/demands',    label: 'Buyer Demands',     icon: <Target size={18} /> },
   { to: '/dealer/profile',    label: 'My Profile',        icon: <Building2 size={18} /> },
@@ -55,9 +58,10 @@ const dealerNav: NavItem[] = [
 ];
 
 const adminNav: NavItem[] = [
-  { to: '/admin/dashboard',  label: 'Control Panel', icon: <Shield size={18} /> },
-  { to: '/transactions',     label: 'Transactions',  icon: <Receipt size={18} /> },
-  { to: '/messages',         label: 'Messages',      icon: <MessageSquare size={18} /> },
+  { to: '/admin/dashboard',  label: 'Control Panel',   icon: <Shield size={18} /> },
+  { to: '/transport',        label: 'Transport Intel', icon: <Truck size={18} /> },
+  { to: '/transactions',     label: 'Transactions',    icon: <Receipt size={18} /> },
+  { to: '/messages',         label: 'Messages',        icon: <MessageSquare size={18} /> },
 ];
 
 interface CollapsibleSidebarProps {
