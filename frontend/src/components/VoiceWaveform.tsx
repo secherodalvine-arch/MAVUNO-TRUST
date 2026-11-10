@@ -132,6 +132,7 @@ export function VoiceWaveform({ state }: VoiceWaveformProps) {
         width={700}
         height={130}
         className="vw-waveform-canvas"
+        style={{ width: '100%', maxWidth: '100%', height: 'auto', display: 'block' }}
       />
     </div>
   );

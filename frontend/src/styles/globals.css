@@ -573,9 +573,14 @@ table {
 
 /* Modals Mobile Safety */
 .modal-content, .vw-top-modal, .csw-modal, .crop-match-modal {
-  width: min(560px, calc(100vw - 24px)) !important;
-  max-width: calc(100vw - 24px) !important;
+  max-width: calc(100vw - 24px);
   box-sizing: border-box !important;
+}
+
+@media (max-width: 380px) {
+  .modal-content, .vw-top-modal, .csw-modal, .crop-match-modal {
+    max-width: calc(100vw - 16px);
+  }
 }
 
 @media (max-width: 768px) {

@@ -9,6 +9,13 @@ import { fileURLToPath } from 'url';
 import { getMarketPrices, getMarketDetails, getNationalBenchmarks, getFaoPriceHistory } from './tools/marketTools.js';
 import { findBuyers, getDealerDetails } from './tools/dealerTools.js';
 import {
+  findVerifiedDealersTool,
+  getFarmProfileTool,
+  getFarmNdviTool,
+  getFarmAdvisoryTool,
+  findFarmerAssistanceTool,
+} from './tools/agriculturalTools.js';
+import {
   computeRouteDistanceTool,
   getTransportCostEstimateTool,
   submitTransportRecordTool,
@@ -168,6 +175,120 @@ server.tool(
       return {
         isError: true,
         content: [{ type: "text", text: `Error fetching dealer details: ${error.message}` }],
+      };
+    }
+  }
+);
+
+server.tool(
+  "find_verified_dealers",
+  "Search verified crop dealers and buyers in Kenya with official Agriculture and Food Authority (AFA) licence check.",
+  {
+    crop: z.string().optional().describe("Target crop/produce name"),
+    county: z.string().optional().describe("Operating county"),
+    verificationStatus: z.string().optional().describe("Filter by licence status (default: ACTIVE)"),
+    limit: z.number().optional().describe("Maximum dealers to return (default: 20)"),
+  },
+  async (args) => {
+    try {
+      const result = await findVerifiedDealersTool(args);
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Error finding verified dealers: ${error.message}` }],
+      };
+    }
+  }
+);
+
+server.tool(
+  "get_farm_profile",
+  "Retrieve agricultural profile details for a registered farmer (crops, farm size in acres, yield). Strips private GPS coordinates and exact locations.",
+  {
+    farmerId: z.string().optional().describe("Target farmer ID (returns sanitized public profile)"),
+  },
+  async ({ farmerId }) => {
+    try {
+      const result = await getFarmProfileTool({ farmerId });
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Error fetching farm profile: ${error.message}` }],
+      };
+    }
+  }
+);
+
+server.tool(
+  "get_farm_ndvi",
+  "Retrieve real Sentinel-2 satellite vegetation health (NDVI) observations over the farmer's registered parcel. ZERO-FABRICATION: strictly rejects simulated readings.",
+  {
+    userId: z.string().describe("Authenticated farmer user ID"),
+    maxCloudCover: z.number().optional().describe("Maximum acceptable cloud cover percentage (default: 20)"),
+    startDate: z.string().optional().describe("Observation window start date (YYYY-MM-DD)"),
+    endDate: z.string().optional().describe("Observation window end date (YYYY-MM-DD)"),
+  },
+  async ({ userId, maxCloudCover, startDate, endDate }) => {
+    try {
+      const result = await getFarmNdviTool({ user: { userId, role: "FARMER" }, maxCloudCover, startDate, endDate });
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Error fetching farm NDVI: ${error.message}` }],
+      };
+    }
+  }
+);
+
+server.tool(
+  "get_farm_advisory",
+  "Generate practical AI agronomic recommendations using Sentinel-2 NDVI observations and Gemini AI. STRICT DISCLAIMER: Never diagnoses crop diseases from satellite data.",
+  {
+    userId: z.string().describe("Authenticated farmer user ID"),
+    maxCloudCover: z.number().optional().describe("Maximum acceptable cloud cover percentage (default: 20)"),
+    startDate: z.string().optional().describe("Observation window start date (YYYY-MM-DD)"),
+    endDate: z.string().optional().describe("Observation window end date (YYYY-MM-DD)"),
+  },
+  async ({ userId, maxCloudCover, startDate, endDate }) => {
+    try {
+      const result = await getFarmAdvisoryTool({ user: { userId, role: "FARMER" }, maxCloudCover, startDate, endDate });
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Error generating farm advisory: ${error.message}` }],
+      };
+    }
+  }
+);
+
+server.tool(
+  "find_farmer_assistance",
+  "Find verified agricultural assistance partners (One Acre Fund / Tupande input financing & training, KALRO pest management) with official USSD (*284#) and toll-free numbers.",
+  {
+    category: z.string().optional().describe("Assistance category (e.g. inputs, training, storage)"),
+  },
+  async ({ category }) => {
+    try {
+      const result = await findFarmerAssistanceTool({ category });
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+      };
+    } catch (error) {
+      return {
+        isError: true,
+        content: [{ type: "text", text: `Error finding farmer assistance: ${error.message}` }],
       };
     }
   }

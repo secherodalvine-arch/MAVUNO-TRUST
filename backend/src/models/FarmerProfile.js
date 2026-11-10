@@ -19,6 +19,20 @@
  * ─────────────────────────────────────────────────────────────────────────
  */
 import mongoose, { Schema } from 'mongoose';
+
+const GeoJSONPolygonSchema = new Schema({
+    type: {
+        type: String,
+        enum: ['Polygon'],
+        default: 'Polygon',
+        required: true,
+    },
+    coordinates: {
+        type: [[[Number]]], // Array of linear rings: [[[lng, lat], [lng, lat], ...]]
+        required: true,
+    },
+}, { _id: false });
+
 const FarmerProfileSchema = new Schema({
     userId: {
         type: Schema.Types.ObjectId,
@@ -42,9 +56,18 @@ const FarmerProfileSchema = new Schema({
         trim: true,
         maxlength: [100, 'General area must not exceed 100 characters'],
     },
+    subCounty: {
+        type: String,
+        trim: true,
+        maxlength: [100, 'Sub-county must not exceed 100 characters'],
+    },
     county: {
         type: String,
         trim: true,
+    },
+    farmSizeAcres: {
+        type: Number,
+        min: [0, 'Farm size cannot be negative'],
     },
     primaryCrops: {
         type: [String],
@@ -71,9 +94,42 @@ const FarmerProfileSchema = new Schema({
         type: String,
         select: false, // excluded from query results unless explicitly requested
     },
+    // PRIVATE GPS coordinates for satellite monitoring — strictly hidden from public profiles
+    latitude: {
+        type: Number,
+        min: [-90, 'Latitude must be between -90 and 90 degrees'],
+        max: [90, 'Latitude must be between -90 and 90 degrees'],
+        select: false, // excluded from queries by default
+    },
+    longitude: {
+        type: Number,
+        min: [-180, 'Longitude must be between -180 and 180 degrees'],
+        max: [180, 'Longitude must be between -180 and 180 degrees'],
+        select: false, // excluded from queries by default
+    },
+    locationUpdatedAt: {
+        type: Date,
+        select: false, // excluded from queries by default
+    },
+    // PRIVATE Farm Boundary Polygon for Sentinel-2 satellite observation
+    // Strictly excluded from default queries with select: false for privacy.
+    farmBoundary: {
+        type: GeoJSONPolygonSchema,
+        select: false,
+    },
+    boundaryAreaAcres: {
+        type: Number,
+        min: [0, 'Boundary area cannot be negative'],
+        select: false,
+    },
+    boundaryUpdatedAt: {
+        type: Date,
+        select: false,
+    },
 }, { timestamps: true });
 // ── Indexes ──────────────────────────────────────────────────────────────────
 FarmerProfileSchema.index({ county: 1 });
 FarmerProfileSchema.index({ isPublicProfile: 1 });
+FarmerProfileSchema.index({ farmBoundary: '2dsphere' }, { sparse: true });
 const FarmerProfile = mongoose.model('FarmerProfile', FarmerProfileSchema);
 export default FarmerProfile;

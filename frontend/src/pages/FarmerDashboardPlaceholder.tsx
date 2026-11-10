@@ -8,6 +8,7 @@ import {
 import { MarketTicker } from '../components/MarketTicker';
 import { MarketPriceDetailModal } from '../components/MarketPriceDetailModal';
 import { MarketRecommendationSection } from '../components/MarketRecommendationSection';
+import { SmartFarmAdvisorSection } from '../components/SmartFarmAdvisorSection';
 import { TransportIntelligenceSection } from '../components/TransportIntelligenceSection';
 import { marketDataService, type MarketDataItem } from '../services/marketDataService';
 
@@ -62,6 +63,9 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
       {/* Stage 2 Gemini B Market Intelligence Recommendation Section */}
       <MarketRecommendationSection />
 
+      {/* Smart Farm Advisor & Sentinel-2 Satellite Monitoring Section */}
+      <SmartFarmAdvisorSection />
+
       {/* Shared Transport-Cost Intelligence Section */}
       <TransportIntelligenceSection />
 
@@ -89,9 +93,9 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
           <div className="dash-card-icon" style={{ background: 'rgba(39,137,79,0.12)', color: '#5ec285' }}>
             <User size={20} />
           </div>
-          <span className="dash-card-title">Farmer Profile</span>
-          <p className="dash-card-desc">Public general area display with protected exact farm location controls.</p>
-          <span className="dash-card-link">Edit Profile <ArrowRight size={13} /></span>
+          <span className="dash-card-title">Farmer Profile &amp; Location</span>
+          <p className="dash-card-desc">Public profile display &amp; private GPS coordinates for satellite monitoring.</p>
+          <span className="dash-card-link">Manage Farm Location <ArrowRight size={13} /></span>
         </Link>
 
         <Link to="/farmer/crops" className="dash-card" style={{ textDecoration: 'none' }}>

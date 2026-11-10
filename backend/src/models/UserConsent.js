@@ -23,6 +23,7 @@ export var ConsentType;
     ConsentType["COMMUNICATION_RECORDING"] = "COMMUNICATION_RECORDING";
     ConsentType["MARKETING"] = "MARKETING";
     ConsentType["DATA_PROCESSING"] = "DATA_PROCESSING";
+    ConsentType["AGRICULTURAL_ASSISTANCE_REFERRAL"] = "AGRICULTURAL_ASSISTANCE_REFERRAL";
 })(ConsentType || (ConsentType = {}));
 const UserConsentSchema = new Schema({
     userId: {

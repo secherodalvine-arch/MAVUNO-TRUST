@@ -70,6 +70,21 @@ const UserSchema = new Schema({
     privacyAcknowledgedAt: {
         type: Date,
     },
+    // Push Notification Token (Firebase Cloud Messaging)
+    fcmToken: {
+        type: String,
+        trim: true,
+        default: null,
+    },
+    // Notification preferences
+    smsNotificationEnabled: {
+        type: Boolean,
+        default: true,
+    },
+    pushNotificationEnabled: {
+        type: Boolean,
+        default: true,
+    },
 }, {
     timestamps: true, // auto-manages createdAt, updatedAt
     toJSON: {

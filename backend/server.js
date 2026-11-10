@@ -9,6 +9,7 @@ import routes from './src/routes/index.js';
 import voiceRoutes from './src/routes/voiceRoutes.js';
 import rightsRoutes from './src/routes/rightsRoutes.js';
 import offerRoutes from './src/routes/offerRoutes.js';
+import mcpRouter from './src/mcp/mcpRouter.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
 import { requestLogger } from './src/middleware/requestLogger.js';
 
@@ -61,6 +62,7 @@ app.use(requestLogger);
 
 // ---- API Routes ----
 app.use('/api', routes);
+app.use('/api/mcp', mcpRouter);
 app.use('/api/voice', voiceRoutes);
 app.use('/api/rights', rightsRoutes);
 app.use('/api/offers', offerRoutes);

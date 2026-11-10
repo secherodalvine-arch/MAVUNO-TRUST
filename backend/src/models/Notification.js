@@ -5,7 +5,8 @@ const notificationSchema = new mongoose.Schema({
   type: {
     type: String,
     enum: ['WELCOME', 'OFFER_RECEIVED', 'OFFER_ACCEPTED', 'OFFER_REJECTED', 'TRANSACTION_CREATED',
-           'TRANSACTION_COMPLETED', 'MESSAGE_RECEIVED', 'DISPUTE_RAISED', 'GENERAL', 'REMINDER'],
+           'TRANSACTION_COMPLETED', 'MESSAGE_RECEIVED', 'DISPUTE_RAISED', 'GENERAL', 'REMINDER',
+           'FARM_ADVISORY', 'ASSISTANCE_REFERRAL', 'SATELLITE_ALERT'],
     default: 'GENERAL',
   },
   title: { type: String, required: true },
