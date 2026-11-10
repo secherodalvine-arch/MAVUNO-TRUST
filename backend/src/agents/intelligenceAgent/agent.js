@@ -83,6 +83,126 @@ const extractJson = (text) => {
   }
 };
 
+export const buildDeterministicMarketRecommendation = ({
+  crop,
+  quantity,
+  unit,
+  county,
+  allMarketPrices = [],
+  allBuyers = [],
+  allBenchmarks = [],
+  allFaoPrices = [],
+}) => {
+  const cropLower = String(crop || '').toLowerCase();
+  const countyLower = String(county || '').toLowerCase();
+
+  const matchingPrices = allMarketPrices.filter((p) => {
+    const pCrop = String(p.commodity || p.crop || '').toLowerCase();
+    return pCrop.includes(cropLower) || cropLower.includes(pCrop);
+  });
+
+  const marketOptions = matchingPrices.map((p) => {
+    const rawPrice = p.wholesalePrice || p.retailPrice || p.price || 0;
+    const norm = p.normalizedPricePerKg ? ` (approx. KSh ${p.normalizedPricePerKg}/kg)` : '';
+    return {
+      market: p.market || `${p.county || county} Market`,
+      county: p.county || county,
+      price: String(rawPrice),
+      unit: p.unit || unit || 'kg',
+      source: p.source || 'KAMIS',
+      observedDate: p.observedDate || new Date().toISOString().split('T')[0],
+      evidence: `Observed wholesale rate from ${p.source || 'KAMIS'} in ${p.market || p.county}${norm}.`,
+    };
+  });
+
+  const buyerOptions = allBuyers.map((b) => ({
+    dealerId: b.dealerId,
+    displayName: b.displayName || 'Licensed Produce Dealer',
+    countiesServed: b.countiesServed || [],
+    cropsDealt: b.cropsDealt || [],
+    purchasingCapacityKg: String(b.purchasingCapacityKg || 0),
+    verificationStatus: b.verificationStatus || 'ACTIVE',
+    verificationSource: b.verificationSource || 'AFA_OFFICIAL',
+    isOfficiallyVerified: b.isOfficiallyVerified === true,
+    verificationNote: b.verificationNote || '',
+  }));
+
+  let option = '';
+  let nextAction = '';
+  let reason = '';
+  let confidence = 'Low';
+  const limitations = [];
+
+  const topMarket =
+    matchingPrices.find((p) => String(p.county || '').toLowerCase() === countyLower) ||
+    matchingPrices[0];
+  const verifiedBuyers = buyerOptions.filter(
+    (b) => b.isOfficiallyVerified || b.verificationStatus === 'ACTIVE'
+  );
+
+  if (topMarket) {
+    const priceVal = topMarket.wholesalePrice || topMarket.retailPrice || topMarket.price;
+    const marketName = topMarket.market || `${topMarket.county} Market`;
+
+    const matchingBenchmark = allBenchmarks.find((b) => {
+      const bComm = String(b.commodity || '').toLowerCase();
+      return bComm.includes(cropLower) || cropLower.includes(bComm);
+    });
+
+    let benchmarkNote = '';
+    if (matchingBenchmark && matchingBenchmark.price) {
+      benchmarkNote = ` WRSC weekly national benchmark is KSh ${matchingBenchmark.price} per ${matchingBenchmark.unit || 'unit'}.`;
+    }
+
+    if (verifiedBuyers.length > 0) {
+      option = `Sell at ${marketName} or negotiate off-take with verified local buyers in ${topMarket.county || county}.`;
+      nextAction = `Contact verified buyers (${verifiedBuyers.slice(0, 2).map((b) => b.displayName).join(', ')}) to compare farm-gate purchase quotes against the ${marketName} wholesale benchmark.`;
+      reason = `Observed wholesale price in ${marketName} is KSh ${priceVal}/${topMarket.unit || 'unit'}.${benchmarkNote} Multiple accredited buyers operate within reach.`;
+      confidence = matchingPrices.length >= 2 ? 'High' : 'Medium';
+    } else {
+      option = `Consider supplying ${marketName} directly or exploring nearby county wholesale centres.`;
+      nextAction = `Inquire with transporters on hauling rates to ${marketName} and compare net margins after freight deductions.`;
+      reason = `Current KAMIS wholesale price is recorded at KSh ${priceVal}/${topMarket.unit || 'unit'} in ${marketName}.${benchmarkNote}`;
+      confidence = 'Medium';
+    }
+  } else if (verifiedBuyers.length > 0) {
+    option = `Initiate direct price inquiries with verified agricultural dealers in ${county}.`;
+    nextAction = `Send a trade inquiry with your quantity (${quantity} ${unit}) to verified dealers to solicit initial farm-gate price quotes.`;
+    reason = `No recent KAMIS price observations recorded for ${crop} in ${county}, but ${verifiedBuyers.length} verified dealer(s) operate in this corridor.`;
+    confidence = 'Low';
+    limitations.push(`No recent local KAMIS market price observations found for ${crop} in ${county}.`);
+  } else {
+    option = 'Insufficient evidence';
+    nextAction = 'Check the Market Prices page later or contact your county agricultural office for current prices before selling.';
+    reason = `No recent KAMIS market prices and no active registered dealers were found for "${crop}" in ${county}.`;
+    confidence = 'Low';
+    limitations.push('No current market price observations found in database.');
+    limitations.push('No eligible verified dealers found for this commodity in specified county.');
+  }
+
+  limitations.push('Market recommendation generated via verified database evidence synthesis engine.');
+
+  return {
+    farmerInput: {
+      crop,
+      quantity: `${quantity} ${unit}`,
+      county,
+    },
+    marketOptions,
+    buyerOptions,
+    recommendation: {
+      option,
+      nextAction,
+      reason,
+      confidence,
+      limitations,
+    },
+    dataLimitations: [
+      'Evidence synthesized from verified database records during upstream AI service high-demand state.',
+    ],
+  };
+};
+
 export const getMarketRecommendationForFarmer = async (farmerInput, overrides = {}) => {
   try {
     const { crop, quantity, unit, county } = farmerInput;
@@ -188,62 +308,85 @@ Verification rule: a dealer is officially AFA-verified ONLY if "isOfficiallyVeri
 Analyze this evidence and provide the JSON recommendation.
 `;
 
-    // 3. Call Gemini
+    // 3. Call Gemini with graceful fallback
+    let structuredData = null;
+    let generatedBy = 'GEMINI_WITH_RETRIEVED_EVIDENCE';
+
     const init = ai.initialize();
-    if (!init.success) {
-      return fail('AI_NOT_CONFIGURED', 'Market recommendation AI is not configured on the server.');
+    if (init.success) {
+      try {
+        const geminiResponse = await ai.generateAgentDecision(userPrompt, [], 2, {
+          systemInstruction: SYSTEM_PROMPT,
+        });
+
+        if (geminiResponse && geminiResponse.success) {
+          const parsed = extractJson(geminiResponse.decisionText);
+          const rec = parsed?.recommendation;
+          const isValid =
+            typeof parsed === 'object' &&
+            Array.isArray(parsed?.marketOptions) &&
+            Array.isArray(parsed?.buyerOptions) &&
+            rec &&
+            typeof rec === 'object' &&
+            typeof rec.option === 'string' &&
+            typeof rec.reason === 'string' &&
+            typeof rec.confidence === 'string';
+
+          if (isValid) {
+            structuredData = parsed;
+            generatedBy = `GEMINI_${geminiResponse.usedModel || 'MODEL'}`;
+          } else {
+            console.warn('[IntelligenceAgent] Gemini output lacked valid recommendation structure, using fallback.');
+          }
+        } else {
+          console.warn('[IntelligenceAgent] Gemini API unavailable or high demand (code=%s), activating fallback.', geminiResponse?.error?.code);
+        }
+      } catch (geminiErr) {
+        console.warn('[IntelligenceAgent] Gemini invocation error:', geminiErr.message);
+      }
+    } else {
+      console.warn('[IntelligenceAgent] AI not configured, activating fallback.');
     }
 
-    const geminiResponse = await ai.generateAgentDecision(userPrompt, [], 2, {
-      systemInstruction: SYSTEM_PROMPT,
-    });
-
-    if (!geminiResponse || !geminiResponse.success) {
-      console.error('[IntelligenceAgent] Gemini call failed:', geminiResponse?.error?.code, geminiResponse?.error?.message);
-      return fail('AI_UNAVAILABLE', 'The market recommendation AI service is temporarily unavailable. Please try again shortly.');
-    }
-
-    const structuredData = extractJson(geminiResponse.decisionText);
+    // 4. Fallback if Gemini failed, throttled, or returned invalid JSON
     if (!structuredData) {
-      console.error('[IntelligenceAgent] Failed to parse Gemini JSON (length=%d)', String(geminiResponse.decisionText || '').length);
-      return fail('AI_INVALID_OUTPUT', 'AI returned invalid structured data format.');
+      console.info('[IntelligenceAgent] Generating deterministic recommendation from verified MCP evidence.');
+      structuredData = buildDeterministicMarketRecommendation({
+        crop,
+        quantity,
+        unit,
+        county,
+        allMarketPrices,
+        allBuyers,
+        allBenchmarks,
+        allFaoPrices,
+      });
+      generatedBy = 'DETERMINISTIC_EVIDENCE_ENGINE';
     }
 
-    // Lightweight structural validation
     const rec = structuredData.recommendation;
-    const isValidStructure =
-      typeof structuredData === 'object' &&
-      Array.isArray(structuredData.marketOptions) &&
-      Array.isArray(structuredData.buyerOptions) &&
-      rec && typeof rec === 'object' &&
-      typeof rec.option === 'string' &&
-      typeof rec.reason === 'string' &&
-      typeof rec.confidence === 'string';
 
-    if (!isValidStructure) {
-      return fail('AI_INVALID_OUTPUT', 'AI returned an invalid recommendation structure.');
-    }
-
-    // 4. Evidence grounding: drop any market or dealer the AI mentions that was not retrieved.
+    // 5. Evidence grounding: drop any market or dealer the AI mentions that was not retrieved.
     const knownMarkets = new Set(allMarketPrices.map((p) => String(p.market || '').toLowerCase()));
     const buyerById = new Map(allBuyers.map((b) => [b.dealerId, b]));
     const droppedNotes = [];
 
     const marketOptions = asArray(structuredData.marketOptions).filter((m) => {
+      if (generatedBy === 'DETERMINISTIC_EVIDENCE_ENGINE') return true;
       const ok = knownMarkets.has(String(m.market || '').toLowerCase());
       if (!ok) droppedNotes.push(`Removed unsupported market option "${m.market}" not present in retrieved KAMIS data.`);
       return ok;
     });
 
-    // Dealer facts (capacity, verification) always come from the database, never from the AI text.
     const buyerOptions = asArray(structuredData.buyerOptions)
       .filter((b) => {
+        if (generatedBy === 'DETERMINISTIC_EVIDENCE_ENGINE') return true;
         const ok = buyerById.has(b.dealerId);
         if (!ok) droppedNotes.push(`Removed unsupported dealer "${b.displayName || b.dealerId}" not present in retrieved dealer data.`);
         return ok;
       })
       .map((b) => {
-        const src = buyerById.get(b.dealerId);
+        const src = buyerById.get(b.dealerId) || b;
         return {
           dealerId: src.dealerId,
           displayName: src.displayName,
@@ -277,8 +420,8 @@ Analyze this evidence and provide the JSON recommendation.
           ...(Array.isArray(structuredData.dataLimitations) ? structuredData.dataLimitations.map(String) : []),
           ...droppedNotes,
         ].filter((v, i, a) => a.indexOf(v) === i),
-        generatedBy: 'GEMINI_WITH_RETRIEVED_EVIDENCE',
-      }
+        generatedBy,
+      },
     };
 
   } catch (err) {
