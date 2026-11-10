@@ -352,9 +352,31 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                 </h3>
               </div>
 
-              <p style={{ fontSize: '0.9rem', color: '#f8fafc', marginBottom: '12px', lineHeight: 1.5 }}>
+              <p style={{ fontSize: '0.9rem', color: '#f8fafc', marginBottom: '6px', lineHeight: 1.5 }}>
                 {advisory.advisory.vegetationObservation}
               </p>
+
+              {/* Kiswahili translation */}
+              {(advisory.advisory as any).vegetationObservationSw && (
+                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.5, fontStyle: 'italic', borderLeft: '2px solid #334155', paddingLeft: '10px' }}>
+                  🇰🇪 <strong style={{ color: '#64748b' }}>Kiswahili:</strong> {(advisory.advisory as any).vegetationObservationSw}
+                </p>
+              )}
+
+              {/* Weather influence note */}
+              {(advisory.advisory as any).weatherInfluence && (advisory.advisory as any).weatherInfluence !== 'Weather data not available.' && (
+                <div style={{
+                  background: 'rgba(251, 191, 36, 0.07)',
+                  border: '1px solid rgba(251, 191, 36, 0.2)',
+                  borderRadius: '6px',
+                  padding: '8px 12px',
+                  fontSize: '0.82rem',
+                  color: '#fde047',
+                  marginBottom: '12px',
+                }}>
+                  ☁️ <strong>Weather context:</strong> {(advisory.advisory as any).weatherInfluence}
+                </div>
+              )}
 
               {advisory.advisory.practicalRecommendations?.length > 0 && (
                 <div style={{ marginBottom: '14px' }}>
@@ -364,7 +386,13 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                   <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5 }}>
                     {advisory.advisory.practicalRecommendations.map((rec, idx) => (
                       <li key={idx} style={{ marginBottom: '4px' }}>
-                        {rec}
+                        <span>{rec}</span>
+                        {/* Kiswahili recommendation inline */}
+                        {(advisory.advisory as any).practicalRecommendationsSw?.[idx] && (
+                          <div style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.8rem', marginTop: '2px' }}>
+                            🇰🇪 {(advisory.advisory as any).practicalRecommendationsSw[idx]}
+                          </div>
+                        )}
                       </li>
                     ))}
                   </ul>

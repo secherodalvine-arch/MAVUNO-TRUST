@@ -1,139 +1,170 @@
 /* ────────────────────────────────────────────────────────────────
-   MavunoTrust Voice Widget — VoiceWidget.css
-   Top-Centered Dialog Modal + FAB Launcher
+   MavunoTrust AI Voice Assistant — VoiceWidget.css
+   Fully Responsive Modal & FAB Launcher
    ──────────────────────────────────────────────────────────────── */
 
-/* ── Backdrop Overlay ── */
-.vw-backdrop {
+/* ── Modal Overlay Backdrop ── */
+.vw-overlay {
   position: fixed;
   inset: 0;
-  z-index: 9998;
-  background: rgba(4, 12, 7, 0.7);
-  backdrop-filter: blur(6px);
-  animation: vw-fade-in 0.25s ease-out;
+  z-index: 10000;
+  background: rgba(4, 15, 8, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  box-sizing: border-box;
+  animation: vw-overlay-fade 0.22s ease-out;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
-@keyframes vw-fade-in {
+@keyframes vw-overlay-fade {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-/* ── Top-Centered Modal ── */
-.vw-top-modal {
-  position: fixed;
-  top: 36px;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-  z-index: 9999;
-  width: min(480px, calc(100vw - 32px));
-  max-width: calc(100vw - 32px);
-  max-height: calc(100vh - 60px);
-  box-sizing: border-box;
-  background: #0f1c13;
+/* ── Centered Modal Dialog ── */
+.vw-dialog {
+  width: 100%;
+  max-width: 520px;
+  max-height: min(720px, calc(100dvh - 40px));
+  background: #0c180f;
   border: 1px solid rgba(74, 222, 128, 0.28);
-  border-radius: 20px;
-  box-shadow: 0 24px 72px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(74, 222, 128, 0.12);
-  overflow: hidden;
-  animation: vw-slide-down 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  border-radius: 22px;
+  box-shadow: 0 28px 84px rgba(0, 0, 0, 0.85), 0 0 0 1px rgba(74, 222, 128, 0.12);
   display: flex;
   flex-direction: column;
+  overflow: hidden;
+  box-sizing: border-box;
+  margin: auto;
+  animation: vw-dialog-pop 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes vw-slide-down {
+@keyframes vw-dialog-pop {
   from {
     opacity: 0;
-    transform: translate(-50%, -24px) scale(0.96);
+    transform: scale(0.95) translateY(12px);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, 0) scale(1);
+    transform: scale(1) translateY(0);
   }
 }
 
-/* Modal Header */
-.vw-modal-header {
+/* ── Header ── */
+.vw-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px;
-  background: #09130c;
+  background: #071009;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+  gap: 12px;
 }
 
-.vw-header-title {
+.vw-header-left {
   display: flex;
   align-items: center;
   gap: 12px;
   min-width: 0;
-  overflow: hidden;
+  flex: 1;
 }
 
-.vw-header-icon {
+.vw-header-avatar {
   width: 40px;
   height: 40px;
   border-radius: 12px;
-  background: linear-gradient(135deg, #166534, #22c55e);
+  background: linear-gradient(135deg, #15803d, #22c55e);
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #ffffff;
   flex-shrink: 0;
   box-shadow: 0 4px 14px rgba(34, 197, 94, 0.35);
 }
 
-.vw-title-text {
-  font-size: 1rem;
+.vw-header-titles {
+  min-width: 0;
+  flex: 1;
+}
+
+.vw-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.vw-title {
+  font-size: 1.05rem;
   font-weight: 700;
   color: #f0fdf4;
-  font-family: 'Outfit', sans-serif;
   margin: 0;
   line-height: 1.25;
+  font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.vw-badge-live {
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.vw-subtitle {
+  font-size: 0.78rem;
+  color: #94a3b8;
+  margin-top: 3px;
+  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.vw-status-line {
-  display: flex;
+.vw-status-active {
+  display: inline-flex;
   align-items: center;
   gap: 6px;
-  margin-top: 3px;
-}
-
-.vw-status-label {
-  font-size: 0.76rem;
   color: #86efac;
-  font-family: 'Inter', sans-serif;
+  font-weight: 500;
 }
 
-.vw-dot {
-  width: 8px;
-  height: 8px;
+.vw-pulse-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: #22c55e;
   display: inline-block;
+  flex-shrink: 0;
 }
 
-.vw-dot--connecting {
-  background: #eab308;
-  animation: vw-dot-pulse 1.2s ease-in-out infinite;
-}
-
-.vw-dot--active {
+.vw-pulse-dot--green {
   background: #22c55e;
-  animation: vw-dot-pulse 1.5s ease-in-out infinite;
-  box-shadow: 0 0 10px #22c55e;
+  box-shadow: 0 0 8px #22c55e;
+  animation: vw-pulse 1.4s ease-in-out infinite;
 }
 
-@keyframes vw-dot-pulse {
+.vw-pulse-dot--amber {
+  background: #eab308;
+  box-shadow: 0 0 8px #eab308;
+  animation: vw-pulse 1.1s ease-in-out infinite;
+}
+
+@keyframes vw-pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(0.85); }
+  50% { opacity: 0.45; transform: scale(0.85); }
 }
 
 .vw-close-btn {
   background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   color: #a7f3d0;
   border-radius: 10px;
   width: 36px;
@@ -147,13 +178,13 @@
 }
 
 .vw-close-btn:hover {
-  background: rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.18);
   color: #ffffff;
   transform: scale(1.05);
 }
 
-/* Modal Body */
-.vw-modal-body {
+/* ── Body ── */
+.vw-body {
   padding: 20px;
   overflow-y: auto;
   overflow-x: hidden;
@@ -161,36 +192,46 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  max-height: calc(85vh - 80px);
-  width: 100%;
-  min-width: 0;
+  flex: 1 1 auto;
+  min-height: 0;
+  -webkit-overflow-scrolling: touch;
 }
 
-/* Stage Card (Waveform + Controls) */
-.vw-stage-card {
-  background: linear-gradient(180deg, #0a150c 0%, #122416 100%);
-  border: 1px solid rgba(74, 222, 128, 0.18);
+.vw-body::-webkit-scrollbar {
+  width: 6px;
+}
+.vw-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+.vw-body::-webkit-scrollbar-thumb {
+  background: rgba(74, 222, 128, 0.2);
+  border-radius: 3px;
+}
+.vw-body::-webkit-scrollbar-thumb:hover {
+  background: rgba(74, 222, 128, 0.4);
+}
+
+/* ── Waveform Stage Card ── */
+.vw-stage {
+  background: linear-gradient(180deg, #071109 0%, #112215 100%);
+  border: 1px solid rgba(74, 222, 128, 0.2);
   border-radius: 16px;
-  padding: 20px 16px;
+  padding: 18px 16px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   position: relative;
   overflow: hidden;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
-  min-width: 0;
 }
 
-/* Waveform Visualizer */
 .vw-waveform-wrap {
   position: relative;
   width: 100%;
-  max-width: 100%;
-  height: 110px;
+  height: 105px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -202,7 +243,7 @@
 .vw-waveform-glow {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(34, 197, 94, 0.14) 0%, transparent 72%);
+  background: radial-gradient(circle at center, rgba(34, 197, 94, 0.18) 0%, transparent 72%);
   pointer-events: none;
 }
 
@@ -211,28 +252,34 @@
   max-width: 100% !important;
   height: auto !important;
   display: block;
-  object-fit: contain;
 }
 
-.vw-stage-badge {
+.vw-stage-meta {
   display: flex;
   align-items: center;
+  justify-content: center;
+}
+
+.vw-stage-pill {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
-  background: rgba(34, 197, 94, 0.14);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
   color: #4ade80;
-  padding: 5px 14px;
+  padding: 4px 12px;
   border-radius: 999px;
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
   font-family: 'Outfit', sans-serif;
 }
 
-.vw-sparkle-icon {
+.vw-sparkle {
   color: #f5a623;
 }
 
-.vw-stage-controls {
+/* ── Actions / Buttons ── */
+.vw-actions {
   width: 100%;
   margin-top: 4px;
 }
@@ -246,7 +293,7 @@
   background: linear-gradient(135deg, #15803d, #22c55e);
   color: #ffffff;
   border: none;
-  padding: 13px 22px;
+  padding: 13px 20px;
   border-radius: 12px;
   font-weight: 700;
   font-size: 0.95rem;
@@ -259,13 +306,17 @@
 .vw-btn-start:hover {
   background: linear-gradient(135deg, #166534, #4ade80);
   transform: translateY(-2px);
-  box-shadow: 0 8px 26px rgba(34, 197, 94, 0.5);
+  box-shadow: 0 8px 24px rgba(34, 197, 94, 0.5);
 }
 
-.vw-btn-group {
+.vw-btn-start:active {
+  transform: translateY(0);
+}
+
+.vw-btn-active-group {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
 }
 
@@ -278,7 +329,7 @@
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.14);
   color: #d1fae5;
-  padding: 12px 16px;
+  padding: 11px 14px;
   border-radius: 12px;
   font-size: 0.88rem;
   font-weight: 600;
@@ -297,7 +348,7 @@
 }
 
 .vw-btn-end {
-  flex: 1;
+  flex: 1.2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -305,7 +356,7 @@
   background: linear-gradient(135deg, #b91c1c, #ef4444);
   color: #ffffff;
   border: none;
-  padding: 12px 16px;
+  padding: 11px 14px;
   border-radius: 12px;
   font-size: 0.88rem;
   font-weight: 700;
@@ -319,8 +370,8 @@
   transform: translateY(-1px);
 }
 
-/* Error Banner */
-.vw-error-banner {
+/* ── Error Banner ── */
+.vw-error {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -331,99 +382,200 @@
   color: #fca5a5;
   font-size: 0.82rem;
   line-height: 1.45;
-}
-
-.vw-error-banner svg {
-  flex-shrink: 0;
-  margin-top: 1px;
-}
-
-/* Live Transcript Box */
-.vw-transcript-box {
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 14px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  max-height: 180px;
-  width: 100%;
-  max-width: 100%;
   box-sizing: border-box;
 }
 
-.vw-transcript-header {
+.vw-error-icon {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #f87171;
+}
+
+.vw-error-text {
+  flex: 1;
+}
+
+.vw-error-text p {
+  margin: 0 0 8px 0;
+}
+
+.vw-error-retry {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.vw-error-retry:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ── Sample Questions (Idle State) ── */
+.vw-prompts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.vw-prompts-title {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.75rem;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.vw-prompts-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.vw-prompt-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 10px;
+  padding: 9px 12px;
+  box-sizing: border-box;
+  transition: all 0.18s ease;
+}
+
+.vw-prompt-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(74, 222, 128, 0.2);
+}
+
+.vw-prompt-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.vw-prompt-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.vw-prompt-en {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #f1f5f9;
+  line-height: 1.35;
+}
+
+.vw-prompt-sw {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  margin-top: 2px;
+  line-height: 1.3;
+}
+
+/* ── Live Transcript Box ── */
+.vw-transcript {
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 180px;
+  box-sizing: border-box;
+}
+
+.vw-transcript-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
   font-weight: 700;
   color: #86efac;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.vw-transcript-list {
+.vw-transcript-scroll {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
   overflow-y: auto;
   overflow-x: hidden;
   padding-right: 4px;
-  width: 100%;
   box-sizing: border-box;
 }
 
-.vw-chat-bubble {
+.vw-bubble {
   display: flex;
   flex-direction: column;
-  gap: 3px;
-  padding: 10px 12px;
+  gap: 2px;
+  padding: 8px 12px;
   border-radius: 10px;
   font-size: 0.82rem;
   line-height: 1.45;
   box-sizing: border-box;
 }
 
-.vw-chat-bubble--user {
+.vw-bubble--user {
   background: rgba(34, 197, 94, 0.18);
   border: 1px solid rgba(34, 197, 94, 0.3);
   align-self: flex-end;
   max-width: 85%;
 }
 
-.vw-chat-bubble--assistant {
-  background: rgba(255, 255, 255, 0.07);
+.vw-bubble--agent {
+  background: rgba(255, 255, 255, 0.06);
   border: 1px solid rgba(255, 255, 255, 0.1);
   align-self: flex-start;
   max-width: 90%;
 }
 
-.vw-chat-sender {
-  font-size: 0.7rem;
+.vw-bubble-name {
+  font-size: 0.68rem;
   font-weight: 700;
   color: #4ade80;
 }
 
-.vw-chat-bubble--user .vw-chat-sender {
+.vw-bubble--user .vw-bubble-name {
   color: #86efac;
   text-align: right;
 }
 
-.vw-chat-text {
+.vw-bubble-text {
   margin: 0;
-  color: #f0fdf4;
+  color: #f8fafc;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
 
-/* ── FAB Trigger Button (Bottom Right) ── */
+/* ── Footer ── */
+.vw-footer {
+  padding: 10px 20px;
+  background: #071009;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+  font-size: 0.7rem;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+/* ── Floating Action Button (FAB Launcher) ── */
 .vw-fab {
   position: fixed;
   bottom: 28px;
   right: 28px;
-  z-index: 9997;
+  z-index: 9990;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -434,7 +586,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, opacity 0.2s ease;
   outline: none;
   color: #ffffff;
 }
@@ -444,9 +596,10 @@
   box-shadow: 0 12px 36px rgba(34, 197, 94, 0.6), 0 0 0 4px rgba(74, 222, 128, 0.25);
 }
 
-.vw-fab--active {
-  background: linear-gradient(135deg, #14532d, #166534);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+.vw-fab--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.85);
 }
 
 .vw-fab-inner {
@@ -462,13 +615,13 @@
   inset: -5px;
   border-radius: 50%;
   border: 2px solid rgba(74, 222, 128, 0.5);
-  animation: vw-ring-pulse 2.5s ease-in-out infinite;
+  animation: vw-fab-ring-pulse 2.5s ease-in-out infinite;
   pointer-events: none;
 }
 
-@keyframes vw-ring-pulse {
+@keyframes vw-fab-ring-pulse {
   0%, 100% { transform: scale(1); opacity: 0.6; }
-  50% { transform: scale(1.22); opacity: 0; }
+  50% { transform: scale(1.24); opacity: 0; }
 }
 
 .vw-fab-badge {
@@ -485,85 +638,54 @@
   line-height: 1;
   border: 2px solid #09130c;
   font-family: 'Outfit', sans-serif;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
-/* ── Mobile Responsive Animation ── */
-@keyframes vw-slide-down-mobile {
-  from {
-    opacity: 0;
-    transform: translateY(-16px) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
+/* ────────────────────────────────────────────────────────────────
+   Responsive Breakpoints
+   ──────────────────────────────────────────────────────────────── */
 
-/* ── Mobile Responsive (Tablets & Phones <= 640px) ── */
+/* Tablets & Mobile (<= 640px) */
 @media (max-width: 640px) {
-  .vw-top-modal {
-    top: max(12px, env(safe-area-inset-top, 12px));
-    bottom: auto;
-    left: 12px !important;
-    right: 12px !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
-    transform: none !important;
-    width: calc(100vw - 24px) !important;
-    max-width: calc(100vw - 24px) !important;
-    max-height: calc(100dvh - 24px);
-    border-radius: 18px;
-    box-sizing: border-box;
-    animation: vw-slide-down-mobile 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  .vw-overlay {
+    padding: 10px;
+    align-items: flex-end; /* Bottom-sheet feel on mobile for effortless reach */
   }
 
-  .vw-modal-header {
-    padding: 12px 14px;
+  .vw-dialog {
+    max-width: 100%;
+    max-height: calc(100dvh - 20px);
+    border-radius: 20px 20px 14px 14px;
   }
 
-  .vw-modal-body {
-    padding: 14px 12px;
+  .vw-header {
+    padding: 14px 16px;
+  }
+
+  .vw-body {
+    padding: 14px 16px;
     gap: 12px;
-    max-height: calc(100dvh - 90px);
   }
 
-  .vw-stage-card {
+  .vw-stage {
     padding: 14px 12px;
     gap: 10px;
     border-radius: 14px;
   }
 
   .vw-waveform-wrap {
-    height: 90px;
-  }
-
-  .vw-stage-controls {
-    margin-top: 2px;
+    height: 85px;
   }
 
   .vw-btn-start {
-    padding: 11px 16px;
+    padding: 12px 16px;
     font-size: 0.9rem;
-    border-radius: 10px;
-  }
-
-  .vw-btn-group {
-    gap: 8px;
   }
 
   .vw-btn-mute,
   .vw-btn-end {
-    padding: 10px 10px;
+    padding: 10px 12px;
     font-size: 0.82rem;
-    border-radius: 10px;
-    gap: 6px;
-  }
-
-  .vw-transcript-box {
-    padding: 10px;
-    max-height: 140px;
-    border-radius: 12px;
   }
 
   .vw-fab {
@@ -574,40 +696,42 @@
   }
 }
 
-/* ── Compact Phones (<= 380px) ── */
+/* Compact phones (<= 380px) */
 @media (max-width: 380px) {
-  .vw-top-modal {
-    top: max(8px, env(safe-area-inset-top, 8px));
-    left: 8px !important;
-    right: 8px !important;
-    width: calc(100vw - 16px) !important;
-    max-width: calc(100vw - 16px) !important;
-    border-radius: 14px;
+  .vw-overlay {
+    padding: 6px;
   }
 
-  .vw-header-icon {
+  .vw-dialog {
+    border-radius: 16px;
+  }
+
+  .vw-title {
+    font-size: 0.95rem;
+  }
+
+  .vw-header-avatar {
     width: 34px;
     height: 34px;
   }
 
-  .vw-title-text {
-    font-size: 0.9rem;
+  .vw-header {
+    padding: 12px 14px;
   }
 
-  .vw-status-label {
-    font-size: 0.72rem;
+  .vw-body {
+    padding: 12px 14px;
   }
 
-  .vw-btn-mute,
-  .vw-btn-end {
-    padding: 9px 8px;
+  .vw-prompt-card {
+    padding: 8px 10px;
+  }
+
+  .vw-prompt-en {
     font-size: 0.76rem;
-    gap: 4px;
   }
 
-  .vw-btn-mute svg,
-  .vw-btn-end svg {
-    width: 15px;
-    height: 15px;
+  .vw-prompt-sw {
+    font-size: 0.68rem;
   }
 }

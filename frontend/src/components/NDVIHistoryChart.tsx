@@ -1,0 +1,341 @@
+import React, { useState, useEffect } from 'react';
+import { TrendingUp, TrendingDown, Minus, RefreshCw, BarChart3 } from 'lucide-react';
+import { getNDVIHistoryApi, type NDVIObservationDTO } from '../services/farmerService';
+
+function getSeverityColor(severity: string | undefined): string {
+  switch (severity) {
+    case 'good': return '#10b981';
+    case 'moderate': return '#f59e0b';
+    case 'concern': return '#ef4444';
+    default: return '#94a3b8';
+  }
+}
+
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString('en-KE', {
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
+function TrendIndicator({ observations }: { observations: NDVIObservationDTO[] }) {
+  if (observations.length < 2) return null;
+  const latest = observations[0].meanNDVI ?? 0;
+  const previous = observations[1].meanNDVI ?? 0;
+  const delta = latest - previous;
+  if (Math.abs(delta) < 0.01) return <Minus size={14} color="#94a3b8" />;
+  if (delta > 0) return <TrendingUp size={14} color="#10b981" />;
+  return <TrendingDown size={14} color="#ef4444" />;
+}
+
+export const NDVIHistoryChart: React.FC = () => {
+  const [history, setHistory] = useState<NDVIObservationDTO[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const loadHistory = async () => {
+    setLoading(true);
+    try {
+      const data = await getNDVIHistoryApi(20);
+      setHistory(data.observations);
+    } catch {
+      // Non-critical: defaults to empty history state
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadHistory();
+  }, []);
+
+  if (loading) {
+    return (
+      <div
+        style={{
+          background: 'var(--color-surface, #1e293b)',
+          border: '1px solid var(--color-border, #334155)',
+          borderRadius: '12px',
+          padding: '20px',
+          marginBottom: '24px',
+          textAlign: 'center',
+          color: '#94a3b8',
+        }}
+      >
+        <RefreshCw size={18} className="animate-spin" style={{ margin: '0 auto 8px' }} />
+        <p style={{ fontSize: '0.85rem', margin: 0 }}>Loading vegetation history...</p>
+      </div>
+    );
+  }
+
+  if (history.length === 0) {
+    return (
+      <div
+        style={{
+          background: 'var(--color-surface, #1e293b)',
+          border: '1px solid var(--color-border, #334155)',
+          borderRadius: '12px',
+          padding: '20px',
+          marginBottom: '24px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+          <BarChart3 size={18} color="#94a3b8" />
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--color-text-primary, #f8fafc)' }}>
+            Vegetation Health History
+          </h3>
+        </div>
+        <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>
+          No historical NDVI observations yet. Run your first satellite analysis to start tracking farm vegetation trends over time.
+        </p>
+      </div>
+    );
+  }
+
+  // Prepare chart data (chronological order for display)
+  const chartData = [...history].reverse(); // oldest first for chart
+  const ndviValues = chartData.map((o) => o.meanNDVI ?? 0);
+  const minVal = Math.min(...ndviValues, -0.1);
+  const maxVal = Math.max(...ndviValues, 0.8);
+  const range = maxVal - minVal || 1;
+
+  const chartWidth = 600;
+  const chartHeight = 120;
+  const padLeft = 36;
+  const padRight = 10;
+  const padTop = 10;
+  const padBottom = 24;
+
+  const plotWidth = chartWidth - padLeft - padRight;
+  const plotHeight = chartHeight - padTop - padBottom;
+
+  const xStep = chartData.length > 1 ? plotWidth / (chartData.length - 1) : plotWidth;
+
+  const toX = (i: number) => padLeft + i * (chartData.length > 1 ? xStep : 0);
+  const toY = (val: number) => padTop + plotHeight - ((val - minVal) / range) * plotHeight;
+
+  // Build SVG path
+  const linePath = chartData
+    .map((o, i) => `${i === 0 ? 'M' : 'L'}${toX(i).toFixed(1)},${toY(o.meanNDVI ?? 0).toFixed(1)}`)
+    .join(' ');
+
+  // Fill area under line
+  const fillPath =
+    linePath +
+    ` L${toX(chartData.length - 1).toFixed(1)},${(padTop + plotHeight).toFixed(1)} L${padLeft},${(padTop + plotHeight).toFixed(1)} Z`;
+
+  // Y-axis reference lines
+  const refLines = [0.6, 0.4, 0.2, 0.0].filter((v) => v >= minVal && v <= maxVal);
+
+  return (
+    <div
+      style={{
+        background: 'var(--color-surface, #1e293b)',
+        border: '1px solid var(--color-border, #334155)',
+        borderRadius: '12px',
+        padding: '20px',
+        marginBottom: '24px',
+      }}
+    >
+      {/* Header */}
+      <div
+        style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          marginBottom: '14px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '8px',
+              background: 'rgba(16, 185, 129, 0.12)',
+              color: '#10b981',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <BarChart3 size={18} />
+          </div>
+          <div>
+            <h3
+              style={{
+                fontSize: '1rem',
+                fontWeight: 600,
+                margin: 0,
+                color: 'var(--color-text-primary, #f8fafc)',
+              }}
+            >
+              Vegetation Health History
+            </h3>
+            <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0 }}>
+              NDVI trend — Sentinel-2 · Last {history.length} observations
+            </p>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <TrendIndicator observations={history} />
+          <button
+            onClick={loadHistory}
+            style={{
+              background: 'transparent',
+              border: '1px solid var(--color-border, #334155)',
+              borderRadius: '6px',
+              padding: '4px 8px',
+              color: '#94a3b8',
+              cursor: 'pointer',
+              fontSize: '0.72rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <RefreshCw size={11} />
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* SVG Line Chart */}
+      <div style={{ overflowX: 'auto' }}>
+        <svg
+          viewBox={`0 0 ${chartWidth} ${chartHeight}`}
+          style={{ width: '100%', minWidth: '300px', height: 'auto', display: 'block' }}
+          aria-label="NDVI vegetation health trend chart"
+        >
+          {/* Reference band: healthy range (0.4–0.8) */}
+          <rect
+            x={padLeft}
+            y={toY(0.8)}
+            width={plotWidth}
+            height={toY(0.4) - toY(0.8)}
+            fill="rgba(16, 185, 129, 0.06)"
+          />
+
+          {/* Y-axis reference lines */}
+          {refLines.map((v) => (
+            <g key={v}>
+              <line
+                x1={padLeft}
+                y1={toY(v)}
+                x2={padLeft + plotWidth}
+                y2={toY(v)}
+                stroke="#334155"
+                strokeWidth="1"
+                strokeDasharray="3 3"
+              />
+              <text x={padLeft - 4} y={toY(v) + 4} textAnchor="end" fontSize="8" fill="#64748b">
+                {v.toFixed(1)}
+              </text>
+            </g>
+          ))}
+
+          {/* Fill area */}
+          <path d={fillPath} fill="rgba(16,185,129,0.08)" />
+
+          {/* Line */}
+          <path d={linePath} fill="none" stroke="#10b981" strokeWidth="2" strokeLinejoin="round" />
+
+          {/* Data points */}
+          {chartData.map((o, i) => {
+            const cx = toX(i);
+            const cy = toY(o.meanNDVI ?? 0);
+            const color = getSeverityColor(o.vegetationSeverity);
+            return (
+              <g key={o._id}>
+                <circle cx={cx} cy={cy} r="4" fill={color} stroke="#1e293b" strokeWidth="1.5" />
+              </g>
+            );
+          })}
+
+          {/* X-axis date labels (show up to 7) */}
+          {chartData
+            .filter((_, i) => {
+              const step = Math.max(1, Math.floor(chartData.length / 7));
+              return i % step === 0 || i === chartData.length - 1;
+            })
+            .map((o) => {
+              const origIdx = chartData.findIndex((d) => d._id === o._id);
+              return (
+                <text
+                  key={o._id}
+                  x={toX(origIdx)}
+                  y={chartHeight - 4}
+                  textAnchor="middle"
+                  fontSize="8"
+                  fill="#64748b"
+                >
+                  {formatDate(o.observationDate)}
+                </text>
+              );
+            })}
+        </svg>
+      </div>
+
+      {/* Legend */}
+      <div style={{ display: 'flex', gap: '16px', marginTop: '10px', flexWrap: 'wrap' }}>
+        {[
+          { color: '#10b981', label: 'Good (>0.4)' },
+          { color: '#f59e0b', label: 'Moderate (0.2–0.4)' },
+          { color: '#ef4444', label: 'Low (<0.2)' },
+        ].map(({ color, label }) => (
+          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Recent observations table */}
+      <div style={{ marginTop: '14px' }}>
+        <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>
+          RECENT OBSERVATIONS
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          {history.slice(0, 5).map((o) => (
+            <div
+              key={o._id}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '6px 10px',
+                background: 'rgba(255,255,255,0.025)',
+                borderRadius: '6px',
+              }}
+            >
+              <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+                {formatDate(o.observationDate)}
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    color: getSeverityColor(o.vegetationSeverity),
+                    fontWeight: 500,
+                  }}
+                >
+                  {o.vegetationLabel || 'Unknown'}
+                </span>
+                <span
+                  style={{
+                    fontSize: '0.85rem',
+                    fontWeight: 700,
+                    color: getSeverityColor(o.vegetationSeverity),
+                    minWidth: '48px',
+                    textAlign: 'right',
+                  }}
+                >
+                  {o.meanNDVI !== null ? o.meanNDVI.toFixed(3) : 'N/A'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};

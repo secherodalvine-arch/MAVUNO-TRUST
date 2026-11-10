@@ -1,8 +1,9 @@
 /**
- * Farm Advisor Service — MavunoTrust Smart Farm Advisor (Phase 3)
+ * Farm Advisor Service — MavunoTrust Smart Farm Advisor (Phase 3 & 4)
  *
- * Integrates Sentinel-2 NDVI satellite observations with the existing Gemini AI
- * to generate practical agricultural recommendations for farmers.
+ * Integrates Sentinel-2 NDVI satellite observations, Open-Meteo weather data,
+ * and the existing Gemini AI to generate practical bilingual (English + Kiswahili)
+ * agricultural recommendations for farmers.
  *
  * CRITICAL RULES:
  *  1. NEVER diagnose crop diseases from satellite data alone.
@@ -12,16 +13,19 @@
  *  5. Only call Gemini when real NDVI data is available.
  *  6. Reuses the existing GEMINI_API_KEY — no new credentials needed.
  *  7. Structurally separates vegetation observation from agronomic interpretation.
+ *  8. Always includes Kiswahili translation of key recommendations.
  */
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const GEMINI_API_URL =
-  'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent';
+const getGeminiApiUrl = () => {
+  const model = (process.env.GEMINI_MODEL || 'gemini-3.5-flash').trim();
+  return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
+};
 
 const ADVISORY_SYSTEM_PROMPT = `You are an agricultural field advisor for MavunoTrust, a Kenyan smallholder farmer platform.
 
-Your role is to interpret Sentinel-2 satellite vegetation health observations and provide practical farming guidance to smallholder farmers in Kenya.
+Your role is to interpret Sentinel-2 satellite vegetation health observations, current weather data, and provide practical bilingual (English AND Kiswahili) farming guidance to smallholder farmers in Kenya.
 
 STRICT RULES — you MUST follow these without exception:
 1. NEVER diagnose crop diseases. If you observe vegetation stress, say "vegetation stress observed" or "reduced vegetation health" — NEVER "crop disease detected" or "your crop has [disease name]".
@@ -34,15 +38,24 @@ STRICT RULES — you MUST follow these without exception:
 8. If NDVI data is missing or unavailable, clearly state that no satellite observation is available.
 9. Consider the farmers county, crop types, and farm size in your recommendations.
 10. Acknowledge that NDVI is an estimate — it reflects apparent vegetation density, not confirmed crop condition.
+11. ALWAYS include Kiswahili translations of the vegetationObservation and all practicalRecommendations.
+12. When weather data is available, relate weather conditions to the satellite vegetation observations.
 
 OUTPUT FORMAT — respond ONLY with a valid JSON object in this exact structure:
 {
-  "vegetationObservation": "Plain-language summary of what the satellite data shows about vegetation health (1-2 sentences)",
+  "vegetationObservation": "Plain-language summary in English of what the satellite data shows (1-2 sentences)",
+  "vegetationObservationSw": "Kiswahili translation of vegetationObservation",
   "ndviSummary": "Technical NDVI interpretation suitable for a farmer (1-2 sentences)",
+  "weatherInfluence": "One sentence explaining how the current weather conditions may relate to the observed vegetation health (or 'Weather data not available.' if missing)",
   "practicalRecommendations": [
-    "First actionable recommendation",
-    "Second actionable recommendation",
-    "Third actionable recommendation"
+    "First actionable recommendation in English",
+    "Second actionable recommendation in English",
+    "Third actionable recommendation in English"
+  ],
+  "practicalRecommendationsSw": [
+    "First recommendation in Kiswahili",
+    "Second recommendation in Kiswahili",
+    "Third recommendation in Kiswahili"
   ],
   "limitations": [
     "One important limitation of this satellite analysis",
@@ -113,7 +126,7 @@ export function classifyNDVI(ndvi) {
 // ── Advisory Generation ────────────────────────────────────────────────────────
 
 /**
- * Builds a structured farming context message from NDVI data and farmer profile info.
+ * Builds a structured farming context message from NDVI data, weather data, and farmer profile info.
  * This message is passed to Gemini for interpretation.
  *
  * @param {object} params
@@ -121,9 +134,11 @@ export function classifyNDVI(ndvi) {
  * @param {string[]} params.primaryCrops - Farmer's declared crops
  * @param {string} params.county - Farmer's county
  * @param {number|null} params.farmSizeAcres - Farm size in acres
+ * @param {object|null} [params.weatherData] - Weather data from weatherService.getFarmWeather()
+ * @param {string} [params.weatherContext] - Pre-built weather context string
  * @returns {string}
  */
-function buildFarmingContextMessage({ ndviData, primaryCrops, county, farmSizeAcres }) {
+function buildFarmingContextMessage({ ndviData, primaryCrops, county, farmSizeAcres, weatherContext = null }) {
   const crops = primaryCrops && primaryCrops.length > 0
     ? primaryCrops.join(', ')
     : 'crops not specified';
@@ -156,7 +171,9 @@ SATELLITE OBSERVATION (Sentinel-2 / NDVI — this is a vegetation density estima
 - Satellite dataset: Sentinel-2 Harmonized Surface Reflectance (COPERNICUS/S2_SR_HARMONIZED)
 - Band formula: NDVI = (Band 8 NIR - Band 4 Red) / (Band 8 NIR + Band 4 Red)
 
-Please provide agricultural guidance for this farmer based on the satellite observation above. Remember: this is a vegetation density estimate — do NOT diagnose specific diseases.`;
+${weatherContext || 'Weather data: Unavailable.'}
+
+Please provide bilingual (English + Kiswahili) agricultural guidance for this farmer. Remember: this is a vegetation density estimate — do NOT diagnose specific diseases. Use the weather context to explain possible weather-related vegetation changes.`;
 }
 
 /**
@@ -174,7 +191,7 @@ async function callGeminiAdvisory(contextMessage) {
     );
   }
 
-  const url = `${GEMINI_API_URL}?key=${apiKey}`;
+  const url = `${getGeminiApiUrl()}?key=${apiKey}`;
   const payload = {
     system_instruction: {
       parts: [{ text: ADVISORY_SYSTEM_PROMPT }],
@@ -234,8 +251,8 @@ async function callGeminiAdvisory(contextMessage) {
 // ── Main Advisory Function ────────────────────────────────────────────────────
 
 /**
- * Generate an AI-powered farm advisory by combining real satellite NDVI data
- * with Gemini AI interpretation.
+ * Generate an AI-powered farm advisory by combining real satellite NDVI data,
+ * Open-Meteo weather data, and Gemini AI interpretation.
  *
  * IMPORTANT: This function never fabricates satellite data. If ndviData indicates
  * a GEE credentials error, it returns a structured error immediately without calling Gemini.
@@ -245,6 +262,7 @@ async function callGeminiAdvisory(contextMessage) {
  * @param {string[]} [params.primaryCrops=[]] - Farmer's primary crops
  * @param {string} [params.county=''] - Farmer's county
  * @param {number|null} [params.farmSizeAcres=null] - Farm size in acres
+ * @param {string|null} [params.weatherContext=null] - Pre-built weather context from weatherService
  * @returns {Promise<{ success: boolean, advisory?: object, ndviClassification?: object, error?: string, code?: string }>}
  */
 export async function generateFarmAdvisory({
@@ -252,6 +270,7 @@ export async function generateFarmAdvisory({
   primaryCrops = [],
   county = '',
   farmSizeAcres = null,
+  weatherContext = null,
 }) {
   // Guard: Never call Gemini if satellite service is not configured
   if (!ndviData || !ndviData.success) {
@@ -281,6 +300,7 @@ export async function generateFarmAdvisory({
       primaryCrops,
       county,
       farmSizeAcres,
+      weatherContext,
     });
 
     const advisory = await callGeminiAdvisory(contextMessage);

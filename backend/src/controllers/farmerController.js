@@ -1,5 +1,7 @@
 import * as farmerService from '../services/farmerService.js';
 import * as satelliteService from '../services/satelliteService.js';
+import { getFarmWeather } from '../services/weatherService.js';
+import FarmObservation from '../models/FarmObservation.js';
 
 export const getMyFarmerProfile = async (req, res, next) => {
     try {
@@ -199,6 +201,36 @@ export const updatePushToken = async (req, res, next) => {
         const userId = req.user.userId;
         const result = await farmerService.updatePushToken(userId, req.body.fcmToken);
         res.json({ success: true, data: result });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+
+export const getMyFarmWeather = async (req, res, next) => {
+    try {
+        const userId = req.user.userId;
+        const profile = await farmerService.getFarmerProfileByUserId(userId, true);
+        const weather = await getFarmWeather({
+            latitude: profile.latitude,
+            longitude: profile.longitude,
+        });
+        res.json({ success: true, data: weather });
+    }
+    catch (err) {
+        next(err);
+    }
+};
+
+export const getMyNDVIHistory = async (req, res, next) => {
+    try {
+        const userId = req.user.userId;
+        const limit = Math.min(parseInt(req.query.limit) || 30, 100);
+        const observations = await FarmObservation.find({ userId })
+            .sort({ observationDate: -1 })
+            .limit(limit)
+            .select('observationDate meanNDVI minNDVI maxNDVI vegetationLabel vegetationSeverity cloudCoverPercent farmAreaAcres createdAt');
+        res.json({ success: true, data: { observations, count: observations.length } });
     }
     catch (err) {
         next(err);

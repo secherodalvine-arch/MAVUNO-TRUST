@@ -1,7 +1,8 @@
 /**
- * Farmer Service — MavunoTrust Step 5
+ * Farmer Service — MavunoTrust
  *
- * Handles farmer profile management, privacy filtering, and crop listings.
+ * Handles farmer profile management, privacy filtering, crop listings,
+ * satellite NDVI, weather integration, and historical observation tracking.
  *
  * PRIVACY RULES:
  *  1. _privateExactLocation is NEVER returned in public profiles.
@@ -10,11 +11,13 @@
  */
 import FarmerProfile from '../models/FarmerProfile.js';
 import FarmerCropListing, { ListingStatus } from '../models/FarmerCropListing.js';
+import FarmObservation from '../models/FarmObservation.js';
 import User, { UserRole } from '../models/User.js';
 import { assertOwner } from '../utils/authorizationUtils.js';
 import { validateAndNormalizePolygon } from '../utils/polygonValidator.js';
 import { calculateFarmNDVI } from './satelliteService.js';
-import { generateFarmAdvisory } from './farmAdvisorService.js';
+import { generateFarmAdvisory, classifyNDVI } from './farmAdvisorService.js';
+import { getFarmWeather, buildWeatherContext } from './weatherService.js';
 import { requestAssistanceReferral, getAssistancePartners as listAssistancePartners } from './farmerAssistanceService.js';
 import { dispatchFarmerNotification } from './notificationDispatcher.js';
 import mongoose from 'mongoose';
@@ -513,13 +516,52 @@ export async function getFarmerAdvisory(userId, queryOptions = {}) {
         endDate: queryOptions.endDate,
     });
 
-    // Step 2: Pass NDVI results to Gemini AI Advisor
+    // Step 1b: Fetch weather data for the farm location (non-blocking)
+    let weatherData = null;
+    let weatherContext = null;
+    try {
+        weatherData = await getFarmWeather({
+            latitude: profile.latitude,
+            longitude: profile.longitude,
+        });
+        weatherContext = buildWeatherContext(weatherData);
+    } catch (weatherErr) {
+        console.warn('[FarmerService] Weather fetch failed (non-critical):', weatherErr.message);
+    }
+
+    // Step 2: Pass NDVI + weather results to Gemini AI Advisor
     const advisoryResult = await generateFarmAdvisory({
         ndviData: ndviResult,
         primaryCrops: profile.primaryCrops || [],
         county: profile.county || '',
         farmSizeAcres: profile.farmSizeAcres || profile.boundaryAreaAcres || null,
+        weatherContext,
     });
+
+    // Step 3: Persist NDVI observation to history (only when real data is available)
+    if (ndviResult.success && ndviResult.data?.rawResult) {
+        try {
+            const rawNdvi = ndviResult.data.rawResult;
+            const meanNDVI = rawNdvi?.result?.values?.nd ?? rawNdvi?.values?.nd ?? null;
+            if (meanNDVI !== null && Number.isFinite(Number(meanNDVI))) {
+                const ndvi = Number(meanNDVI);
+                const classification = classifyNDVI(ndvi);
+                await FarmObservation.create({
+                    userId,
+                    observationDate: new Date(),
+                    meanNDVI: ndvi,
+                    vegetationLabel: classification.label,
+                    vegetationSeverity: classification.severity,
+                    cloudCoverPercent: ndviResult.data.cloudThresholdPercent ?? null,
+                    farmAreaAcres: ndviResult.data.farmAreaAcres ?? null,
+                    dataset: ndviResult.data.dataset,
+                    source: 'GEE_LIVE',
+                });
+            }
+        } catch (saveErr) {
+            console.error('[FarmerService] Failed to save NDVI observation to history:', saveErr.message);
+        }
+    }
 
     // If vegetation stress is detected (concern), dispatch an advisory notification
     if (
@@ -544,7 +586,7 @@ export async function getFarmerAdvisory(userId, queryOptions = {}) {
         }
     }
 
-    return advisoryResult;
+    return { ...advisoryResult, weather: weatherData || null };
 }
 
 /**

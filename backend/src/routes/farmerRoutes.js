@@ -17,6 +17,8 @@ import {
     getAssistancePartners,
     requestAssistance,
     updatePushToken,
+    getMyFarmWeather,
+    getMyNDVIHistory,
 } from '../controllers/farmerController.js';
 
 const router = Router();
@@ -41,6 +43,10 @@ router.delete('/boundary', requireAuth, requireRole(UserRole.FARMER), clearMyFar
 router.get('/satellite/status', requireAuth, requireRole(UserRole.FARMER), getSatelliteStatus);
 router.get('/satellite/ndvi', requireAuth, requireRole(UserRole.FARMER), getMyFarmNDVI);
 router.get('/satellite/advisory', requireAuth, requireRole(UserRole.FARMER), getMyFarmAdvisory);
+router.get('/satellite/history', requireAuth, requireRole(UserRole.FARMER), getMyNDVIHistory);
+
+// Weather endpoint (Open-Meteo — free, no API key required)
+router.get('/weather', requireAuth, requireRole(UserRole.FARMER), getMyFarmWeather);
 
 // Authenticated farmer agricultural assistance & partner referral endpoints (One Acre Fund / Tupande)
 router.get('/assistance/partners', requireAuth, requireRole(UserRole.FARMER), getAssistancePartners);

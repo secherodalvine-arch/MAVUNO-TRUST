@@ -282,3 +282,83 @@ export const updatePushTokenApi = async (fcmToken: string): Promise<{ success: b
   });
   return response.data;
 };
+
+// ── Weather DTO & API ─────────────────────────────────────────────────────────
+
+export interface FarmWeatherCurrent {
+  temperatureC: number | null;
+  apparentTemperatureC: number | null;
+  precipitationMm: number | null;
+  rainMm: number | null;
+  weatherCode: number | null;
+  weatherDescription: string;
+  windSpeedKph: number | null;
+  windDescription: string | null;
+  relativeHumidityPct: number | null;
+  humidityLabel: string | null;
+  humidityNote: string | null;
+  soilTemperatureC: number | null;
+  soilMoisture: number | null;
+}
+
+export interface FarmWeatherForecastDay {
+  date: string;
+  maxTempC: number | null;
+  minTempC: number | null;
+  precipitationMm: number;
+  weatherCode: number | null;
+  description: string;
+}
+
+export interface FarmWeatherDTO {
+  success: boolean;
+  code?: string;
+  message?: string;
+  fetchedAt?: string;
+  fromCache?: boolean;
+  location?: { latitude: number; longitude: number };
+  current?: FarmWeatherCurrent;
+  forecast?: FarmWeatherForecastDay[];
+  units?: {
+    temperature: string;
+    precipitation: string;
+    windSpeed: string;
+    humidity: string;
+  };
+}
+
+export const getFarmWeatherApi = async (): Promise<FarmWeatherDTO> => {
+  const response = await apiClient.get<{ success: boolean; data: FarmWeatherDTO }>(
+    '/farmers/weather',
+    { validateStatus: (status) => status < 600 }
+  );
+  return response.data.data || (response.data as unknown as FarmWeatherDTO);
+};
+
+// ── NDVI History DTO & API ────────────────────────────────────────────────────
+
+export interface NDVIObservationDTO {
+  _id: string;
+  observationDate: string;
+  meanNDVI: number | null;
+  minNDVI?: number | null;
+  maxNDVI?: number | null;
+  vegetationLabel?: string;
+  vegetationSeverity?: 'good' | 'moderate' | 'concern' | 'unknown';
+  cloudCoverPercent?: number | null;
+  farmAreaAcres?: number | null;
+  createdAt: string;
+}
+
+export interface NDVIHistoryDTO {
+  observations: NDVIObservationDTO[];
+  count: number;
+}
+
+export const getNDVIHistoryApi = async (limit = 30): Promise<NDVIHistoryDTO> => {
+  const response = await apiClient.get<{ success: boolean; data: NDVIHistoryDTO }>(
+    '/farmers/satellite/history',
+    { params: { limit }, validateStatus: (status) => status < 600 }
+  );
+  return response.data.data || { observations: [], count: 0 };
+};

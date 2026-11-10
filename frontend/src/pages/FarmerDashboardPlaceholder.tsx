@@ -9,6 +9,8 @@ import { MarketTicker } from '../components/MarketTicker';
 import { MarketPriceDetailModal } from '../components/MarketPriceDetailModal';
 import { MarketRecommendationSection } from '../components/MarketRecommendationSection';
 import { SmartFarmAdvisorSection } from '../components/SmartFarmAdvisorSection';
+import { WeatherWidget } from '../components/WeatherWidget';
+import { NDVIHistoryChart } from '../components/NDVIHistoryChart';
 import { TransportIntelligenceSection } from '../components/TransportIntelligenceSection';
 import { marketDataService, type MarketDataItem } from '../services/marketDataService';
 
@@ -65,6 +67,12 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
 
       {/* Smart Farm Advisor & Sentinel-2 Satellite Monitoring Section */}
       <SmartFarmAdvisorSection />
+
+      {/* Farm Weather Widget (Open-Meteo) */}
+      <WeatherWidget />
+
+      {/* Historical NDVI Vegetation Trend Chart */}
+      <NDVIHistoryChart />
 
       {/* Shared Transport-Cost Intelligence Section */}
       <TransportIntelligenceSection />

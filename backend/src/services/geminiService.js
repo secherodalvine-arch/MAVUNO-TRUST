@@ -31,7 +31,8 @@ export class GeminiService {
         if (!apiKey) {
             throw Object.assign(new Error('Gemini API key is not configured. Set GEMINI_API_KEY in environment.'), { statusCode: 503, code: 'CREDENTIALS_MISSING' });
         }
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        const model = (process.env.GEMINI_MODEL || 'gemini-3.5-flash').trim();
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
         const payload = {
             system_instruction: {
                 parts: [{ text: SYSTEM_INSTRUCTION }]
