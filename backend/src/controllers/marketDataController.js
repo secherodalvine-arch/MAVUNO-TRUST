@@ -1,4 +1,5 @@
 import MarketData from '../models/MarketData.js';
+import WRSCWeeklyPrice from '../models/WRSCWeeklyPrice.js';
 import { syncWorker } from '../agents/mavunoagent/index.js';
 
 const MARKET_DISCLAIMER = 'Current agricultural market observations for informational reference. Prices may vary by market, grade, and transaction terms.';
@@ -45,13 +46,26 @@ export const getMarketPrices = async (req, res, next) => {
         MarketData.countDocuments(query),
       ]);
 
-      // If database has 0 records, trigger MavunoAgent to extract & populate initial market prices
+      // If database has 0 records, fall back to WRSCWeeklyPrice and trigger non-blocking background sync
       if (records.length === 0 && !commodity && !county && !market) {
-        await syncWorker.runSync();
-        [records, total] = await Promise.all([
-          MarketData.find(query).sort({ observedDate: -1, createdAt: -1 }).skip(skip).limit(parsedLimit).lean(),
-          MarketData.countDocuments(query),
-        ]);
+        syncWorker.runSync().catch(() => {});
+        const wrscRecords = await WRSCWeeklyPrice.find().sort({ publicationDate: -1 }).limit(parsedLimit).lean().catch(() => []);
+        if (wrscRecords.length > 0) {
+          records = wrscRecords.map((w) => ({
+            _id: w._id,
+            source: 'WRSC',
+            commodity: w.commodity,
+            classification: w.variety,
+            market: 'National Reference (WRSC)',
+            county: 'National',
+            wholesalePrice: w.price,
+            retailPrice: Math.round(w.price * 1.15),
+            unit: w.unit,
+            observedDate: w.publicationDate,
+            createdAt: w.createdAt,
+          }));
+          total = records.length;
+        }
       }
     } catch (dbErr) {
       records = [];

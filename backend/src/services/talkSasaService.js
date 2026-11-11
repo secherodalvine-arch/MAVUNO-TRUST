@@ -25,8 +25,8 @@ const COOLDOWN_WINDOWS = {
 export class TalkSasaService {
   constructor() {
     this.apiKey = process.env.TALKSASA_API_KEY || null;
-    this.senderId = process.env.TALKSASA_SENDER_ID || 'MavunoTrust';
-    this.apiUrl = process.env.TALKSASA_API_URL || 'https://api.talksasa.com/v1/send/sms';
+    this.senderId = process.env.TALKSASA_SENDER_ID || 'TALKSASA';
+    this.apiUrl = process.env.TALKSASA_API_URL || 'https://bulksms.talksasa.com/api/v3/sms/send';
   }
 
   isConfigured() {
@@ -121,16 +121,19 @@ export class TalkSasaService {
     }
 
     try {
+      const cleanPhone = normalizedPhone.replace(/^\+/, '');
       const payload = {
         sender_id: this.senderId,
-        recipient: normalizedPhone,
+        recipient: cleanPhone,
         message: message.trim(),
+        type: 'plain',
       };
 
       const response = await fetch(this.apiUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
           'X-Authorization': this.apiKey,
           Authorization: `Bearer ${this.apiKey}`,
         },

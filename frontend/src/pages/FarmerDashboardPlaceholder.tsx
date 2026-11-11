@@ -28,7 +28,7 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
           setTickerItems(res.data.records);
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     return () => {
       isMounted = false;
@@ -102,7 +102,7 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
             <User size={20} />
           </div>
           <span className="dash-card-title">Farmer Profile &amp; Location</span>
-          <p className="dash-card-desc">Public profile display &amp; private GPS coordinates for satellite monitoring.</p>
+          <p className="dash-card-desc">Public profile display &amp; private location coordinates for satellite monitoring.</p>
           <span className="dash-card-link">Manage Farm Location <ArrowRight size={13} /></span>
         </Link>
 

@@ -267,13 +267,13 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                 Farm Boundary Linked — Sentinel-2 Scan Queued
               </strong>
             </div>
-            <p style={{ fontSize: '0.9rem', color: '#cbd5e1', margin: 0, lineHeight: 1.6 }}>
-              Your farm boundary of <strong style={{ color: '#f8fafc' }}>{boundary?.boundaryAreaAcres || '—'} acres</strong> is
+            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.6 }}>
+              Your farm boundary of <strong style={{ color: 'var(--color-text-primary)' }}>{boundary?.boundaryAreaAcres || '—'} acres</strong> is
               registered and confirmed. The system is querying real Sentinel-2 satellite imagery from the
               European Space Agency (ESA) Copernicus programme directly over your registered farm polygon.
             </p>
             {advisory?.message && (
-              <p style={{ fontSize: '0.82rem', color: '#94a3b8', margin: '10px 0 0 0', fontStyle: 'italic' }}>
+              <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: '10px 0 0 0', fontStyle: 'italic' }}>
                 ⚠ Satellite status: {advisory.message}
               </p>
             )}
@@ -282,13 +282,13 @@ export const SmartFarmAdvisorSection: React.FC = () => {
           {/* What is NDVI — farmer-friendly explanation */}
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid var(--color-border, #334155)',
+              background: 'var(--color-surface-card)',
+              border: '1px solid var(--color-border)',
               borderRadius: '10px',
               padding: '18px 20px',
             }}
           >
-            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f8fafc', margin: '0 0 12px 0' }}>
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px 0' }}>
               🛰️ How Your Farm Is Being Observed
             </h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
@@ -321,16 +321,16 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                 <div
                   key={item.label}
                   style={{
-                    background: 'rgba(255, 255, 255, 0.03)',
-                    border: '1px solid rgba(255, 255, 255, 0.07)',
+                    background: 'var(--color-surface-raised)',
+                    border: '1px solid var(--color-border)',
                     borderRadius: '8px',
                     padding: '12px',
                   }}
                 >
                   <div style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{item.icon}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>{item.label}</div>
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc', marginBottom: '4px' }}>{item.value}</div>
-                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.4 }}>{item.desc}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', marginBottom: '2px' }}>{item.label}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: '4px' }}>{item.value}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>{item.desc}</div>
                 </div>
               ))}
             </div>
@@ -339,13 +339,13 @@ export const SmartFarmAdvisorSection: React.FC = () => {
           {/* NDVI scale explainer */}
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.02)',
-              border: '1px solid var(--color-border, #334155)',
+              background: 'var(--color-surface-card)',
+              border: '1px solid var(--color-border)',
               borderRadius: '10px',
               padding: '16px 20px',
             }}
           >
-            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f8fafc', margin: '0 0 12px 0' }}>
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--color-text-primary)', margin: '0 0 12px 0' }}>
               🌱 What NDVI Scores Mean For Your Crops
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -373,8 +373,8 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                     {row.range}
                   </div>
                   <div>
-                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f8fafc' }}>{row.label}</div>
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.4 }}>{row.desc}</div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>{row.label}</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>{row.desc}</div>
                   </div>
                 </div>
               ))}
@@ -388,11 +388,11 @@ export const SmartFarmAdvisorSection: React.FC = () => {
               alignItems: 'flex-start',
               gap: '10px',
               background: 'rgba(16, 185, 129, 0.05)',
-              border: '1px solid rgba(16, 185, 129, 0.15)',
+              border: '1px solid rgba(16, 185, 129, 0.2)',
               borderRadius: '8px',
               padding: '12px 16px',
               fontSize: '0.82rem',
-              color: '#94a3b8',
+              color: 'var(--color-text-secondary)',
             }}
           >
             <Info size={16} style={{ flexShrink: 0, color: '#10b981', marginTop: '1px' }} />
@@ -417,7 +417,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
             {/* Vegetation Health card */}
             <div
               style={{
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: 'var(--color-surface-card, rgba(255, 255, 255, 0.03))',
                 border: `1px solid ${
                   advisory.ndviClassification?.severity === 'good'
                     ? 'rgba(16, 185, 129, 0.35)'
@@ -429,7 +429,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                 padding: '16px',
               }}
             >
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #64748b)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 🌿 Crop Canopy Health
               </div>
               <div
@@ -447,7 +447,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
               >
                 {advisory.ndviClassification?.label || 'Observed'}
               </div>
-              <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #475569)', lineHeight: 1.5 }}>
                 {advisory.ndviClassification?.description}
               </div>
             </div>
@@ -455,26 +455,26 @@ export const SmartFarmAdvisorSection: React.FC = () => {
             {/* NDVI score card with visual bar */}
             <div
               style={{
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: 'var(--color-surface-card, rgba(255, 255, 255, 0.03))',
                 border: '1px solid var(--color-border, #334155)',
                 borderRadius: '10px',
                 padding: '16px',
               }}
             >
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #64748b)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 📡 Satellite NDVI Score
               </div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
-                <span style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f8fafc' }}>
+                <span style={{ fontSize: '1.6rem', fontWeight: 700, color: 'var(--color-text-primary, #0f172a)' }}>
                   {advisory.dataQuality?.meanNDVI !== undefined
                     ? Number(advisory.dataQuality.meanNDVI).toFixed(3)
                     : 'N/A'}
                 </span>
-                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>/ 1.0 scale</span>
+                <span style={{ fontSize: '0.78rem', color: 'var(--color-text-muted, #64748b)' }}>/ 1.0 scale</span>
               </div>
               {/* Visual NDVI bar */}
               {advisory.dataQuality?.meanNDVI !== undefined && (
-                <div style={{ position: 'relative', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                <div style={{ position: 'relative', height: '6px', borderRadius: '3px', background: 'var(--color-surface-border, rgba(128, 128, 128, 0.2))', overflow: 'hidden' }}>
                   <div
                     style={{
                       position: 'absolute',
@@ -491,29 +491,29 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                   />
                 </div>
               )}
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '8px' }}>
-                📅 Observed: <strong style={{ color: '#cbd5e1' }}>{advisory.observationDate || 'Recent pass'}</strong>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary, #64748b)', marginTop: '8px' }}>
+                📅 Observed: <strong style={{ color: 'var(--color-text-primary, #0f172a)' }}>{advisory.observationDate || 'Recent pass'}</strong>
               </div>
             </div>
 
             {/* Cloud cover / data quality */}
             <div
               style={{
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: 'var(--color-surface-card, rgba(255, 255, 255, 0.03))',
                 border: '1px solid var(--color-border, #334155)',
                 borderRadius: '10px',
                 padding: '16px',
               }}
             >
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #64748b)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 ☁ Image Quality
               </div>
-              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc', marginBottom: '4px' }}>
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-primary, #0f172a)', marginBottom: '4px' }}>
                 {advisory.dataQuality?.cloudCoverPercent !== null && advisory.dataQuality?.cloudCoverPercent !== undefined
                   ? `${advisory.dataQuality.cloudCoverPercent}% cloud cover`
                   : 'Clear observation'}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.5 }}>
+              <div style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary, #64748b)', lineHeight: 1.5 }}>
                 {advisory.dataQuality?.cloudCoverPercent !== null && advisory.dataQuality?.cloudCoverPercent !== undefined
                   ? advisory.dataQuality.cloudCoverPercent < 10
                     ? '✅ Excellent clarity — very reliable reading'
@@ -522,7 +522,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                     : '⚠ Moderate cloud cover — reading is an estimate'
                   : '✅ Clear sky over your farm'}
                 <br />
-                AI confidence: <strong style={{ color: '#f8fafc' }}>{advisory.advisory?.confidence || 'MEDIUM'}</strong>
+                AI confidence: <strong style={{ color: 'var(--color-text-primary, #0f172a)' }}>{advisory.advisory?.confidence || 'MEDIUM'}</strong>
               </div>
             </div>
           </div>
@@ -547,12 +547,13 @@ export const SmartFarmAdvisorSection: React.FC = () => {
               {/* English observation */}
               <div
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
+                  background: 'var(--color-surface-card, rgba(255,255,255,0.03))',
+                  border: '1px solid var(--color-border, rgba(255,255,255,0.07))',
                   borderRadius: '8px',
                   padding: '12px 14px',
                   marginBottom: '10px',
                   fontSize: '0.9rem',
-                  color: '#f8fafc',
+                  color: 'var(--color-text-primary, #0f172a)',
                   lineHeight: 1.6,
                 }}
               >
@@ -567,7 +568,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                 <div
                   style={{
                     fontSize: '0.85rem',
-                    color: '#94a3b8',
+                    color: 'var(--color-text-secondary, #64748b)',
                     marginBottom: '12px',
                     lineHeight: 1.5,
                     fontStyle: 'italic',
@@ -576,7 +577,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                   }}
                 >
                   <Languages size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px', color: '#10b981' }} />
-                  <strong style={{ color: '#64748b' }}>Kiswahili:</strong>{' '}
+                  <strong style={{ color: 'var(--color-text-secondary, #64748b)' }}>Kiswahili:</strong>{' '}
                   {(advisory.advisory as any).vegetationObservationSw}
                 </div>
               )}
@@ -587,18 +588,18 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                 <div
                   style={{
                     background: 'rgba(251, 191, 36, 0.07)',
-                    border: '1px solid rgba(251, 191, 36, 0.2)',
+                    border: '1px solid rgba(251, 191, 36, 0.25)',
                     borderRadius: '8px',
                     padding: '10px 14px',
                     fontSize: '0.83rem',
-                    color: '#fde047',
+                    color: 'var(--color-warning, #d97706)',
                     marginBottom: '14px',
                     display: 'flex',
                     alignItems: 'flex-start',
                     gap: '8px',
                   }}
                 >
-                  <Cloud size={15} style={{ flexShrink: 0, color: '#fbbf24', marginTop: '1px' }} />
+                  <Cloud size={15} style={{ flexShrink: 0, color: '#f59e0b', marginTop: '1px' }} />
                   <span>
                     <strong>Weather influence:</strong>{' '}
                     {(advisory.advisory as any).weatherInfluence}
@@ -613,7 +614,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                     style={{
                       fontSize: '0.82rem',
                       fontWeight: 700,
-                      color: '#cbd5e1',
+                      color: 'var(--color-text-secondary, #475569)',
                       marginBottom: '8px',
                       textTransform: 'uppercase',
                       letterSpacing: '0.05em',
@@ -626,24 +627,24 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                       <div
                         key={idx}
                         style={{
-                          background: 'rgba(255,255,255,0.03)',
-                          border: '1px solid rgba(255,255,255,0.07)',
+                          background: 'var(--color-surface-card, rgba(255,255,255,0.03))',
+                          border: '1px solid var(--color-border, rgba(255,255,255,0.07))',
                           borderRadius: '8px',
                           padding: '10px 12px',
                         }}
                       >
-                        <div style={{ fontSize: '0.85rem', color: '#f8fafc', lineHeight: 1.5 }}>
+                        <div style={{ fontSize: '0.85rem', color: 'var(--color-text-primary, #0f172a)', lineHeight: 1.5 }}>
                           <strong style={{ color: '#10b981' }}>{idx + 1}.</strong> {rec}
                         </div>
                         {(advisory.advisory as any).practicalRecommendationsSw?.[idx] && (
                           <div
                             style={{
-                              color: '#64748b',
+                              color: 'var(--color-text-muted, #64748b)',
                               fontStyle: 'italic',
                               fontSize: '0.8rem',
                               marginTop: '4px',
                               paddingTop: '4px',
-                              borderTop: '1px solid rgba(255,255,255,0.05)',
+                              borderTop: '1px solid var(--color-border, rgba(255,255,255,0.05))',
                             }}
                           >
                             <Languages size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
@@ -667,10 +668,10 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                   borderRadius: '8px',
                   padding: '10px 12px',
                   fontSize: '0.78rem',
-                  color: '#fca5a5',
+                  color: 'var(--color-error, #dc2626)',
                 }}
               >
-                <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
+                <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '2px', color: '#ef4444' }} />
                 <span>
                   <strong>Important: </strong>
                   {advisory.advisory.disclaimer ||
@@ -724,8 +725,8 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                 alignItems: 'center',
                 gap: '8px',
                 background: 'transparent',
-                color: '#94a3b8',
-                border: '1px solid var(--color-border, #334155)',
+                color: 'var(--color-text-secondary, #64748b)',
+                border: '1px solid var(--color-border, #cbd5e1)',
                 borderRadius: '6px',
                 padding: '10px 20px',
                 fontSize: '0.9rem',
@@ -741,7 +742,8 @@ export const SmartFarmAdvisorSection: React.FC = () => {
         {assistanceAnswer === 'no' && (
           <div
             style={{
-              background: 'rgba(255, 255, 255, 0.03)',
+              background: 'var(--color-surface-raised, rgba(0, 0, 0, 0.03))',
+              border: '1px solid var(--color-border, #cbd5e1)',
               borderRadius: '6px',
               padding: '14px 18px',
               display: 'flex',
@@ -749,7 +751,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
               alignItems: 'center',
             }}
           >
-            <p style={{ margin: 0, fontSize: '0.875rem', color: '#94a3b8' }}>
+            <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--color-text-secondary, #64748b)' }}>
               Glad things are going well on your farm! You can request assistance anytime.
             </p>
             <button
@@ -771,8 +773,8 @@ export const SmartFarmAdvisorSection: React.FC = () => {
         {assistanceAnswer === 'yes' && (
           <div
             style={{
-              background: 'rgba(56, 189, 248, 0.05)',
-              border: '1px solid rgba(56, 189, 248, 0.25)',
+              background: 'var(--color-surface-raised, rgba(56, 189, 248, 0.05))',
+              border: '1px solid var(--color-border, rgba(56, 189, 248, 0.25))',
               borderRadius: '8px',
               padding: '20px',
             }}
@@ -795,24 +797,25 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                 >
                   <CheckCircle size={28} />
                 </div>
-                <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: '#f8fafc', margin: '0 0 6px' }}>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-text-primary, #0f172a)', margin: '0 0 6px' }}>
                   Assistance Referral Confirmed!
                 </h4>
                 <div
                   style={{
-                    background: 'rgba(0, 0, 0, 0.25)',
+                    background: 'var(--color-surface-card, rgba(0, 0, 0, 0.05))',
+                    border: '1px solid var(--color-border, rgba(56, 189, 248, 0.25))',
                     padding: '8px 14px',
                     borderRadius: '6px',
                     display: 'inline-block',
                     fontFamily: 'monospace',
                     fontSize: '0.9rem',
-                    color: '#38bdf8',
+                    color: '#0284c7',
                     marginBottom: '12px',
                   }}
                 >
                   Referral ID: {referralResult.data?.referralId}
                 </div>
-                <p style={{ fontSize: '0.9rem', color: '#cbd5e1', maxWidth: '520px', margin: '0 auto 16px' }}>
+                <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary, #475569)', maxWidth: '520px', margin: '0 auto 16px' }}>
                   {referralResult.data?.instructions}
                 </p>
                 {/* SMS delivery status */}
@@ -827,7 +830,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                       borderRadius: '6px',
                       padding: '8px 14px',
                       fontSize: '0.85rem',
-                      color: referralResult.phoneDelivered ? '#4ade80' : '#fbbf24',
+                      color: referralResult.phoneDelivered ? '#16a34a' : '#d97706',
                       marginBottom: '16px',
                     }}
                   >
@@ -841,7 +844,9 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                   {referralResult.data?.partner.ussdCode && (
                     <div
                       style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
+                        background: 'var(--color-surface-card, rgba(0, 0, 0, 0.04))',
+                        border: '1px solid var(--color-border, #e2e8f0)',
+                        color: 'var(--color-text-primary, #0f172a)',
                         padding: '8px 14px',
                         borderRadius: '6px',
                         fontSize: '0.85rem',
@@ -854,13 +859,15 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                   {referralResult.data?.partner.tollFreeHotline && (
                     <div
                       style={{
-                        background: 'rgba(255, 255, 255, 0.05)',
+                        background: 'var(--color-surface-card, rgba(0, 0, 0, 0.04))',
+                        border: '1px solid var(--color-border, #e2e8f0)',
+                        color: 'var(--color-text-primary, #0f172a)',
                         padding: '8px 14px',
                         borderRadius: '6px',
                         fontSize: '0.85rem',
                       }}
                     >
-                      <strong style={{ color: '#38bdf8' }}>Toll-Free Hotline: </strong>
+                      <strong style={{ color: '#0284c7' }}>Toll-Free Hotline: </strong>
                       {referralResult.data.partner.tollFreeHotline}
                     </div>
                   )}
@@ -875,7 +882,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                       display: 'block',
                       fontSize: '0.85rem',
                       fontWeight: 600,
-                      color: '#cbd5e1',
+                      color: 'var(--color-text-secondary, #475569)',
                       marginBottom: '6px',
                     }}
                   >
@@ -1078,7 +1085,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                       gap: '10px',
                       cursor: 'pointer',
                       fontSize: '0.85rem',
-                      color: '#e2e8f0',
+                      color: 'var(--color-text-primary, #0f172a)',
                       lineHeight: 1.4,
                     }}
                   >
@@ -1092,7 +1099,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                       <strong style={{ color: '#10b981' }}>Explicit Consent: </strong>
                       I authorize MavunoTrust to create a referral with{' '}
                       <strong>{activePartner?.name || 'the agricultural partner'}</strong> and share my general area,
-                      crop types, and registered contact phone number. My exact GPS coordinates will remain private and
+                      crop types, and registered contact phone number. My exact location coordinates will remain private and
                       will NOT be shared.
                     </span>
                   </label>
@@ -1105,7 +1112,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                       border: '1px solid rgba(239, 68, 68, 0.3)',
                       borderRadius: '6px',
                       padding: '10px 12px',
-                      color: '#f87171',
+                      color: 'var(--color-error, #ef4444)',
                       fontSize: '0.85rem',
                       marginBottom: '14px',
                     }}
@@ -1122,7 +1129,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                       display: 'inline-flex',
                       alignItems: 'center',
                       gap: '8px',
-                      background: !consentChecked || submittingReferral ? '#475569' : '#10b981',
+                      background: !consentChecked || submittingReferral ? 'var(--color-surface-border, #94a3b8)' : '#10b981',
                       color: '#fff',
                       border: 'none',
                       borderRadius: '6px',
@@ -1151,7 +1158,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                     style={{
                       background: 'none',
                       border: 'none',
-                      color: '#94a3b8',
+                      color: 'var(--color-text-secondary, #64748b)',
                       fontSize: '0.85rem',
                       cursor: 'pointer',
                     }}

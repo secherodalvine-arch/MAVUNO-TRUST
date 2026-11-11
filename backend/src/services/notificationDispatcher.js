@@ -36,6 +36,8 @@ export async function dispatchFarmerNotification({
   smsBody = null,
   link = null,
   meta = {},
+  phoneNumber = null,
+  forceSms = false,
 }) {
   const results = {
     inApp: false,
@@ -70,10 +72,8 @@ export async function dispatchFarmerNotification({
     }
   }
 
-  if (!user) return results;
-
   // 2. Firebase Cloud Messaging (Push)
-  if (user.pushNotificationEnabled && user.fcmToken) {
+  if (user && user.pushNotificationEnabled && user.fcmToken) {
     results.fcm.attempted = true;
     try {
       const fcmRes = await fcmService.sendPushNotification({
@@ -93,14 +93,18 @@ export async function dispatchFarmerNotification({
   }
 
   // 3. TalkSasa SMS Alert
-  if (user.smsNotificationEnabled && user.phoneNumber) {
+  const targetPhone = phoneNumber || user?.phoneNumber;
+  const isSmsEnabled = forceSms || (user ? user.smsNotificationEnabled !== false : Boolean(targetPhone));
+
+  if (isSmsEnabled && targetPhone) {
     results.sms.attempted = true;
     try {
       const message = smsBody || `${title}: ${body}`.substring(0, 155);
       const smsRes = await talkSasaService.sendSms({
-        to: user.phoneNumber,
+        to: targetPhone,
         message,
         topic: type,
+        force: forceSms,
       });
       results.sms = { attempted: true, ...smsRes };
     } catch (err) {

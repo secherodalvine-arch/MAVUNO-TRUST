@@ -67,7 +67,7 @@ router.put('/preferences', async (req, res, next) => {
       }
     }
 
-    const user = await User.findByIdAndUpdate(userId, updates, { new: true }).select(
+    const user = await User.findByIdAndUpdate(userId, updates, { returnDocument: 'after' }).select(
       'inAppNotificationEnabled emailNotificationEnabled smsNotificationEnabled pushNotificationEnabled notificationCadence'
     );
     if (!user) {
@@ -370,7 +370,7 @@ router.patch('/:id/read', async (req, res, next) => {
     const notif = await Notification.findOneAndUpdate(
       { _id: req.params.id, userId },
       { read: true },
-      { new: true }
+      { returnDocument: 'after' }
     );
     if (!notif) return res.status(404).json({ success: false, error: { message: 'Notification not found.' } });
     res.json({ success: true, data: notif });

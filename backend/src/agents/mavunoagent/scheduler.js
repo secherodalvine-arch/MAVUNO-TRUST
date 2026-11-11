@@ -36,7 +36,11 @@ class Scheduler {
     try {
       const result = await syncWorker.runSync();
       this.lastResult = result;
-      console.log(`[MavunoAgent] KAMIS Sync completed: Saved ${result.recordsSaved} records, rejected ${result.recordsRejected}.`);
+      if (result.success) {
+        console.log(`[MavunoAgent] KAMIS Sync completed: Saved ${result.recordsSaved ?? 0} records, rejected ${result.recordsRejected ?? 0}.`);
+      } else {
+        console.warn(`[MavunoAgent] KAMIS Sync notice: ${result.errorMessage || result.errorCode || 'Portal unavailable'}. Retaining local baseline and syncing secondary feeds (WRSC/FAO).`);
+      }
     } catch (err) {
       console.error(`[MavunoAgent] Error during KAMIS extraction task: ${err.message}`);
       this.lastResult = { success: false, error: err.message };

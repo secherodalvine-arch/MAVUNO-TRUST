@@ -604,49 +604,13 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
   return (
     <div style={styles.card}>
       {/* ── Header ── */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-        <div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Layers size={22} style={{ color: '#10b981' }} />
-            <h2 style={styles.cardTitle}>Farm Boundary &amp; Land Perimeter</h2>
-          </div>
-          <p style={styles.cardDesc}>
-            Draw or adjust your exact farm perimeter on the satellite map to monitor crop health, canopy development, and vegetation progress over time.
-          </p>
+      <div style={{ marginBottom: '16px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <Layers size={22} style={{ color: '#10b981' }} />
+          <h2 style={styles.cardTitle}>Farm Boundary &amp; Land Perimeter</h2>
         </div>
-
-        {/* Boundary Registration Status Badge */}
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: '6px 14px',
-            borderRadius: '20px',
-            fontSize: '0.82rem',
-            fontWeight: 600,
-            backgroundColor: boundaryData?.hasBoundary ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-            color: boundaryData?.hasBoundary ? '#4ade80' : '#fbbf24',
-            border: `1px solid ${boundaryData?.hasBoundary ? 'rgba(34, 197, 94, 0.35)' : 'rgba(245, 158, 11, 0.35)'}`,
-          }}
-        >
-          {boundaryData?.hasBoundary ? <Check size={14} /> : <MapPin size={14} />}
-          <span>
-            {boundaryData?.hasBoundary
-              ? `Boundary Linked (${boundaryData.boundaryAreaAcres} Acres)`
-              : 'Perimeter Not Yet Drawn'}
-          </span>
-        </div>
-      </div>
-
-      {/* ── Privacy & Confidentiality Banner ── */}
-      <div style={styles.privacyNoticeBox}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#16a34a', fontWeight: 700, marginBottom: '4px' }}>
-          <Shield size={18} />
-          <span>Strict Boundary Confidentiality</span>
-        </div>
-        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
-          Your registered farm perimeter is strictly confidential and <strong>never published on dealer searches or public profiles</strong>. The boundary is used exclusively to analyze crop vegetation health and canopy density over your registered parcel.
+        <p style={styles.cardDesc}>
+          Draw or adjust your exact farm perimeter on the satellite map to monitor crop health, canopy development, and vegetation progress over time.
         </p>
       </div>
 
@@ -840,7 +804,7 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
             {/* GeoJSON Import Box */}
             <div>
               <label style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
-                Paste GeoJSON Polygon (Surveyor/GPS Export):
+                Paste GeoJSON Polygon (Surveyor/Location Export):
               </label>
               <textarea
                 rows={2}

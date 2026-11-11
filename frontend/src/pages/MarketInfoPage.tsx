@@ -218,7 +218,7 @@ export const MarketInfoPage: React.FC = () => {
           />
 
           <div className="form-field form-field--price-type" style={{ gridColumn: '1 / -1' }}>
-            <label className="form-label" style={{ fontSize: '0.92rem', fontWeight: 700, color: '#e8f5ec', marginBottom: '8px' }}>
+            <label className="form-label" style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '8px' }}>
               <Filter size={15} style={{ color: '#5ec285' }} /> Price Type Filter
             </label>
             <div className="price-type-selector-pills">
@@ -261,7 +261,7 @@ export const MarketInfoPage: React.FC = () => {
       </div>
 
       {/* Loading State */}
-      {loading && <LoadSpinner fullPage={false} size="md" text="quering..." />}
+      {loading && <LoadSpinner fullPage={false} size="md" text="Loading market observations..." />}
 
       {/* Error State */}
       {!loading && error && (
@@ -310,8 +310,33 @@ export const MarketInfoPage: React.FC = () => {
                 style={{ cursor: 'pointer' }}
               >
                 <div className="price-card-header">
-                  <span className="price-card-crop">{p.commodity}</span>
-                  <span className="price-card-market">{p.market} {p.county ? `(${p.county})` : ''}</span>
+                  <div>
+                    <span className="price-card-crop">{p.commodity}</span>
+                    {p.classification && (
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-secondary)', display: 'block', marginTop: '1px' }}>
+                        {p.classification}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ textAlign: 'right' }}>
+                    <span className="price-card-market">{p.market} {p.county ? `(${p.county})` : ''}</span>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        fontSize: '0.7rem',
+                        fontWeight: 600,
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        background: 'rgba(16, 185, 129, 0.12)',
+                        color: '#10b981',
+                        marginTop: '2px',
+                        textTransform: 'uppercase',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      {p.source || 'KAMIS'}
+                    </span>
+                  </div>
                 </div>
 
                 <div className="price-card-amount">

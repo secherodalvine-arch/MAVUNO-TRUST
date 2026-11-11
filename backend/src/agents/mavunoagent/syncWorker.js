@@ -236,17 +236,26 @@ export class SyncWorker {
       syncRunRecord.completedAt = completedAt;
       syncRunRecord.errorCode = errorCode;
       syncRunRecord.errorMessage = errorMessage;
-      await syncRunRecord.save();
+      syncRunRecord.recordsFound = syncRunRecord.recordsFound || 0;
+      syncRunRecord.recordsSaved = syncRunRecord.recordsSaved || 0;
+      syncRunRecord.recordsRejected = syncRunRecord.recordsRejected || 0;
+      await syncRunRecord.save().catch(() => {});
     } else if (syncRunRecord) {
       syncRunRecord.status = SyncStatus.FAILED;
       syncRunRecord.errorCode = errorCode;
       syncRunRecord.errorMessage = errorMessage;
+      syncRunRecord.recordsFound = 0;
+      syncRunRecord.recordsSaved = 0;
+      syncRunRecord.recordsRejected = 0;
     }
 
     return {
       success: false,
       syncRunId: syncRunRecord?.syncRunId || null,
       status: SyncStatus.FAILED,
+      recordsFound: 0,
+      recordsSaved: 0,
+      recordsRejected: 0,
       errorCode,
       errorMessage,
     };

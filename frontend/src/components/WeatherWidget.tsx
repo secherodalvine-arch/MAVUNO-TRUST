@@ -145,11 +145,11 @@ export const WeatherWidget: React.FC = () => {
           )}
           <div style={{ flex: 1 }}>
             <p style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', margin: '0 0 2px', fontWeight: 600 }}>
-              {weather?.code === 'COORDINATES_REQUIRED' ? 'GPS Coordinates Required' : 'Weather Service Notice'}
+              {weather?.code === 'COORDINATES_REQUIRED' ? 'Location Coordinates Required' : 'Weather Service Notice'}
             </p>
             <p style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.4 }}>
               {weather?.code === 'COORDINATES_REQUIRED'
-                ? 'Register your farm GPS coordinates in your profile to view automated weather conditions and satellite monitoring.'
+                ? 'Register your farm location coordinates in your profile to view automated weather conditions and satellite monitoring.'
                 : weather?.message || 'Weather service is temporarily synchronizing. Click Refresh to reload.'}
             </p>
             {weather?.code === 'COORDINATES_REQUIRED' && (

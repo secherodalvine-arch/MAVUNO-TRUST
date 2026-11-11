@@ -363,7 +363,7 @@ export async function getFarmWeather({ latitude, longitude, bypassCache = false 
           fetchedAt: new Date(),
           expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24h retention
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
     } catch {
       // Non-critical
@@ -408,7 +408,7 @@ export async function getFarmWeather({ latitude, longitude, bypassCache = false 
           fetchedAt: new Date(),
           expiresAt: new Date(Date.now() + 12 * 60 * 60 * 1000),
         },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
     } catch {
       // Non-critical

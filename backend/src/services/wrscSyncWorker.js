@@ -1,4 +1,6 @@
 import WRSCWeeklyPrice from '../models/WRSCWeeklyPrice.js';
+import MarketData from '../models/MarketData.js';
+import MarketPrice from '../models/MarketPrice.js';
 
 const WP_API_URL = 'https://wrsc.go.ke/wp-json/wp/v2/posts?search=Weekly%20Market%20Analysis&per_page=5';
 
@@ -68,6 +70,49 @@ export const runWRSCSync = async () => {
                         },
                         { upsert: true }
                     );
+
+                    // Also mirror into MarketData and MarketPrice so farmers see WRSC prices immediately in the market view
+                    await MarketData.updateOne(
+                        { commodity, classification: variety, market: 'National Reference (WRSC)' },
+                        {
+                            $set: {
+                                source: 'WRSC',
+                                sourceMethod: 'WRSC_SYNC',
+                                commodity,
+                                classification: variety,
+                                market: 'National Reference (WRSC)',
+                                county: 'National',
+                                wholesalePrice: price,
+                                retailPrice: Math.round(price * 1.15),
+                                unit,
+                                observedDate: publicationDate,
+                                sourceUrl: postUrl,
+                            }
+                        },
+                        { upsert: true }
+                    ).catch(() => {});
+
+                    await MarketPrice.updateOne(
+                        { cropName: commodity, market: 'National Reference (WRSC)' },
+                        {
+                            $set: {
+                                cropName: commodity,
+                                market: 'National Reference (WRSC)',
+                                county: 'National',
+                                price: Math.round(price * 1.15),
+                                minimumPrice: price,
+                                maximumPrice: Math.round(price * 1.25),
+                                unit,
+                                currency: 'KES',
+                                source: 'OTHER',
+                                provider: 'WRSC Weekly Analysis',
+                                observedAt: publicationDate,
+                                retrievedAt: new Date(),
+                            }
+                        },
+                        { upsert: true }
+                    ).catch(() => {});
+
                     recordsInserted++;
                 } catch (err) {
                     console.error(`[WRSC Sync] Failed to upsert record for ${commodity} in post ${postId}:`, err.message);

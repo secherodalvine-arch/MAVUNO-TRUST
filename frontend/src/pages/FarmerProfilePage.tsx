@@ -25,6 +25,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
+import { getSubCounties, getWards, resolveKenyaPlace } from '../constants/kenyaLocations';
 
 const KENYA_COUNTIES = [
   'Baringo', 'Bomet', 'Bungoma', 'Busia', 'Elgeyo-Marakwet', 'Embu', 'Garissa',
@@ -157,14 +158,14 @@ export const FarmerProfilePage: React.FC = () => {
         setIsLocatingDevice(false);
         setLocationMessage({
           type: 'success',
-          text: `Device GPS location detected (${lat}, ${lng}) with accuracy to ±${Math.round(pos.coords.accuracy)}m. Click Save Farm Location to store.`,
+          text: `Current location detected (${lat}, ${lng}) with accuracy to ±${Math.round(pos.coords.accuracy)}m. Click Save Farm Location to store.`,
         });
       },
       (err) => {
         setIsLocatingDevice(false);
         setLocationMessage({
           type: 'error',
-          text: `Unable to access GPS: ${err.message || 'Permission denied or signal unavailable'}. You can enter coordinates manually or choose an agricultural preset.`,
+          text: `Unable to access location: ${err.message || 'Permission denied or signal unavailable'}. You can enter coordinates manually or choose an agricultural preset.`,
         });
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
@@ -352,15 +353,12 @@ export const FarmerProfilePage: React.FC = () => {
     <div style={styles.container}>
       {/* ── Page Header ── */}
       <div style={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={styles.headerIcon}>
             <Sprout size={22} />
           </div>
           <h1 style={styles.title}>Farmer Profile &amp; Farm Location</h1>
         </div>
-        <p style={styles.subtitle}>
-          Manage your public marketplace presence and securely register private farm coordinates for automated satellite monitoring.
-        </p>
       </div>
 
       {message && (
@@ -377,54 +375,13 @@ export const FarmerProfilePage: React.FC = () => {
         </div>
       )}
 
-      {/* ── 1. SECURE FARM LOCATION & SATELLITE COORDINATES REGISTRATION SECTION ── */}
+      {/* ── 1. SECURE FARM LOCATION & COORDINATES REGISTRATION SECTION ── */}
       <div style={{ ...styles.card, borderColor: hasRegisteredCoordinates ? 'rgba(34, 197, 94, 0.4)' : '#334155', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <Satellite size={22} style={{ color: '#2dd4bf' }} />
-              <h2 style={{ ...styles.cardTitle, color: '#f8fafc', display: 'inline-block' }}>
-                Farm Location &amp; Satellite Monitoring Coordinates
-              </h2>
-            </div>
-            <p style={styles.cardDesc}>
-              Precision farm coordinates allow automated satellite observation to monitor crop vegetation health, canopy vigor, and seasonal trends over time.
-            </p>
-          </div>
-
-          {/* Coordinate Status Badge */}
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 14px',
-              borderRadius: '20px',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              backgroundColor: hasRegisteredCoordinates ? 'rgba(34, 197, 94, 0.15)' : 'rgba(245, 158, 11, 0.15)',
-              color: hasRegisteredCoordinates ? '#4ade80' : '#fbbf24',
-              border: `1px solid ${hasRegisteredCoordinates ? 'rgba(34, 197, 94, 0.35)' : 'rgba(245, 158, 11, 0.35)'}`,
-            }}
-          >
-            {hasRegisteredCoordinates ? <Check size={14} /> : <MapPin size={14} />}
-            <span>
-              {hasRegisteredCoordinates
-                ? 'Satellite Monitoring Active (Coordinates Linked)'
-                : 'Coordinates Pending Registration'}
-            </span>
-          </div>
-        </div>
-
-        {/* Satellite Privacy Banner */}
-        <div style={styles.satellitePrivacyBox}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#16a34a', fontWeight: 700, marginBottom: '6px' }}>
-            <Shield size={18} />
-            <span>Privacy Guarantee: Confidential Farm Coordinates</span>
-          </div>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
-            Your exact latitude and longitude coordinates are <strong>100% private</strong>. They are never published on dealer searches, public profiles, or market feeds. Only your general area ({county || 'County not set'}, {subCounty || 'Sub-county not set'}) is shown to potential buyers.
-          </p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+          <Satellite size={22} style={{ color: '#2dd4bf' }} />
+          <h2 style={{ ...styles.cardTitle, color: 'var(--color-text-primary, #f8fafc)', margin: 0 }}>
+            Farm Location &amp; Coordinates
+          </h2>
         </div>
 
         {locationMessage && (
@@ -443,14 +400,19 @@ export const FarmerProfilePage: React.FC = () => {
         )}
 
         {/* Location Form Controls */}
-        <div style={{ marginTop: '20px' }}>
+        <div style={{ marginTop: '16px' }}>
           <div style={styles.fieldRow}>
             {/* County Select */}
             <div style={styles.field}>
               <label style={styles.label}>County *</label>
               <select
                 value={county}
-                onChange={(e) => setCounty(e.target.value)}
+                onChange={(e) => {
+                  const newCounty = e.target.value;
+                  setCounty(newCounty);
+                  setSubCounty('');
+                  setGeneralArea('');
+                }}
                 style={styles.select}
               >
                 <option value="">Select County...</option>
@@ -460,30 +422,66 @@ export const FarmerProfilePage: React.FC = () => {
               </select>
             </div>
 
-            {/* Sub-County */}
+            {/* Sub-County Selection */}
             <div style={styles.field}>
               <label style={styles.label}>Sub-County</label>
-              <input
-                type="text"
-                value={subCounty}
-                onChange={(e) => setSubCounty(e.target.value)}
-                style={styles.input}
-                placeholder="e.g. Njoro, Moiben, Cherangany"
-              />
+              {county && getSubCounties(county).length > 0 ? (
+                <select
+                  value={subCounty}
+                  onChange={(e) => {
+                    const newSub = e.target.value;
+                    setSubCounty(newSub);
+                    setGeneralArea('');
+                  }}
+                  style={styles.select}
+                >
+                  <option value="">Select Sub-County in {county}...</option>
+                  {getSubCounties(county).map((sc) => (
+                    <option key={sc} value={sc}>{sc}</option>
+                  ))}
+                  {subCounty && !getSubCounties(county).includes(subCounty) && (
+                    <option value={subCounty}>{subCounty} (Custom)</option>
+                  )}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={subCounty}
+                  onChange={(e) => setSubCounty(e.target.value)}
+                  style={styles.input}
+                  placeholder={county ? "Enter sub-county" : "Select county first"}
+                />
+              )}
             </div>
           </div>
 
           <div style={styles.fieldRow}>
-            {/* General Area */}
+            {/* General Area / Ward Selection */}
             <div style={styles.field}>
               <label style={styles.label}>General Area / Ward</label>
-              <input
-                type="text"
-                value={generalArea}
-                onChange={(e) => setGeneralArea(e.target.value)}
-                style={styles.input}
-                placeholder="e.g. Egerton Ward, Chebororwa"
-              />
+              {county && subCounty && getWards(county, subCounty).length > 0 ? (
+                <select
+                  value={generalArea}
+                  onChange={(e) => setGeneralArea(e.target.value)}
+                  style={styles.select}
+                >
+                  <option value="">Select Ward / Area in {subCounty}...</option>
+                  {getWards(county, subCounty).map((w) => (
+                    <option key={w} value={w}>{w}</option>
+                  ))}
+                  {generalArea && !getWards(county, subCounty).includes(generalArea) && (
+                    <option value={generalArea}>{generalArea} (Custom)</option>
+                  )}
+                </select>
+              ) : (
+                <input
+                  type="text"
+                  value={generalArea}
+                  onChange={(e) => setGeneralArea(e.target.value)}
+                  style={styles.input}
+                  placeholder="e.g. Ruiru Ward, Gitothua"
+                />
+              )}
             </div>
 
             {/* Farm Size */}
@@ -506,10 +504,10 @@ export const FarmerProfilePage: React.FC = () => {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
               <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
                 <MapPin size={16} style={{ color: '#0d9488' }} />
-                GPS Coordinates (Decimal Degrees)
+                Location Coordinates (Decimal Degrees)
               </span>
 
-              {/* GPS Auto-detect Button */}
+              {/* Location Auto-detect Button */}
               <button
                 type="button"
                 onClick={handleDetectGPS}
@@ -519,12 +517,12 @@ export const FarmerProfilePage: React.FC = () => {
                 {isLocatingDevice ? (
                   <>
                     <RefreshCw size={14} style={{ animation: 'spin 1s linear infinite' }} />
-                    <span>Detecting GPS...</span>
+                    <span>Detecting location...</span>
                   </>
                 ) : (
                   <>
                     <Compass size={14} />
-                    <span>Use My Current Device GPS</span>
+                    <span>My current location</span>
                   </>
                 )}
               </button>
@@ -538,7 +536,7 @@ export const FarmerProfilePage: React.FC = () => {
                   value={latitude}
                   onChange={(e) => setLatitude(e.target.value)}
                   style={styles.input}
-                  placeholder="e.g. -0.2833"
+                  placeholder="e.g. -1.153289"
                 />
                 <span style={styles.helperText}>Kenya latitudes range approx -4.7° to +5.5°</span>
               </div>
@@ -550,11 +548,35 @@ export const FarmerProfilePage: React.FC = () => {
                   value={longitude}
                   onChange={(e) => setLongitude(e.target.value)}
                   style={styles.input}
-                  placeholder="e.g. 36.0663"
+                  placeholder="e.g. 36.963183"
                 />
                 <span style={styles.helperText}>Kenya longitudes range approx 33.9° to 41.9°</span>
               </div>
             </div>
+
+            {/* Resolved Place Name Display */}
+            {hasValidEnteredCoords && (
+              <div
+                style={{
+                  marginTop: '10px',
+                  padding: '8px 14px',
+                  borderRadius: '8px',
+                  backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                  border: '1px solid rgba(16, 185, 129, 0.25)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  fontSize: '0.86rem',
+                  color: '#16a34a',
+                }}
+              >
+                <MapPin size={16} style={{ flexShrink: 0 }} />
+                <span>
+                  <strong>Place: </strong>
+                  {resolveKenyaPlace(numLat, numLng)}
+                </span>
+              </div>
+            )}
 
             {/* Quick Presets for Agricultural Hubs */}
             <div style={{ marginTop: '14px' }}>
@@ -642,7 +664,7 @@ export const FarmerProfilePage: React.FC = () => {
                 disabled={isSavingLocation}
                 style={styles.clearBtn}
               >
-                Clear GPS Coordinates
+                Clear Location Coordinates
               </button>
             )}
 
@@ -746,7 +768,7 @@ export const FarmerProfilePage: React.FC = () => {
 
         {/* Contact & Notification Details */}
         <div style={styles.card}>
-          <h2 style={styles.cardTitle}>
+          <h2 style={{ ...styles.cardTitle, marginBottom: '16px' }}>
             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ display: 'inline-flex', width: 22, height: 22, alignItems: 'center', justifyContent: 'center', background: 'rgba(56,189,248,0.15)', borderRadius: '6px', color: '#38bdf8' }}>
                 <Smartphone size={14} />
@@ -754,14 +776,11 @@ export const FarmerProfilePage: React.FC = () => {
               Contact & Notification Details
             </span>
           </h2>
-          <p style={styles.cardDesc}>
-            Your phone number is used to receive SMS referral confirmations and farm alerts. Your email is linked to your account login.
-          </p>
 
           <div style={styles.fieldRow}>
             {/* Phone Number */}
             <div style={styles.field}>
-              <label style={styles.label}>Phone Number (for SMS Notifications)</label>
+              <label style={styles.label}>Phone Number</label>
               <input
                 type="tel"
                 value={phoneNumber}
@@ -769,14 +788,11 @@ export const FarmerProfilePage: React.FC = () => {
                 style={styles.input}
                 placeholder="e.g. +254 712 345 678"
               />
-              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted, #64748b)', marginTop: '4px', display: 'block' }}>
-                Used to receive SMS referral confirmations and farm health alerts.
-              </span>
             </div>
 
             {/* Email — read-only display */}
             <div style={styles.field}>
-              <label style={styles.label}>Email (Account Login)</label>
+              <label style={styles.label}>Email</label>
               <input
                 type="email"
                 value={userEmail}
@@ -799,7 +815,7 @@ export const FarmerProfilePage: React.FC = () => {
             opacity: isSaving ? 0.7 : 1,
           }}
         >
-          {isSaving ? 'Saving Profile Changes...' : 'Save Full Profile Changes →'}
+          {isSaving ? 'Saving Changes...' : 'Save Changes'}
         </button>
       </form>
     </div>

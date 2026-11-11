@@ -274,7 +274,7 @@ export async function updateFarmerProfile(userId, input) {
         userUpdates.email = input.email.trim().toLowerCase();
     }
     if (Object.keys(userUpdates).length > 0) {
-        updatedUser = await User.findByIdAndUpdate(userId, userUpdates, { new: true });
+        updatedUser = await User.findByIdAndUpdate(userId, userUpdates, { returnDocument: 'after' });
     } else {
         updatedUser = await User.findById(userId);
     }
@@ -662,7 +662,7 @@ export async function updatePushToken(userId, fcmToken) {
     const user = await User.findByIdAndUpdate(
         userId,
         { fcmToken: fcmToken.trim() },
-        { new: true }
+        { returnDocument: 'after' }
     ).select('fcmToken pushNotificationEnabled');
 
     if (!user) {

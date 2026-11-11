@@ -93,18 +93,27 @@ export async function requestAssistanceReferral({
   const partner = AGRICULTURAL_PARTNERS[organizationId] || AGRICULTURAL_PARTNERS.TUPANDE_ONE_ACRE_FUND;
 
   // Retrieve farmer profile (general info only — coordinates not needed)
-  const profile = await FarmerProfile.findOne({ userId }).select('county subCounty generalArea primaryCrops');
+  const profile = await FarmerProfile.findOne({ userId }).select('county subCounty generalArea primaryCrops phoneNumber');
   const user = await User.findById(userId).select('fullName phoneNumber email smsNotificationEnabled pushNotificationEnabled');
 
   if (!user) {
     throw Object.assign(new Error('User account not found.'), { statusCode: 404 });
   }
 
-  // If a phone number is submitted with the referral, update and enable SMS alerts
-  if (phoneNumber && typeof phoneNumber === 'string' && phoneNumber.trim()) {
-    user.phoneNumber = phoneNumber.trim();
+  // Resolve target phone from referral input, user account, or farmer profile
+  const targetPhone = (phoneNumber && typeof phoneNumber === 'string' && phoneNumber.trim())
+    || user.phoneNumber?.trim()
+    || profile?.phoneNumber?.trim()
+    || '';
+
+  // Ensure phone number and SMS preferences are active on both user account and farmer profile
+  if (targetPhone) {
+    user.phoneNumber = targetPhone;
     user.smsNotificationEnabled = true;
-    await user.save();
+    await User.findByIdAndUpdate(userId, { phoneNumber: targetPhone, smsNotificationEnabled: true });
+    if (profile && profile.phoneNumber !== targetPhone) {
+      await FarmerProfile.findByIdAndUpdate(profile._id, { phoneNumber: targetPhone });
+    }
   }
 
   // 1. Record explicit user consent in UserConsent collection (audit trail)
@@ -119,7 +128,7 @@ export async function requestAssistanceReferral({
       consentVersion: '1.0',
       ipAddress: ipAddress ? ipAddress.trim() : undefined,
     },
-    { upsert: true, new: true }
+    { upsert: true, returnDocument: 'after' }
   );
 
   const referralId = `REF-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
@@ -135,6 +144,8 @@ export async function requestAssistanceReferral({
     title: notifTitle,
     body: notifBody,
     smsBody,
+    phoneNumber: targetPhone || null,
+    forceSms: true,
     meta: {
       referralId,
       partnerId: partner.id,
@@ -155,8 +166,8 @@ export async function requestAssistanceReferral({
       tollFreeHotline: partner.tollFreeHotline,
       website: partner.website,
     },
-    phoneNumber: user.phoneNumber,
-    phoneDelivered: Boolean(user.phoneNumber),
+    phoneNumber: targetPhone,
+    phoneDelivered: Boolean(targetPhone),
     dispatchResult,
     instructions: `Your assistance referral #${referralId} has been confirmed. The referral information and direct USSD codes have been dispatched to your phone (${user.phoneNumber || 'registered device'}).`,
   };
