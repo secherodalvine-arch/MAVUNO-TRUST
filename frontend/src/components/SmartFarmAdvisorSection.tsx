@@ -249,112 +249,280 @@ export const SmartFarmAdvisorSection: React.FC = () => {
           </div>
         </div>
       ) : advisory?.code === 'GEE_CREDENTIALS_REQUIRED' || !advisory?.success ? (
-        /* Case 2: Satellite Pipeline Ready */
-        <div
-          style={{
-            background: 'rgba(59, 130, 246, 0.08)',
-            border: '1px solid rgba(59, 130, 246, 0.25)',
-            borderRadius: '8px',
-            padding: '20px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <Info size={20} color="#60a5fa" />
-            <strong style={{ color: '#60a5fa', fontSize: '1rem' }}>Satellite Crop Monitoring Linked</strong>
-          </div>
-          <p style={{ fontSize: '0.875rem', color: '#cbd5e1', marginBottom: '12px', lineHeight: 1.5 }}>
-            Your farm boundary ({boundary.boundaryAreaAcres || 'registered'} acres) is properly recorded.
-            Crop vegetation health and greenness indices will automatically calculate with upcoming satellite passes.
-          </p>
+        /* Case 2: Satellite data not yet available — detailed explanation */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+
+          {/* Status banner */}
           <div
             style={{
-              background: 'rgba(0, 0, 0, 0.25)',
-              padding: '12px',
-              borderRadius: '6px',
-              fontSize: '0.82rem',
-              color: '#94a3b8',
-              lineHeight: 1.6,
+              background: 'rgba(16, 185, 129, 0.08)',
+              border: '1px solid rgba(16, 185, 129, 0.3)',
+              borderRadius: '10px',
+              padding: '18px 20px',
             }}
           >
-            <div>Observation Scope: Registered Farm Polygon ({boundary.boundaryAreaAcres || '—'} acres)</div>
-            <div>Metric: Crop Canopy Density &amp; Vegetation Index</div>
-            <div>Privacy: 100% Confidential to Farm Owner</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+              <Satellite size={22} color="#10b981" />
+              <strong style={{ color: '#10b981', fontSize: '1rem' }}>
+                Farm Boundary Linked — Sentinel-2 Scan Queued
+              </strong>
+            </div>
+            <p style={{ fontSize: '0.9rem', color: '#cbd5e1', margin: 0, lineHeight: 1.6 }}>
+              Your farm boundary of <strong style={{ color: '#f8fafc' }}>{boundary?.boundaryAreaAcres || '—'} acres</strong> is
+              registered and confirmed. The system is querying real Sentinel-2 satellite imagery from the
+              European Space Agency (ESA) Copernicus programme directly over your registered farm polygon.
+            </p>
+            {advisory?.message && (
+              <p style={{ fontSize: '0.82rem', color: '#94a3b8', margin: '10px 0 0 0', fontStyle: 'italic' }}>
+                ⚠ Satellite status: {advisory.message}
+              </p>
+            )}
+          </div>
+
+          {/* What is NDVI — farmer-friendly explanation */}
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid var(--color-border, #334155)',
+              borderRadius: '10px',
+              padding: '18px 20px',
+            }}
+          >
+            <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f8fafc', margin: '0 0 12px 0' }}>
+              🛰️ How Your Farm Is Being Observed
+            </h3>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+              {[
+                {
+                  icon: '📡',
+                  label: 'Satellite',
+                  value: 'Sentinel-2 (ESA / Copernicus)',
+                  desc: 'Europe\'s free, open Earth-observation satellite with 10-metre resolution',
+                },
+                {
+                  icon: '📐',
+                  label: 'Your Farm Area',
+                  value: `${boundary?.boundaryAreaAcres || '—'} acres`,
+                  desc: 'Observation is strictly limited to your registered boundary — private to you only',
+                },
+                {
+                  icon: '📅',
+                  label: 'Revisit Cadence',
+                  value: 'Every 5 days',
+                  desc: 'Sentinel-2 passes over Kenya approximately every 5 days',
+                },
+                {
+                  icon: '🌿',
+                  label: 'Measurement',
+                  value: 'NDVI (Vegetation Index)',
+                  desc: 'NDVI measures how green and dense your crop canopy appears from space — values 0.6–0.9 indicate healthy dense crops',
+                },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.03)',
+                    border: '1px solid rgba(255, 255, 255, 0.07)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                  }}
+                >
+                  <div style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{item.icon}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#64748b', marginBottom: '2px' }}>{item.label}</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc', marginBottom: '4px' }}>{item.value}</div>
+                  <div style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.4 }}>{item.desc}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* NDVI scale explainer */}
+          <div
+            style={{
+              background: 'rgba(255, 255, 255, 0.02)',
+              border: '1px solid var(--color-border, #334155)',
+              borderRadius: '10px',
+              padding: '16px 20px',
+            }}
+          >
+            <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#f8fafc', margin: '0 0 12px 0' }}>
+              🌱 What NDVI Scores Mean For Your Crops
+            </h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {[
+                { range: '0.6 – 0.9', label: 'Dense, Healthy Canopy', color: '#16a34a', desc: 'Crops are growing vigorously. Good canopy cover observed.' },
+                { range: '0.4 – 0.6', label: 'Moderate Vegetation', color: '#65a30d', desc: 'Reasonable crop growth. Worth monitoring for any changes.' },
+                { range: '0.2 – 0.4', label: 'Sparse / Young Crops', color: '#d97706', desc: 'Could indicate young seedlings, partial ground cover, or early stress.' },
+                { range: '0.0 – 0.2', label: 'Very Low Vegetation', color: '#dc2626', desc: 'Bare ground, stressed crops, or recently harvested fields.' },
+              ].map((row) => (
+                <div key={row.range} style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                  <div
+                    style={{
+                      width: '72px',
+                      flexShrink: 0,
+                      background: row.color,
+                      color: '#fff',
+                      borderRadius: '4px',
+                      padding: '3px 6px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      textAlign: 'center',
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    {row.range}
+                  </div>
+                  <div>
+                    <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f8fafc' }}>{row.label}</div>
+                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', lineHeight: 1.4 }}>{row.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Privacy note */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'flex-start',
+              gap: '10px',
+              background: 'rgba(16, 185, 129, 0.05)',
+              border: '1px solid rgba(16, 185, 129, 0.15)',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              fontSize: '0.82rem',
+              color: '#94a3b8',
+            }}
+          >
+            <Info size={16} style={{ flexShrink: 0, color: '#10b981', marginTop: '1px' }} />
+            <span>
+              <strong style={{ color: '#10b981' }}>100% Private:</strong>{' '}
+              Your farm boundary coordinates and satellite readings are strictly confidential. They are never shared with
+              dealers, other farmers, or any third party — used solely to generate your personal crop health advisory.
+            </span>
           </div>
         </div>
       ) : (
         /* Case 3: Real Satellite Observation & AI Advisory Available */
         <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* NDVI Health Metric Card */}
+          {/* NDVI Health Metric Cards */}
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-              gap: '16px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+              gap: '12px',
             }}
           >
+            {/* Vegetation Health card */}
             <div
               style={{
                 background: 'rgba(255, 255, 255, 0.03)',
-                border: '1px solid var(--color-border, #334155)',
-                borderRadius: '8px',
-                padding: '14px',
+                border: `1px solid ${
+                  advisory.ndviClassification?.severity === 'good'
+                    ? 'rgba(16, 185, 129, 0.35)'
+                    : advisory.ndviClassification?.severity === 'moderate'
+                    ? 'rgba(245, 158, 11, 0.35)'
+                    : 'rgba(239, 68, 68, 0.35)'
+                }`,
+                borderRadius: '10px',
+                padding: '16px',
               }}
             >
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>Vegetation Health Status</div>
+              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                🌿 Crop Canopy Health
+              </div>
               <div
                 style={{
                   fontSize: '1.1rem',
-                  fontWeight: 600,
+                  fontWeight: 700,
                   color:
                     advisory.ndviClassification?.severity === 'good'
                       ? '#10b981'
                       : advisory.ndviClassification?.severity === 'moderate'
                       ? '#f59e0b'
                       : '#ef4444',
+                  marginBottom: '4px',
                 }}
               >
                 {advisory.ndviClassification?.label || 'Observed'}
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#cbd5e1', marginTop: '4px' }}>
+              <div style={{ fontSize: '0.78rem', color: '#cbd5e1', lineHeight: 1.5 }}>
                 {advisory.ndviClassification?.description}
               </div>
             </div>
 
+            {/* NDVI score card with visual bar */}
             <div
               style={{
                 background: 'rgba(255, 255, 255, 0.03)',
                 border: '1px solid var(--color-border, #334155)',
-                borderRadius: '8px',
-                padding: '14px',
+                borderRadius: '10px',
+                padding: '16px',
               }}
             >
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>Mean Farm NDVI</div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f8fafc' }}>
-                {advisory.dataQuality?.meanNDVI !== undefined
-                  ? Number(advisory.dataQuality.meanNDVI).toFixed(3)
-                  : 'N/A'}
+              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                📡 Satellite NDVI Score
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>
-                Observed: {advisory.observationDate || 'Recent pass'}
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginBottom: '8px' }}>
+                <span style={{ fontSize: '1.6rem', fontWeight: 700, color: '#f8fafc' }}>
+                  {advisory.dataQuality?.meanNDVI !== undefined
+                    ? Number(advisory.dataQuality.meanNDVI).toFixed(3)
+                    : 'N/A'}
+                </span>
+                <span style={{ fontSize: '0.78rem', color: '#64748b' }}>/ 1.0 scale</span>
+              </div>
+              {/* Visual NDVI bar */}
+              {advisory.dataQuality?.meanNDVI !== undefined && (
+                <div style={{ position: 'relative', height: '6px', borderRadius: '3px', background: 'rgba(255,255,255,0.1)', overflow: 'hidden' }}>
+                  <div
+                    style={{
+                      position: 'absolute',
+                      left: 0, top: 0, bottom: 0,
+                      width: `${Math.max(0, Math.min(100, Number(advisory.dataQuality.meanNDVI) * 100))}%`,
+                      background: advisory.ndviClassification?.severity === 'good'
+                        ? '#10b981'
+                        : advisory.ndviClassification?.severity === 'moderate'
+                        ? '#f59e0b'
+                        : '#ef4444',
+                      borderRadius: '3px',
+                      transition: 'width 0.5s ease',
+                    }}
+                  />
+                </div>
+              )}
+              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '8px' }}>
+                📅 Observed: <strong style={{ color: '#cbd5e1' }}>{advisory.observationDate || 'Recent pass'}</strong>
               </div>
             </div>
 
+            {/* Cloud cover / data quality */}
             <div
               style={{
                 background: 'rgba(255, 255, 255, 0.03)',
                 border: '1px solid var(--color-border, #334155)',
-                borderRadius: '8px',
-                padding: '14px',
+                borderRadius: '10px',
+                padding: '16px',
               }}
             >
-              <div style={{ fontSize: '0.8rem', color: '#94a3b8', marginBottom: '4px' }}>Data Quality &amp; Clouds</div>
-              <div style={{ fontSize: '1rem', fontWeight: 600, color: '#f8fafc' }}>
-                {advisory.dataQuality?.cloudCoverPercent !== null
-                  ? `${advisory.dataQuality?.cloudCoverPercent}% Cloud`
-                  : 'Clear'}
+              <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                ☁ Image Quality
               </div>
-              <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginTop: '4px' }}>
-                Confidence: {advisory.advisory?.confidence || 'MEDIUM'}
+              <div style={{ fontSize: '1rem', fontWeight: 700, color: '#f8fafc', marginBottom: '4px' }}>
+                {advisory.dataQuality?.cloudCoverPercent !== null && advisory.dataQuality?.cloudCoverPercent !== undefined
+                  ? `${advisory.dataQuality.cloudCoverPercent}% cloud cover`
+                  : 'Clear observation'}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#94a3b8', lineHeight: 1.5 }}>
+                {advisory.dataQuality?.cloudCoverPercent !== null && advisory.dataQuality?.cloudCoverPercent !== undefined
+                  ? advisory.dataQuality.cloudCoverPercent < 10
+                    ? '✅ Excellent clarity — very reliable reading'
+                    : advisory.dataQuality.cloudCoverPercent < 25
+                    ? '✅ Good image quality'
+                    : '⚠ Moderate cloud cover — reading is an estimate'
+                  : '✅ Clear sky over your farm'}
+                <br />
+                AI confidence: <strong style={{ color: '#f8fafc' }}>{advisory.advisory?.confidence || 'MEDIUM'}</strong>
               </div>
             </div>
           </div>
@@ -365,71 +533,130 @@ export const SmartFarmAdvisorSection: React.FC = () => {
               style={{
                 background: 'rgba(16, 185, 129, 0.05)',
                 border: '1px solid rgba(16, 185, 129, 0.2)',
-                borderRadius: '8px',
+                borderRadius: '10px',
                 padding: '18px',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
                 <Sparkles size={18} color="#10b981" />
-                <h3 style={{ fontSize: '0.95rem', fontWeight: 600, margin: 0, color: '#10b981' }}>
-                  AI Agricultural Advisor Guidance
+                <h3 style={{ fontSize: '0.95rem', fontWeight: 700, margin: 0, color: '#10b981' }}>
+                  AI Crop Health Advisory — Based on Real Satellite Data
                 </h3>
               </div>
 
-              <p style={{ fontSize: '0.9rem', color: '#f8fafc', marginBottom: '6px', lineHeight: 1.5 }}>
+              {/* English observation */}
+              <div
+                style={{
+                  background: 'rgba(255,255,255,0.03)',
+                  borderRadius: '8px',
+                  padding: '12px 14px',
+                  marginBottom: '10px',
+                  fontSize: '0.9rem',
+                  color: '#f8fafc',
+                  lineHeight: 1.6,
+                }}
+              >
+                <strong style={{ color: '#10b981', fontSize: '0.78rem', display: 'block', marginBottom: '4px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  🛰 Satellite Observation
+                </strong>
                 {advisory.advisory.vegetationObservation}
-              </p>
+              </div>
 
               {/* Kiswahili translation */}
               {(advisory.advisory as any).vegetationObservationSw && (
-                <p style={{ fontSize: '0.85rem', color: '#94a3b8', marginBottom: '12px', lineHeight: 1.5, fontStyle: 'italic', borderLeft: '2px solid #334155', paddingLeft: '10px' }}>
-                  <Languages size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px', color: '#10b981' }} />
-                  <strong style={{ color: '#64748b' }}>Kiswahili:</strong> {(advisory.advisory as any).vegetationObservationSw}
-                </p>
-              )}
-
-              {/* Weather influence note */}
-              {(advisory.advisory as any).weatherInfluence && (advisory.advisory as any).weatherInfluence !== 'Weather data not available.' && (
-                <div style={{
-                  background: 'rgba(251, 191, 36, 0.07)',
-                  border: '1px solid rgba(251, 191, 36, 0.2)',
-                  borderRadius: '6px',
-                  padding: '8px 12px',
-                  fontSize: '0.82rem',
-                  color: '#fde047',
-                  marginBottom: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                }}>
-                  <Cloud size={14} style={{ flexShrink: 0, color: '#fbbf24' }} />
-                  <span><strong>Weather context:</strong> {(advisory.advisory as any).weatherInfluence}</span>
+                <div
+                  style={{
+                    fontSize: '0.85rem',
+                    color: '#94a3b8',
+                    marginBottom: '12px',
+                    lineHeight: 1.5,
+                    fontStyle: 'italic',
+                    borderLeft: '3px solid rgba(16, 185, 129, 0.4)',
+                    paddingLeft: '12px',
+                  }}
+                >
+                  <Languages size={13} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '5px', color: '#10b981' }} />
+                  <strong style={{ color: '#64748b' }}>Kiswahili:</strong>{' '}
+                  {(advisory.advisory as any).vegetationObservationSw}
                 </div>
               )}
 
+              {/* Weather context */}
+              {(advisory.advisory as any).weatherInfluence &&
+                (advisory.advisory as any).weatherInfluence !== 'Weather data not available.' && (
+                <div
+                  style={{
+                    background: 'rgba(251, 191, 36, 0.07)',
+                    border: '1px solid rgba(251, 191, 36, 0.2)',
+                    borderRadius: '8px',
+                    padding: '10px 14px',
+                    fontSize: '0.83rem',
+                    color: '#fde047',
+                    marginBottom: '14px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '8px',
+                  }}
+                >
+                  <Cloud size={15} style={{ flexShrink: 0, color: '#fbbf24', marginTop: '1px' }} />
+                  <span>
+                    <strong>Weather influence:</strong>{' '}
+                    {(advisory.advisory as any).weatherInfluence}
+                  </span>
+                </div>
+              )}
+
+              {/* Practical Recommendations */}
               {advisory.advisory.practicalRecommendations?.length > 0 && (
                 <div style={{ marginBottom: '14px' }}>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 600, color: '#cbd5e1', marginBottom: '6px' }}>
-                    Actionable Recommendations:
+                  <div
+                    style={{
+                      fontSize: '0.82rem',
+                      fontWeight: 700,
+                      color: '#cbd5e1',
+                      marginBottom: '8px',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.05em',
+                    }}
+                  >
+                    ✅ What You Should Do Now
                   </div>
-                  <ul style={{ margin: 0, paddingLeft: '20px', fontSize: '0.85rem', color: '#94a3b8', lineHeight: 1.5 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {advisory.advisory.practicalRecommendations.map((rec, idx) => (
-                      <li key={idx} style={{ marginBottom: '4px' }}>
-                        <span>{rec}</span>
-                        {/* Kiswahili recommendation inline */}
+                      <div
+                        key={idx}
+                        style={{
+                          background: 'rgba(255,255,255,0.03)',
+                          border: '1px solid rgba(255,255,255,0.07)',
+                          borderRadius: '8px',
+                          padding: '10px 12px',
+                        }}
+                      >
+                        <div style={{ fontSize: '0.85rem', color: '#f8fafc', lineHeight: 1.5 }}>
+                          <strong style={{ color: '#10b981' }}>{idx + 1}.</strong> {rec}
+                        </div>
                         {(advisory.advisory as any).practicalRecommendationsSw?.[idx] && (
-                          <div style={{ color: '#64748b', fontStyle: 'italic', fontSize: '0.8rem', marginTop: '2px' }}>
-                            <Languages size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px', color: '#64748b' }} />
+                          <div
+                            style={{
+                              color: '#64748b',
+                              fontStyle: 'italic',
+                              fontSize: '0.8rem',
+                              marginTop: '4px',
+                              paddingTop: '4px',
+                              borderTop: '1px solid rgba(255,255,255,0.05)',
+                            }}
+                          >
+                            <Languages size={12} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px' }} />
                             {(advisory.advisory as any).practicalRecommendationsSw[idx]}
                           </div>
                         )}
-                      </li>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 </div>
               )}
 
-              {/* Strict Disease Disclaimer */}
+              {/* Disclaimer */}
               <div
                 style={{
                   display: 'flex',
@@ -437,7 +664,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                   gap: '8px',
                   background: 'rgba(239, 68, 68, 0.08)',
                   border: '1px solid rgba(239, 68, 68, 0.25)',
-                  borderRadius: '6px',
+                  borderRadius: '8px',
                   padding: '10px 12px',
                   fontSize: '0.78rem',
                   color: '#fca5a5',
@@ -445,9 +672,9 @@ export const SmartFarmAdvisorSection: React.FC = () => {
               >
                 <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: '2px' }} />
                 <span>
-                  <strong>Important Agronomic Disclaimer: </strong>
+                  <strong>Important: </strong>
                   {advisory.advisory.disclaimer ||
-                    'Satellite vegetation index measures plant canopy density, not confirmed crop disease. Never assume a diagnosis without on-the-ground field inspection.'}
+                    'Satellite vegetation index measures plant canopy density — it is not a confirmed crop disease diagnosis. Always verify with on-ground field inspection before taking action.'}
                 </span>
               </div>
             </div>

@@ -107,24 +107,24 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
   const centerLat = referenceLat && !isNaN(referenceLat) ? referenceLat : -0.2833;
   const centerLng = referenceLng && !isNaN(referenceLng) ? referenceLng : 36.0663;
 
-  // Create clean vertex handle icon (replaces the old n+1 text marker)
+  // Create clean vertex handle icon — solid dot, draggable
   const createVertexIcon = useCallback(() => {
     return L.divIcon({
       className: 'farm-boundary-vertex',
       html: `
         <div style="
-          width: 16px;
-          height: 16px;
+          width: 12px;
+          height: 12px;
           background: #10b981;
-          border: 2.5px solid #ffffff;
+          border: 2px solid #ffffff;
           border-radius: 50%;
-          box-shadow: 0 0 8px rgba(16, 185, 129, 0.8), 0 2px 4px rgba(0,0,0,0.5);
+          box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.4), 0 2px 6px rgba(0,0,0,0.5);
           cursor: grab;
-          transition: transform 0.1s ease;
+          transition: transform 0.1s ease, box-shadow 0.1s ease;
         "></div>
       `,
-      iconSize: [16, 16],
-      iconAnchor: [8, 8],
+      iconSize: [12, 12],
+      iconAnchor: [6, 6],
     });
   }, []);
 
@@ -133,24 +133,44 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
       className: 'farm-center-icon',
       html: `
         <div style="
-          width: 28px;
-          height: 28px;
-          background: #f59e0b;
-          border: 2.5px solid #ffffff;
-          border-radius: 50%;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          position: relative;
+          width: 36px;
+          height: 44px;
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: center;
-          color: #ffffff;
         ">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>
+          <!-- Pulse ring -->
+          <div style="
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(16, 185, 129, 0.15);
+            animation: pulse-ring 2s ease-out infinite;
+            pointer-events: none;
+          "></div>
+          <!-- Pin body -->
+          <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 0C10.268 0 4 6.268 4 14c0 10.5 14 30 14 30s14-19.5 14-30c0-7.732-6.268-14-14-14z"
+              fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+            <circle cx="18" cy="14" r="6" fill="white"/>
+            <circle cx="18" cy="14" r="3" fill="#16a34a"/>
           </svg>
+          <style>
+            @keyframes pulse-ring {
+              0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0.8; }
+              100% { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
+            }
+          </style>
         </div>
       `,
-      iconSize: [28, 28],
-      iconAnchor: [14, 14],
+      iconSize: [36, 44],
+      iconAnchor: [18, 44],
+      popupAnchor: [0, -44],
     });
   }, []);
 
@@ -220,7 +240,7 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
       }).addTo(map);
       centerMarker.bindPopup(`
         <div style="font-family: inherit; font-size: 13px; color: #1e293b; padding: 4px;">
-          <strong style="color: #f59e0b;">Farm Reference Spot</strong>
+          <strong style="color: #16a34a;">📍 Farm Reference Point</strong>
           <div style="font-size: 11px; color: #64748b; margin-top: 4px;">
             ${centerLat.toFixed(5)}, ${centerLng.toFixed(5)}
           </div>
@@ -762,29 +782,6 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
             <Layers size={14} color="#38bdf8" />
             <span>{activeLayer === 'satellite' ? 'Satellite View' : 'Streets View'}</span>
           </button>
-        </div>
-
-        {/* Interactive Drawing Instructions Overlay */}
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '10px',
-            left: '12px',
-            zIndex: 1000,
-            background: 'rgba(15, 23, 42, 0.85)',
-            backdropFilter: 'blur(6px)',
-            padding: '6px 12px',
-            borderRadius: '8px',
-            fontSize: '0.78rem',
-            color: '#f8fafc',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            pointerEvents: 'none',
-          }}
-        >
-          <Sparkles size={14} color="#10b981" />
-          <span>Click land to add corners. Click and hold green points to drag/stretch perimeter.</span>
         </div>
       </div>
 

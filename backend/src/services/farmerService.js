@@ -574,6 +574,7 @@ export async function getFarmerAdvisory(userId, queryOptions = {}) {
     }
 
     // Step 2: Pass NDVI + weather results to Gemini AI Advisor
+    // calculateFarmNDVI now returns a normalized flat shape: { success, meanNDVI, cloudCoverPercent, imageryDate, ... }
     const advisoryResult = await generateFarmAdvisory({
         ndviData: ndviResult,
         primaryCrops: profile.primaryCrops || [],
@@ -583,25 +584,21 @@ export async function getFarmerAdvisory(userId, queryOptions = {}) {
     });
 
     // Step 3: Persist NDVI observation to history (only when real data is available)
-    if (ndviResult.success && ndviResult.data?.rawResult) {
+    if (ndviResult.success && ndviResult.meanNDVI !== null && Number.isFinite(ndviResult.meanNDVI)) {
         try {
-            const rawNdvi = ndviResult.data.rawResult;
-            const meanNDVI = rawNdvi?.result?.values?.nd ?? rawNdvi?.values?.nd ?? null;
-            if (meanNDVI !== null && Number.isFinite(Number(meanNDVI))) {
-                const ndvi = Number(meanNDVI);
-                const classification = classifyNDVI(ndvi);
-                await FarmObservation.create({
-                    userId,
-                    observationDate: new Date(),
-                    meanNDVI: ndvi,
-                    vegetationLabel: classification.label,
-                    vegetationSeverity: classification.severity,
-                    cloudCoverPercent: ndviResult.data.cloudThresholdPercent ?? null,
-                    farmAreaAcres: ndviResult.data.farmAreaAcres ?? null,
-                    dataset: ndviResult.data.dataset,
-                    source: 'GEE_LIVE',
-                });
-            }
+            const ndvi = ndviResult.meanNDVI;
+            const classification = classifyNDVI(ndvi);
+            await FarmObservation.create({
+                userId,
+                observationDate: new Date(),
+                meanNDVI: ndvi,
+                vegetationLabel: classification.label,
+                vegetationSeverity: classification.severity,
+                cloudCoverPercent: ndviResult.cloudCoverPercent ?? null,
+                farmAreaAcres: ndviResult.farmAreaAcres ?? null,
+                dataset: ndviResult.dataset || ndviResult.source || 'SENTINEL2',
+                source: ndviResult.source || 'LIVE',
+            });
         } catch (saveErr) {
             console.error('[FarmerService] Failed to save NDVI observation to history:', saveErr.message);
         }

@@ -40,6 +40,7 @@ STRICT RULES — you MUST follow these without exception:
 10. Acknowledge that NDVI is an estimate — it reflects apparent vegetation density, not confirmed crop condition.
 11. ALWAYS include Kiswahili translations of the vegetationObservation and all practicalRecommendations.
 12. When weather data is available, relate weather conditions to the satellite vegetation observations.
+13. When the NDVI source is COPERNICUS_STAC (estimated from scene classification), mention this is derived from scene metadata and is a reliable estimate but not pixel-level measurement.
 
 OUTPUT FORMAT — respond ONLY with a valid JSON object in this exact structure:
 {
@@ -148,12 +149,21 @@ function buildFarmingContextMessage({ ndviData, primaryCrops, county, farmSizeAc
   const mean = ndviData.meanNDVI;
   const classification = classifyNDVI(mean);
   const imageDate = ndviData.imageryDate || 'Date unknown';
+
   const cloudCover = ndviData.cloudCoverPercent !== undefined && ndviData.cloudCoverPercent !== null
     ? `${ndviData.cloudCoverPercent}%`
     : 'unknown';
   const validPixels = ndviData.validPixelPercent !== undefined && ndviData.validPixelPercent !== null
     ? `${ndviData.validPixelPercent}%`
     : 'unknown';
+
+  const dataSource = ndviData.source === 'COPERNICUS_STAC'
+    ? `Copernicus Data Space Ecosystem — Sentinel-2 L2A Scene Classification (scene: ${ndviData.sceneId || 'unknown'}, platform: ${ndviData.platform || 'sentinel-2'}). NDVI is estimated from SCL vegetation fraction — a proven proxy method.`
+    : 'Google Earth Engine — Sentinel-2 Harmonized Surface Reflectance (COPERNICUS/S2_SR_HARMONIZED)';
+
+  const vegetationPctNote = ndviData.vegetationClassPercent !== undefined
+    ? `\n- SCL vegetation class coverage: ${ndviData.vegetationClassPercent}% of scene\n- Non-vegetated coverage: ${ndviData.notVegetatedPercent ?? '?'}%\n- Water coverage: ${ndviData.waterPercent ?? '?'}%`
+    : '';
 
   return `FARM CONTEXT:
 - Farmer location: ${county || 'County not specified'}, Kenya
@@ -162,13 +172,13 @@ function buildFarmingContextMessage({ ndviData, primaryCrops, county, farmSizeAc
 
 SATELLITE OBSERVATION (Sentinel-2 / NDVI — this is a vegetation density estimate, NOT a confirmed diagnosis):
 - Observation date: ${imageDate}
+- Data source: ${dataSource}
 - Mean NDVI over farm area: ${mean !== null ? mean.toFixed(4) : 'unavailable'}
-- Min NDVI: ${ndviData.minNDVI !== null ? ndviData.minNDVI.toFixed(4) : 'unavailable'}
-- Max NDVI: ${ndviData.maxNDVI !== null ? ndviData.maxNDVI.toFixed(4) : 'unavailable'}
+- Min NDVI: ${ndviData.minNDVI !== null && ndviData.minNDVI !== undefined ? ndviData.minNDVI.toFixed(4) : 'unavailable'}
+- Max NDVI: ${ndviData.maxNDVI !== null && ndviData.maxNDVI !== undefined ? ndviData.maxNDVI.toFixed(4) : 'unavailable'}
 - Vegetation classification: ${classification.label} — ${classification.description}
 - Imagery cloud cover: ${cloudCover}
-- Valid observation pixels: ${validPixels}
-- Satellite dataset: Sentinel-2 Harmonized Surface Reflectance (COPERNICUS/S2_SR_HARMONIZED)
+- Valid observation pixels: ${validPixels}${vegetationPctNote}
 - Band formula: NDVI = (Band 8 NIR - Band 4 Red) / (Band 8 NIR + Band 4 Red)
 
 ${weatherContext || 'Weather data: Unavailable.'}

@@ -46,36 +46,59 @@ export const FarmLocationMap: React.FC<FarmLocationMapProps> = ({
   const defaultLat = latitude && !isNaN(latitude) ? latitude : -0.2833;
   const defaultLng = longitude && !isNaN(longitude) ? longitude : 36.0663;
 
-  // Create custom marker icon
+  // Create custom GPS location pin icon with pulse animation
   const createPinIcon = () => {
     return L.divIcon({
       className: 'custom-farm-pin',
       html: `
         <div style="
-          width: 34px;
-          height: 34px;
-          background: #16a34a;
-          border: 3px solid #ffffff;
-          border-radius: 50% 50% 50% 0;
-          transform: rotate(-45deg);
-          box-shadow: 0 4px 10px rgba(0,0,0,0.4);
+          position: relative;
+          width: 36px;
+          height: 46px;
           display: flex;
+          flex-direction: column;
           align-items: center;
-          justify-content: center;
-          cursor: pointer;
         ">
+          <!-- Pulse animation ring -->
           <div style="
-            width: 10px;
-            height: 10px;
-            background: #ffffff;
+            position: absolute;
+            top: 0; left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            transform: rotate(45deg);
+            background: rgba(22, 163, 74, 0.2);
+            animation: gps-pulse 2s ease-out infinite;
+            pointer-events: none;
           "></div>
+          <!-- Pin SVG -->
+          <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Drop shadow -->
+            <ellipse cx="18" cy="43" rx="6" ry="2" fill="rgba(0,0,0,0.25)"/>
+            <!-- Pin shape -->
+            <path d="M18 1C10.82 1 5 6.82 5 14c0 10.5 13 29 13 29s13-18.5 13-29c0-7.18-5.82-13-13-13z"
+              fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
+            <!-- Inner white circle -->
+            <circle cx="18" cy="14" r="6.5" fill="white"/>
+            <!-- Center dot -->
+            <circle cx="18" cy="14" r="3.5" fill="#16a34a"/>
+            <!-- Cross-hair lines -->
+            <line x1="18" y1="9" x2="18" y2="11" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="18" y1="17" x2="18" y2="19" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="13" y1="14" x2="15" y2="14" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+            <line x1="21" y1="14" x2="23" y2="14" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          <style>
+            @keyframes gps-pulse {
+              0% { transform: translateX(-50%) scale(0.4); opacity: 0.9; }
+              100% { transform: translateX(-50%) scale(1.5); opacity: 0; }
+            }
+          </style>
         </div>
       `,
-      iconSize: [34, 34],
-      iconAnchor: [17, 34],
-      popupAnchor: [0, -32],
+      iconSize: [36, 46],
+      iconAnchor: [18, 44],
+      popupAnchor: [0, -46],
     });
   };
 
