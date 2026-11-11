@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { LoadSpinner } from './LoadSpinner';
 import {
   Satellite,
   AlertTriangle,
@@ -28,6 +30,7 @@ import {
 } from '../services/farmerService';
 
 export const SmartFarmAdvisorSection: React.FC = () => {
+  const { user } = useAuth();
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
   const [boundary, setBoundary] = useState<FarmBoundaryDTO | null>(null);
@@ -39,7 +42,12 @@ export const SmartFarmAdvisorSection: React.FC = () => {
   const [selectedPartnerId, setSelectedPartnerId] = useState<string>('TUPANDE_ONE_ACRE_FUND');
   const [assistanceType, setAssistanceType] = useState<string>('INPUTS_AND_TRAINING');
   const [assistanceNotes, setAssistanceNotes] = useState<string>('');
-  const [referralPhone, setReferralPhone] = useState<string>('');
+  const [profilePhone, setProfilePhone] = useState<string>(() => {
+    return localStorage.getItem('farmer_profile_phone') || user?.phoneNumber || '';
+  });
+  const [referralPhone, setReferralPhone] = useState<string>(() => {
+    return localStorage.getItem('farmer_profile_phone') || user?.phoneNumber || '';
+  });
   const [consentChecked, setConsentChecked] = useState<boolean>(false);
   const [submittingReferral, setSubmittingReferral] = useState<boolean>(false);
   const [referralResult, setReferralResult] = useState<AssistanceReferralResponse | null>(null);
@@ -56,8 +64,11 @@ export const SmartFarmAdvisorSection: React.FC = () => {
       setPartners(partnersRes);
 
       // Pre-fill referral phone from stored profile phone number
-      if (profileRes?.phoneNumber && !referralPhone) {
-        setReferralPhone(profileRes.phoneNumber);
+      const resolvedPhone = profileRes?.phoneNumber || user?.phoneNumber || localStorage.getItem('farmer_profile_phone') || '';
+      if (resolvedPhone) {
+        setProfilePhone(resolvedPhone);
+        localStorage.setItem('farmer_profile_phone', resolvedPhone);
+        setReferralPhone((prev) => (prev.trim() ? prev : resolvedPhone));
       }
 
       if (boundaryRes?.hasBoundary) {
@@ -78,7 +89,7 @@ export const SmartFarmAdvisorSection: React.FC = () => {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [user]);
 
   const handleRefresh = () => {
     setRefreshing(true);
@@ -193,9 +204,8 @@ export const SmartFarmAdvisorSection: React.FC = () => {
       </div>
 
       {loading ? (
-        <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
-          <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 12px' }} />
-          <p>Connecting to satellite monitoring feed...</p>
+        <div style={{ padding: '40px 20px', display: 'flex', justifyContent: 'center' }}>
+          <LoadSpinner size="md" text="quering..." />
         </div>
       ) : !boundary?.hasBoundary ? (
         /* Case 1: No Boundary Registered */
@@ -814,8 +824,13 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                       boxSizing: 'border-box',
                     }}
                   />
-                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted, #64748b)', marginTop: '4px' }}>
-                    Referral details and partner contact info will be sent to this number via SMS.
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted, #64748b)', marginTop: '5px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                    <Info size={13} style={{ color: '#10b981', flexShrink: 0 }} />
+                    <span>
+                      {profilePhone
+                        ? `Defaulted to your profile phone number (${profilePhone}). You can change it here or in Profile.`
+                        : <span>No phone number saved in your profile yet. <Link to="/farmer/profile" style={{ color: '#10b981', textDecoration: 'underline' }}>Set it in Profile</Link> to auto-fill here.</span>}
+                    </span>
                   </div>
                 </div>
 
@@ -890,8 +905,17 @@ export const SmartFarmAdvisorSection: React.FC = () => {
                       cursor: !consentChecked || submittingReferral ? 'not-allowed' : 'pointer',
                     }}
                   >
-                    <Send size={16} />
-                    {submittingReferral ? 'Submitting Referral...' : 'Submit Assistance Request'}
+                    {submittingReferral ? (
+                      <>
+                        <RefreshCw size={16} className="animate-spin" />
+                        <span>Submitting Referral...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Send size={16} />
+                        <span>Submit Assistance Request</span>
+                      </>
+                    )}
                   </button>
 
                   <button

@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Volume2, Pause } from 'lucide-react';
+import { Volume2, Pause, Loader2 } from 'lucide-react';
 import apiClient from '../services/apiClient';
 
 interface AudioButtonProps {
@@ -86,9 +86,9 @@ export const AudioButton: React.FC<AudioButtonProps> = ({ textId, lang, label })
       aria-label={displayLabel}
     >
       <span style={{ display: 'inline-flex', alignItems: 'center' }}>
-        {isPlaying ? <Pause size={15} /> : <Volume2 size={15} />}
+        {loading ? <Loader2 size={15} className="animate-spin" /> : isPlaying ? <Pause size={15} /> : <Volume2 size={15} />}
       </span>
-      <span>{loading ? '...' : (error ? 'Error' : displayLabel)}</span>
+      <span>{loading ? 'quering...' : (error ? 'Error' : displayLabel)}</span>
     </button>
   );
 };

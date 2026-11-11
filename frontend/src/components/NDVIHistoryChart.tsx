@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { TrendingUp, TrendingDown, Minus, RefreshCw, BarChart3 } from 'lucide-react';
+import { LoadSpinner } from './LoadSpinner';
 import { getNDVIHistoryApi, type NDVIObservationDTO } from '../services/farmerService';
 
 function getSeverityColor(severity: string | undefined): string {
@@ -55,14 +56,13 @@ export const NDVIHistoryChart: React.FC = () => {
           background: 'var(--color-surface-card)',
           border: '1px solid var(--color-surface-border)',
           borderRadius: '12px',
-          padding: '20px',
+          padding: '24px 20px',
           marginBottom: '24px',
-          textAlign: 'center',
-          color: 'var(--color-text-muted)',
+          display: 'flex',
+          justifyContent: 'center',
         }}
       >
-        <RefreshCw size={18} className="animate-spin" style={{ margin: '0 auto 8px' }} />
-        <p style={{ fontSize: '0.85rem', margin: 0 }}>Loading vegetation history...</p>
+        <LoadSpinner size="sm" text="quering..." />
       </div>
     );
   }

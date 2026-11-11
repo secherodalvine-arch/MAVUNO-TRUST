@@ -898,7 +898,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
 
           {myRecordsLoading ? (
             <div style={{ padding: 30, textAlign: 'center' }}>
-              <LoadSpinner fullPage={false} size="md" text="Loading records..." />
+              <LoadSpinner fullPage={false} size="md" text="quering..." />
             </div>
           ) : myRecords.length === 0 ? (
             <div style={{ padding: 30, textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.88rem' }}>

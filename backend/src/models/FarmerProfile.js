@@ -69,6 +69,10 @@ const FarmerProfileSchema = new Schema({
         type: Number,
         min: [0, 'Farm size cannot be negative'],
     },
+    phoneNumber: {
+        type: String,
+        trim: true,
+    },
     primaryCrops: {
         type: [String],
     },

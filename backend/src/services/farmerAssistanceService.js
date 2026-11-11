@@ -161,20 +161,3 @@ export async function requestAssistanceReferral({
     instructions: `Your assistance referral #${referralId} has been confirmed. The referral information and direct USSD codes have been dispatched to your phone (${user.phoneNumber || 'registered device'}).`,
   };
 }
-      ussdCode: partner.ussdCode || null,
-      tollFreeHotline: partner.tollFreeHotline || null,
-      smsChannel: partner.smsChannel || null,
-      website: partner.website || null,
-      services: partner.services,
-    },
-    sharedDetails: {
-      farmerName: user.fullName,
-      county: profile?.county || 'Not specified',
-      subCounty: profile?.subCounty || 'Not specified',
-      primaryCrops: profile?.primaryCrops || [],
-      contactPhone: user.phoneNumber || 'Not registered',
-    },
-    consentRecordedAt: new Date().toISOString(),
-    instructions: `You can reach ${partner.name} immediately by dialing ${partner.ussdCode || partner.tollFreeHotline} from your mobile phone. Have your referral ID (${referralId}) ready.`,
-  };
-}

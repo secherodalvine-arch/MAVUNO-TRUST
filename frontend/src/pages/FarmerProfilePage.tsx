@@ -8,6 +8,7 @@ import {
 } from '../services/farmerService';
 import { FarmBoundaryDrawer } from '../components/FarmBoundaryDrawer';
 import { FarmLocationMap } from '../components/FarmLocationMap';
+import { LoadSpinner } from '../components/LoadSpinner';
 import {
   Sprout,
   CheckCircle2,
@@ -96,10 +97,18 @@ export const FarmerProfilePage: React.FC = () => {
         setPrivateExactLocation(profileData._privateExactLocation || '');
         setIsPublicProfile(profileData.isPublicProfile !== false);
         setFarmSizeAcres(profileData.farmSizeAcres ?? '');
-        setPhoneNumber(profileData.phoneNumber || user?.phoneNumber || '');
+        const resolvedPhone = profileData.phoneNumber || user?.phoneNumber || '';
+        setPhoneNumber(resolvedPhone);
+        if (resolvedPhone) {
+          localStorage.setItem('farmer_profile_phone', resolvedPhone);
+        }
         setUserEmail(profileData.email || user?.email || '');
       } else {
         setDisplayName(user?.fullName || '');
+        if (user?.phoneNumber) {
+          setPhoneNumber(user.phoneNumber);
+          localStorage.setItem('farmer_profile_phone', user.phoneNumber);
+        }
         setUserEmail(user?.email || '');
       }
 
@@ -300,6 +309,18 @@ export const FarmerProfilePage: React.FC = () => {
         phoneNumber: phoneNumber.trim(),
       });
 
+      if (phoneNumber.trim()) {
+        localStorage.setItem('farmer_profile_phone', phoneNumber.trim());
+        try {
+          const cached = localStorage.getItem('mavuno_user');
+          if (cached) {
+            const parsed = JSON.parse(cached);
+            parsed.phoneNumber = phoneNumber.trim();
+            localStorage.setItem('mavuno_user', JSON.stringify(parsed));
+          }
+        } catch (_) {}
+      }
+
       setMessage({ type: 'success', text: 'Farmer profile and location updated successfully!' });
       if (parsedLat !== undefined && parsedLng !== undefined) {
         setHasRegisteredCoordinates(parsedLat !== null && parsedLng !== null);
@@ -317,9 +338,8 @@ export const FarmerProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '60px 20px', textAlign: 'center', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-        <Sprout size={24} style={{ color: '#4ade80', animation: 'spin 2s linear infinite' }} />
-        <span>Loading Farmer Profile & Location Settings...</span>
+      <div style={{ padding: '60px 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <LoadSpinner size="lg" text="quering..." />
       </div>
     );
   }

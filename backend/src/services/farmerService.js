@@ -104,10 +104,8 @@ export async function getFarmerProfileByUserId(userId, includePrivate = false) {
     const profile = await getFarmerProfileDocument(userId, includePrivate);
     const user = await User.findById(userId).select('phoneNumber email');
     const profileObj = profile.toObject();
-    if (user) {
-        profileObj.phoneNumber = user.phoneNumber || '';
-        profileObj.email = user.email || '';
-    }
+    profileObj.phoneNumber = user?.phoneNumber || profile.phoneNumber || '';
+    profileObj.email = user?.email || '';
     return profileObj;
 }
 
@@ -260,6 +258,10 @@ export async function updateFarmerProfile(userId, input) {
         }
     }
 
+    if (input.phoneNumber !== undefined) {
+        profile.phoneNumber = input.phoneNumber.trim();
+    }
+
     await profile.save();
 
     // Update phone number and email on User model if provided
@@ -342,6 +344,10 @@ export async function updateFarmerBoundary(userId, input) {
             profile.latitude = normalized.centroid[1];
             profile.locationUpdatedAt = new Date();
         }
+    }
+
+    if (input.phoneNumber !== undefined) {
+        profile.phoneNumber = input.phoneNumber.trim();
     }
 
     await profile.save();

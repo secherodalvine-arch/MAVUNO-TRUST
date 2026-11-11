@@ -80,7 +80,7 @@ export const DealerDashboardPlaceholder: React.FC = () => {
         </div>
 
         {loading ? (
-          <LoadSpinner fullPage={false} size="sm" text="Loading crop listings..." />
+          <LoadSpinner fullPage={false} size="sm" text="quering..." />
         ) : listings.length === 0 ? (
           <div className="state-card" style={{ padding: '28px 20px' }}>
             <Sprout size={28} />

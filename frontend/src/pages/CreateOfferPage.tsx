@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, X, Handshake, AlertTriangle, CheckCircle, Sprout } from 'lucide-react';
+import { ArrowLeft, X, Handshake, AlertTriangle, CheckCircle, Sprout, Loader2 } from 'lucide-react';
 import { createOffer } from '../services/offerService';
 import { getMyCropListingsApi } from '../services/cropService';
 import type { CropListingDTO } from '../services/cropService';
@@ -401,8 +401,9 @@ export const CreateOfferPage: React.FC = () => {
                 type="submit"
                 disabled={loading || success || !!quantityError}
                 className="btn btn-primary"
-                style={{ padding: '10px 24px' }}
+                style={{ padding: '10px 24px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}
               >
+                {loading && <Loader2 size={16} className="animate-spin" />}
                 {loading ? 'Submitting Offer...' : 'Send Offer'}
               </button>
             </div>

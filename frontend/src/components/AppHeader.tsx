@@ -11,6 +11,7 @@ import { notificationService, type AppNotification } from '../services/notificat
 import { socketService } from '../services/socketService';
 import CustomerSupportWidget from './CustomerSupportWidget';
 import InAppReminderPopup from './InAppReminderPopup';
+import { LoadSpinner } from './LoadSpinner';
 import './AppHeader.css';
 
 const routeTitles: Record<string, string> = {
@@ -251,7 +252,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ onMenuClick, sidebarCollap
 
               <div className="ah-notif-list">
                 {notifLoading && notifications.length === 0 && (
-                  <div className="ah-notif-empty">Loading notifications…</div>
+                  <div className="ah-notif-empty" style={{ padding: '24px 0' }}>
+                    <LoadSpinner size="sm" text="quering..." />
+                  </div>
                 )}
                 {!notifLoading && notifications.length === 0 && (
                   <div className="ah-notif-empty">

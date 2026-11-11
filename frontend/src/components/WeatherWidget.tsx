@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { LoadSpinner } from './LoadSpinner';
 import {
   Cloud,
   Droplets,
@@ -122,9 +123,8 @@ export const WeatherWidget: React.FC = () => {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-muted)' }}>
-          <RefreshCw size={20} className="animate-spin" style={{ margin: '0 auto 8px' }} />
-          <p style={{ fontSize: '0.85rem', margin: 0 }}>Fetching weather for your farm...</p>
+        <div style={{ padding: '24px 0', display: 'flex', justifyContent: 'center' }}>
+          <LoadSpinner size="sm" text="quering..." />
         </div>
       ) : !weather?.success ? (
         <div

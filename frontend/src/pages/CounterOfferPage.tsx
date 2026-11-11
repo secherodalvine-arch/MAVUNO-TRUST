@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { Loader2 } from 'lucide-react';
 import { counterOffer, getOfferHistory } from '../services/offerService';
 import { createOrGetConversation } from '../services/chatService';
 import { useAuthContext } from '../context/AuthContext';
@@ -145,9 +146,14 @@ export const CounterOfferPage: React.FC = () => {
                 borderRadius: '8px', 
                 cursor: loading ? 'not-allowed' : 'pointer', 
                 fontWeight: 700,
-                fontSize: '0.95rem'
+                fontSize: '0.95rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px'
               }}
             >
+              {loading && <Loader2 size={16} className="animate-spin" />}
               {loading ? 'Sending Counteroffer...' : 'Send Counteroffer'}
             </button>
             

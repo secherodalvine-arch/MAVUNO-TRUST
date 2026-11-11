@@ -7,6 +7,7 @@ import { verifyDealerLicenceApi } from '../services/verificationService';
 import type { VerificationResultDTO } from '../services/verificationService';
 import { createOrGetConversation } from '../services/chatService';
 import { ArrowLeft, MessageSquare, HandshakeIcon } from 'lucide-react';
+import { LoadSpinner } from '../components/LoadSpinner';
 
 export const DealerProfilePage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -154,8 +155,8 @@ export const DealerProfilePage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-        Loading Dealer Profile...
+      <div style={{ padding: '60px 20px', display: 'flex', justifyContent: 'center' }}>
+        <LoadSpinner size="lg" text="quering..." />
       </div>
     );
   }

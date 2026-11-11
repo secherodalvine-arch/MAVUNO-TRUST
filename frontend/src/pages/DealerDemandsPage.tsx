@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, X, Tag, Calendar, MapPin, Search } from 'lucide-react';
+import { LoadSpinner } from '../components/LoadSpinner';
 import apiClient from '../services/apiClient';
 import './DealerDemandsPage.css';
 
@@ -105,7 +106,9 @@ export const DealerDemandsPage: React.FC = () => {
 
       <div className="page-content">
         {loading ? (
-          <div>Loading...</div>
+          <div style={{ padding: '60px 0', display: 'flex', justifyContent: 'center' }}>
+            <LoadSpinner size="lg" text="quering..." />
+          </div>
         ) : error ? (
           <div className="state-card" style={{ padding: '30px 20px', textAlign: 'center' }}>
             <p style={{ color: '#dc2626', marginBottom: '12px', fontWeight: 500 }}>{error}</p>

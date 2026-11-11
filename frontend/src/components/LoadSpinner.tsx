@@ -16,7 +16,7 @@ export const LoadSpinner: React.FC<LoadSpinnerProps> = ({
     <div className={`load-spinner-wrap ${fullPage ? 'load-spinner-fullpage' : ''}`} role="status" aria-live="polite">
       <div className={`load-spinner load-spinner--${size}`} aria-hidden="true" />
       {text && <span className="load-spinner-text">{text}</span>}
-      <span className="sr-only">{text ?? 'Loading...'}</span>
+      <span className="sr-only">{text ?? 'quering...'}</span>
     </div>
   );
 };

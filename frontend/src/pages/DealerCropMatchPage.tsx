@@ -327,7 +327,7 @@ export const DealerCropMatchPage: React.FC = () => {
       </div>
 
       {/* Loading state */}
-      {loading && <LoadSpinner fullPage={false} size="md" text="Finding matching farmer crops..." />}
+      {loading && <LoadSpinner fullPage={false} size="md" text="quering..." />}
 
       {/* Empty State */}
       {!loading && listings.length === 0 && (

@@ -420,7 +420,7 @@ export const ProductionCalculatorPage: React.FC = () => {
 
           {loading ? (
             <div style={{ padding: '60px 0' }}>
-              <LoadSpinner size="md" text="Loading calculations..." />
+              <LoadSpinner size="md" text="quering..." />
             </div>
           ) : records.length === 0 ? (
             <div className="calc-empty-card">

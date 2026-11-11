@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { LoadSpinner } from './LoadSpinner';
 import {
   MapPin,
   RotateCcw,
@@ -574,9 +575,8 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
 
   if (isLoading) {
     return (
-      <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
-        <Layers size={22} style={{ color: '#10b981', animation: 'spin 2s linear infinite' }} />
-        <span style={{ marginLeft: '10px' }}>Loading satellite farmland map...</span>
+      <div style={{ padding: '40px 20px', display: 'flex', justifyContent: 'center' }}>
+        <LoadSpinner size="md" text="quering..." />
       </div>
     );
   }

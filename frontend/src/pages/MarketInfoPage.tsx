@@ -261,7 +261,7 @@ export const MarketInfoPage: React.FC = () => {
       </div>
 
       {/* Loading State */}
-      {loading && <LoadSpinner fullPage={false} size="md" text="Loading market observations…" />}
+      {loading && <LoadSpinner fullPage={false} size="md" text="quering..." />}
 
       {/* Error State */}
       {!loading && error && (

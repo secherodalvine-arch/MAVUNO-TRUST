@@ -7,6 +7,7 @@ import {
   deleteCropListingApi
 } from '../services/cropService';
 import { Sprout } from 'lucide-react';
+import { LoadSpinner } from '../components/LoadSpinner';
 import type { CropListingDTO } from '../services/cropService';
 import apiClient from '../services/apiClient';
 
@@ -211,8 +212,8 @@ export const MyCropsPage: React.FC = () => {
       )}
 
       {isLoading ? (
-        <div style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
-          Loading listings...
+        <div style={{ padding: '60px 0', display: 'flex', justifyContent: 'center' }}>
+          <LoadSpinner size="lg" text="quering..." />
         </div>
       ) : listings.length === 0 ? (
         <div style={styles.emptyState}>

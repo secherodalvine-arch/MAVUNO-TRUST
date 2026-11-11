@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { LoadSpinner } from './LoadSpinner';
 
 interface ProtectedRouteProps {
   children: React.ReactElement;
@@ -14,9 +15,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, allowe
   if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '60vh' }}>
-        <div style={{ padding: '24px', background: '#1e293b', borderRadius: '12px', color: '#94a3b8' }}>
-          Verifying credentials...
-        </div>
+        <LoadSpinner size="lg" text="quering..." />
       </div>
     );
   }

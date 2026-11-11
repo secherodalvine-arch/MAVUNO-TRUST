@@ -10,6 +10,7 @@ import type { RatingData } from '../services/ratingService';
 import { createDispute, getDisputes, closeDispute } from '../services/disputeService';
 import type { DisputeDTO, DisputeCategory } from '../services/disputeService';
 import { KenaffSupportSection } from '../components/KenaffSupportSection';
+import { LoadSpinner } from '../components/LoadSpinner';
 import '../styles/TransactionsPage.css';
 
 const TransactionCompletionSection: React.FC<{
@@ -697,7 +698,7 @@ const TransactionRatingSection: React.FC<{ transactionId: string, currentUserId:
     }
   };
 
-  if (loading) return <div style={{ padding: '10px 20px', color: '#6b7280', fontSize: '0.85rem' }}>Loading ratings...</div>;
+  if (loading) return <div style={{ padding: '20px 0', display: 'flex', justifyContent: 'center' }}><LoadSpinner size="sm" text="quering..." /></div>;
 
   const myRating = ratings.find((r: any) => r.reviewerId._id === currentUserId);
   const theirRating = ratings.find((r: any) => r.reviewerId._id !== currentUserId);
@@ -834,7 +835,7 @@ export const TransactionsPage: React.FC = () => {
     }
   };
 
-  if (loading) return <div className="tx-page-wrapper"><p style={{ color: '#a0c4ac', padding: 20 }}>Loading transactions…</p></div>;
+  if (loading) return <div className="tx-page-wrapper" style={{ padding: '60px 0', display: 'flex', justifyContent: 'center' }}><LoadSpinner size="lg" text="quering..." /></div>;
   if (error) return <div className="tx-page-wrapper"><p style={{ color: '#f87171', padding: 20 }}>{error}</p></div>;
 
   return (

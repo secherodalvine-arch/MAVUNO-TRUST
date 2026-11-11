@@ -400,7 +400,7 @@ export const MessagesPage: React.FC = () => {
             <div className="messages-history">
               {messagesLoading ? (
                 <div style={{ padding: '60px 0' }}>
-                  <LoadSpinner size="md" text="Loading message history..." />
+                  <LoadSpinner size="md" text="quering..." />
                 </div>
               ) : messages.length === 0 ? (
                 <div className="messages-no-chat-selected" style={{ height: '100%' }}>
