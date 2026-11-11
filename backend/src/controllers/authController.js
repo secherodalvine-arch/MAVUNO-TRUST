@@ -116,6 +116,10 @@ export const meHandler = async (req, res, next) => {
             role: user.role,
             accountStatus: user.accountStatus,
             createdAt: user.createdAt,
+            smsNotificationEnabled: user.smsNotificationEnabled !== false,
+            pushNotificationEnabled: user.pushNotificationEnabled !== false,
+            inAppNotificationEnabled: user.inAppNotificationEnabled !== false,
+            emailNotificationEnabled: user.emailNotificationEnabled !== false,
         };
         res.status(200).json({
             success: true,

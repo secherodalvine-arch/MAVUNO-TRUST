@@ -85,6 +85,19 @@ const UserSchema = new Schema({
         type: Boolean,
         default: true,
     },
+    inAppNotificationEnabled: {
+        type: Boolean,
+        default: true,
+    },
+    emailNotificationEnabled: {
+        type: Boolean,
+        default: true,
+    },
+    notificationCadence: {
+        type: String,
+        enum: ['NOW', 'DAILY', 'WEEKLY', 'MONTHLY'],
+        default: 'NOW',
+    },
 }, {
     timestamps: true, // auto-manages createdAt, updatedAt
     toJSON: {

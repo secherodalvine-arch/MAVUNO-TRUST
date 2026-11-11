@@ -18,6 +18,8 @@ export interface FarmerProfileDTO {
   latitude?: number | null;
   longitude?: number | null;
   locationUpdatedAt?: string;
+  phoneNumber?: string;
+  email?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -219,12 +221,15 @@ export interface AssistanceReferralRequest {
   assistanceType?: string;
   consentGiven: boolean;
   notes?: string;
+  phoneNumber?: string;
 }
 
 export interface AssistanceReferralResponse {
   success: boolean;
   code?: string;
   message?: string;
+  phoneDelivered?: boolean;
+  phoneNumber?: string;
   data?: {
     referralId: string;
     status: string;
@@ -316,6 +321,12 @@ export interface FarmWeatherDTO {
   message?: string;
   fetchedAt?: string;
   fromCache?: boolean;
+  source?: string;
+  isEstimate?: boolean;
+  locationName?: string;
+  county?: string;
+  subCounty?: string;
+  generalArea?: string;
   location?: { latitude: number; longitude: number };
   current?: FarmWeatherCurrent;
   forecast?: FarmWeatherForecastDay[];

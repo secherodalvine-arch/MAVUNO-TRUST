@@ -293,9 +293,9 @@ export const MarketRecommendationSection: React.FC = () => {
                 width: '100%',
                 padding: '10px 14px',
                 borderRadius: '8px',
-                border: '1px solid rgba(255,255,255,0.15)',
-                background: 'rgba(0,0,0,0.25)',
-                color: '#fff',
+                border: '1px solid var(--mt-input-border, var(--color-surface-border))',
+                background: 'var(--mt-input-bg, var(--color-surface-raised))',
+                color: 'var(--color-text-primary)',
                 fontSize: '0.95rem'
               }}
             />
@@ -333,9 +333,9 @@ export const MarketRecommendationSection: React.FC = () => {
                 width: '100%',
                 padding: '10px 14px',
                 borderRadius: '8px',
-                border: '1px solid rgba(255,255,255,0.15)',
-                background: 'rgba(0,0,0,0.25)',
-                color: '#fff',
+                border: '1px solid var(--mt-input-border, var(--color-surface-border))',
+                background: 'var(--mt-input-bg, var(--color-surface-raised))',
+                color: 'var(--color-text-primary)',
                 fontSize: '0.95rem'
               }}
             />
@@ -364,14 +364,14 @@ export const MarketRecommendationSection: React.FC = () => {
                 width: '100%',
                 padding: '10px 14px',
                 borderRadius: '8px',
-                border: '1px solid rgba(255,255,255,0.15)',
-                background: 'rgba(0,0,0,0.25)',
-                color: '#fff',
+                border: '1px solid var(--mt-input-border, var(--color-surface-border))',
+                background: 'var(--mt-input-bg, var(--color-surface-raised))',
+                color: 'var(--color-text-primary)',
                 fontSize: '0.95rem'
               }}
             >
               {QUANTITY_UNITS.map((u) => (
-                <option key={u} value={u} style={{ background: '#111e16', color: '#fff' }}>
+                <option key={u} value={u} style={{ background: 'var(--color-surface-card)', color: 'var(--color-text-primary)' }}>
                   {u}
                 </option>
               ))}
@@ -401,14 +401,14 @@ export const MarketRecommendationSection: React.FC = () => {
                 width: '100%',
                 padding: '10px 14px',
                 borderRadius: '8px',
-                border: '1px solid rgba(255,255,255,0.15)',
-                background: 'rgba(0,0,0,0.25)',
-                color: '#fff',
+                border: '1px solid var(--mt-input-border, var(--color-surface-border))',
+                background: 'var(--mt-input-bg, var(--color-surface-raised))',
+                color: 'var(--color-text-primary)',
                 fontSize: '0.95rem'
               }}
             >
               {KENYA_COUNTIES.map((c) => (
-                <option key={c} value={c} style={{ background: '#111e16', color: '#fff' }}>
+                <option key={c} value={c} style={{ background: 'var(--color-surface-card)', color: 'var(--color-text-primary)' }}>
                   {c}
                 </option>
               ))}
@@ -502,16 +502,17 @@ export const MarketRecommendationSection: React.FC = () => {
 
       {/* Results Rendering */}
       {result && (
-        <div style={{ marginTop: '28px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '24px' }}>
+        <div style={{ marginTop: '28px', borderTop: '1px solid var(--color-surface-border)', paddingTop: '24px' }}>
           
           {/* Recommendation Banner */}
           <div
             style={{
-              background: 'linear-gradient(135deg, rgba(39,137,79,0.18) 0%, rgba(17,30,22,0.8) 100%)',
-              border: '1px solid rgba(94, 194, 133, 0.35)',
+              background: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-surface-border)',
               borderRadius: '14px',
               padding: '20px',
-              marginBottom: '24px'
+              marginBottom: '24px',
+              boxShadow: 'var(--shadow-sm)'
             }}
           >
             <div
@@ -525,8 +526,8 @@ export const MarketRecommendationSection: React.FC = () => {
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Sparkles size={20} style={{ color: '#5ec285' }} />
-                <h3 style={{ margin: 0, fontSize: '1.15rem', color: '#fff' }}>
+                <Sparkles size={20} style={{ color: '#16a34a' }} />
+                <h3 style={{ margin: 0, fontSize: '1.15rem', color: 'var(--color-text-primary)' }}>
                   Recommended Action Strategy
                 </h3>
               </div>
@@ -537,7 +538,7 @@ export const MarketRecommendationSection: React.FC = () => {
               style={{
                 fontSize: '1.05rem',
                 fontWeight: 600,
-                color: '#6ee7b7',
+                color: '#16a34a',
                 marginBottom: '10px',
                 lineHeight: 1.4
               }}
@@ -549,7 +550,7 @@ export const MarketRecommendationSection: React.FC = () => {
               style={{
                 margin: 0,
                 fontSize: '0.93rem',
-                color: '#d1d5db',
+                color: 'var(--color-text-secondary)',
                 lineHeight: 1.6
               }}
             >
@@ -561,26 +562,26 @@ export const MarketRecommendationSection: React.FC = () => {
               style={{
                 marginTop: '16px',
                 padding: '12px 16px',
-                background: 'rgba(94, 194, 133, 0.1)',
-                borderLeft: '4px solid #5ec285',
+                background: 'rgba(34, 197, 94, 0.08)',
+                borderLeft: '4px solid #16a34a',
                 borderRadius: '0 8px 8px 0',
               }}
             >
-              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#5ec285', marginBottom: '4px', textTransform: 'uppercase' }}>
+              <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#16a34a', marginBottom: '4px', textTransform: 'uppercase' }}>
                 Recommended Next Step
               </div>
-              <div style={{ fontSize: '0.95rem', color: '#e5e7eb', lineHeight: 1.5 }}>
+              <div style={{ fontSize: '0.95rem', color: 'var(--color-text-primary)', lineHeight: 1.5 }}>
                 {result.recommendation?.nextAction || 'No next step is available yet. Review the evidence and limitations before deciding.'}
               </div>
             </div>
 
             {/* Recommendation Limitations */}
             {result.recommendation?.limitations && result.recommendation.limitations.length > 0 && (
-              <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#f59e0b', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
+              <div style={{ marginTop: '14px', paddingTop: '12px', borderTop: '1px solid var(--color-surface-border)' }}>
+                <span style={{ fontSize: '0.82rem', fontWeight: 600, color: '#d97706', textTransform: 'uppercase', display: 'block', marginBottom: '6px' }}>
                   Recommendation Caveats & Considerations
                 </span>
-                <ul style={{ margin: 0, paddingLeft: '18px', color: '#9ca3af', fontSize: '0.85rem' }}>
+                <ul style={{ margin: 0, paddingLeft: '18px', color: 'var(--color-text-secondary)', fontSize: '0.85rem' }}>
                   {result.recommendation.limitations.map((lim, idx) => (
                     <li key={idx} style={{ marginBottom: '4px' }}>{lim}</li>
                   ))}
@@ -592,14 +593,14 @@ export const MarketRecommendationSection: React.FC = () => {
           {/* Market Options Grid */}
           <div style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <TrendingUp size={20} style={{ color: '#f59e0b' }} />
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>
+              <TrendingUp size={20} style={{ color: '#d97706' }} />
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--color-text-primary)' }}>
                 Market Options Compared ({result.marketOptions.length})
               </h3>
             </div>
 
             {result.marketOptions.length === 0 ? (
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>No direct market price options returned for this query.</p>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>No direct market price options returned for this query.</p>
             ) : (
               <div
                 style={{
@@ -612,30 +613,30 @@ export const MarketRecommendationSection: React.FC = () => {
                   <div
                     key={idx}
                     style={{
-                      background: 'rgba(0, 0, 0, 0.25)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      background: 'var(--color-surface-raised)',
+                      border: '1px solid var(--color-surface-border)',
                       borderRadius: '12px',
                       padding: '16px'
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>{m.market}</span>
-                      <span style={{ fontSize: '0.8rem', background: 'rgba(245, 158, 11, 0.15)', color: '#fbbf24', padding: '2px 8px', borderRadius: '6px' }}>
+                      <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-text-primary)' }}>{m.market}</span>
+                      <span style={{ fontSize: '0.8rem', background: 'rgba(245, 158, 11, 0.15)', color: '#d97706', padding: '2px 8px', borderRadius: '6px' }}>
                         {m.county}
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#4ade80', marginBottom: '8px' }}>
-                      {m.price} KES <span style={{ fontSize: '0.85rem', color: '#9ca3af', fontWeight: 400 }}>/ {m.unit}</span>
+                    <div style={{ fontSize: '1.25rem', fontWeight: 700, color: '#16a34a', marginBottom: '8px' }}>
+                      {m.price} KES <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 400 }}>/ {m.unit}</span>
                     </div>
 
-                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', lineHeight: 1.4 }}>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
                       <div><strong>Source:</strong> {m.source}</div>
                       {m.observedDate && (
                         <div><strong>Observed:</strong> {new Date(m.observedDate).toLocaleDateString()}</div>
                       )}
                       {m.evidence && (
-                        <div style={{ marginTop: '4px', color: '#6b7280' }}>{m.evidence}</div>
+                        <div style={{ marginTop: '4px', color: 'var(--color-text-muted)' }}>{m.evidence}</div>
                       )}
                     </div>
                   </div>
@@ -647,8 +648,8 @@ export const MarketRecommendationSection: React.FC = () => {
           {/* Buyer Options Grid */}
           <div style={{ marginBottom: '24px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
-              <Building2 size={20} style={{ color: '#3b82f6' }} />
-              <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#fff' }}>
+              <Building2 size={20} style={{ color: '#2563eb' }} />
+              <h3 style={{ margin: 0, fontSize: '1.1rem', color: 'var(--color-text-primary)' }}>
                 Verified Dealer Options ({result.buyerOptions.length})
               </h3>
             </div>
@@ -663,7 +664,7 @@ export const MarketRecommendationSection: React.FC = () => {
                 borderRadius: '8px',
                 background: 'rgba(59, 130, 246, 0.1)',
                 border: '1px solid rgba(59, 130, 246, 0.25)',
-                color: '#93c5fd',
+                color: '#0284c7',
                 fontSize: '0.83rem',
                 marginBottom: '14px'
               }}
@@ -675,7 +676,7 @@ export const MarketRecommendationSection: React.FC = () => {
             </div>
 
             {result.buyerOptions.length === 0 ? (
-              <p style={{ color: '#9ca3af', fontSize: '0.9rem' }}>No matching registered buyers found for this commodity/county.</p>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>No matching registered buyers found for this commodity/county.</p>
             ) : (
               <div
                 style={{
@@ -688,14 +689,17 @@ export const MarketRecommendationSection: React.FC = () => {
                   <div
                     key={idx}
                     style={{
-                      background: 'rgba(0, 0, 0, 0.25)',
-                      border: '1px solid rgba(255, 255, 255, 0.08)',
+                      background: 'var(--color-surface-raised)',
+                      border: '1px solid var(--color-surface-border)',
                       borderRadius: '12px',
-                      padding: '16px'
+                      padding: '16px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between'
                     }}
                   >
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                      <span style={{ fontWeight: 700, fontSize: '1rem', color: '#fff' }}>{b.displayName}</span>
+                      <span style={{ fontWeight: 700, fontSize: '1rem', color: 'var(--color-text-primary)' }}>{b.displayName}</span>
                       <span
                         style={{
                           display: 'inline-flex',
@@ -703,7 +707,7 @@ export const MarketRecommendationSection: React.FC = () => {
                           gap: '4px',
                           fontSize: '0.78rem',
                           background: 'rgba(34, 197, 94, 0.15)',
-                          color: '#4ade80',
+                          color: '#16a34a',
                           padding: '2px 8px',
                           borderRadius: '6px',
                           fontWeight: 600
@@ -714,23 +718,23 @@ export const MarketRecommendationSection: React.FC = () => {
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '0.88rem', color: '#d1d5db', marginBottom: '8px' }}>
+                    <div style={{ fontSize: '0.88rem', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
                       <strong>Handling Capacity:</strong>{' '}
-                      <span style={{ color: '#6ee7b7', fontWeight: 600 }}>
+                      <span style={{ color: '#16a34a', fontWeight: 600 }}>
                         {b.purchasingCapacityKg ? `${b.purchasingCapacityKg.toLocaleString()} KG` : 'Not specified'}
                       </span>
                     </div>
 
-                    <div style={{ fontSize: '0.82rem', color: '#9ca3af', lineHeight: 1.4, flexGrow: 1 }}>
+                    <div style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', lineHeight: 1.4, flexGrow: 1 }}>
                       <div><strong>Counties Served:</strong> {b.countiesServed?.join(', ') || 'N/A'}</div>
                       <div><strong>Crops Dealt:</strong> {b.cropsDealt?.join(', ') || 'N/A'}</div>
                       <div><strong>AFA Source:</strong> {b.verificationSource || 'AFA_DEMO'}</div>
                     </div>
 
-                    <div style={{ borderTop: '1px solid rgba(255,255,255,0.06)', paddingTop: 12, marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                    <div style={{ borderTop: '1px solid var(--color-surface-border)', paddingTop: 12, marginTop: 12, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
                       <button
                         type="button"
-                        style={{ flex: 1, padding: '8px', background: 'rgba(59, 130, 246, 0.15)', color: '#60a5fa', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}
+                        style={{ flex: 1, padding: '8px', background: 'rgba(59, 130, 246, 0.15)', color: '#2563eb', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600 }}
                         onClick={() => navigate(`/dealers/${b.dealerId}`)}
                       >
                         View Profile
@@ -746,7 +750,7 @@ export const MarketRecommendationSection: React.FC = () => {
                       </button>
                       <button
                         type="button"
-                        style={{ flex: 1, padding: '8px', background: '#10b981', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                        style={{ flex: 1, padding: '8px', background: 'var(--color-primary, #16a34a)', color: '#ffffff', border: 'none', borderRadius: '6px', fontSize: '0.85rem', cursor: 'pointer', fontWeight: 600, display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                         onClick={() => navigate(`/farmer/offers/create/${b.dealerId}?crop=${encodeURIComponent(crop)}&qty=${encodeURIComponent(quantity)}&unit=${encodeURIComponent(unit)}`)}
                       >
                         <Handshake size={14} />

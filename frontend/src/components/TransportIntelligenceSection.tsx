@@ -213,16 +213,44 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
     }
   };
 
+  const inputStyle: React.CSSProperties = {
+    width: '100%',
+    padding: '9px 12px',
+    borderRadius: 8,
+    border: '1px solid var(--mt-input-border, var(--color-surface-border))',
+    background: 'var(--mt-input-bg, var(--color-surface-raised))',
+    color: 'var(--color-text-primary)',
+    fontSize: '0.88rem',
+    outline: 'none',
+    boxSizing: 'border-box',
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: 'block',
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    color: 'var(--color-text-secondary)',
+    marginBottom: 6,
+  };
+
+  const cardStyle: React.CSSProperties = {
+    background: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-surface-border)',
+    borderRadius: 12,
+    padding: 18,
+    boxShadow: 'var(--shadow-sm)',
+  };
+
   return (
     <div
       className="transport-intel-container"
       style={{
-        background: 'linear-gradient(180deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.8) 100%)',
-        border: '1px solid rgba(255, 255, 255, 0.08)',
+        background: 'var(--color-surface-card)',
+        border: '1px solid var(--color-surface-border)',
         borderRadius: 16,
         padding: compact ? 16 : 24,
         marginBottom: 'var(--space-6)',
-        backdropFilter: 'blur(10px)',
+        boxShadow: 'var(--shadow-sm)',
       }}
     >
       {/* Header bar */}
@@ -234,7 +262,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
           flexWrap: 'wrap',
           gap: 12,
           marginBottom: 20,
-          borderBottom: '1px solid rgba(255, 255, 255, 0.06)',
+          borderBottom: '1px solid var(--color-surface-border)',
           paddingBottom: 16,
         }}
       >
@@ -255,7 +283,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
             <Truck size={22} />
           </div>
           <div>
-            <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: 8 }}>
+            <h2 style={{ margin: 0, fontSize: '1.2rem', fontWeight: 700, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: 8 }}>
               Shared Transport-Cost Intelligence
               <span
                 style={{
@@ -268,10 +296,10 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                   border: '1px solid rgba(56, 189, 248, 0.3)',
                 }}
               >
-                OpenStreetMap &amp; OSRM Powered
+                Verified Road Routing
               </span>
             </h2>
-            <p style={{ margin: 0, fontSize: '0.84rem', color: '#94a3b8' }}>
+            <p style={{ margin: 0, fontSize: '0.84rem', color: 'var(--color-text-secondary)' }}>
               Genuine driving distance calculations & crowdsourced haulier rate intelligence across Kenya.
             </p>
           </div>
@@ -281,10 +309,10 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
         <div
           style={{
             display: 'flex',
-            background: 'rgba(0, 0, 0, 0.3)',
+            background: 'var(--color-surface-raised)',
             borderRadius: 8,
             padding: 3,
-            border: '1px solid rgba(255, 255, 255, 0.06)',
+            border: '1px solid var(--color-surface-border)',
           }}
         >
           <button
@@ -297,8 +325,8 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
               borderRadius: 6,
               border: 'none',
               cursor: 'pointer',
-              background: activeTab === 'ESTIMATE' ? 'var(--color-primary, #16a34a)' : 'transparent',
-              color: activeTab === 'ESTIMATE' ? '#fff' : '#94a3b8',
+              background: activeTab === 'ESTIMATE' ? 'var(--color-primary-500, #16a34a)' : 'transparent',
+              color: activeTab === 'ESTIMATE' ? '#fff' : 'var(--color-text-secondary)',
               transition: 'all 0.2s',
             }}
           >
@@ -314,8 +342,8 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
               borderRadius: 6,
               border: 'none',
               cursor: 'pointer',
-              background: activeTab === 'CONTRIBUTE' ? 'var(--color-primary, #16a34a)' : 'transparent',
-              color: activeTab === 'CONTRIBUTE' ? '#fff' : '#94a3b8',
+              background: activeTab === 'CONTRIBUTE' ? 'var(--color-primary-500, #16a34a)' : 'transparent',
+              color: activeTab === 'CONTRIBUTE' ? '#fff' : 'var(--color-text-secondary)',
               transition: 'all 0.2s',
             }}
           >
@@ -331,8 +359,8 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
               borderRadius: 6,
               border: 'none',
               cursor: 'pointer',
-              background: activeTab === 'MY_RECORDS' ? 'var(--color-primary, #16a34a)' : 'transparent',
-              color: activeTab === 'MY_RECORDS' ? '#fff' : '#94a3b8',
+              background: activeTab === 'MY_RECORDS' ? 'var(--color-primary-500, #16a34a)' : 'transparent',
+              color: activeTab === 'MY_RECORDS' ? '#fff' : 'var(--color-text-secondary)',
               transition: 'all 0.2s',
             }}
           >
@@ -375,7 +403,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
           >
             {/* Origin */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 6 }}>
+              <label style={labelStyle}>
                 Origin (Farm / Sub-county)
               </label>
               <input
@@ -384,15 +412,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                 value={origin}
                 onChange={(e) => setOrigin(e.target.value)}
                 placeholder="e.g. Eldoret, Uasin Gishu"
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: 8,
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#fff',
-                  fontSize: '0.88rem',
-                }}
+                style={inputStyle}
               />
               <datalist id="origin-list">
                 {KENYA_LOCATIONS.map((loc) => (
@@ -403,7 +423,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
 
             {/* Destination */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 6 }}>
+              <label style={labelStyle}>
                 Destination (Wholesale Market)
               </label>
               <input
@@ -412,15 +432,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                 value={destination}
                 onChange={(e) => setDestination(e.target.value)}
                 placeholder="e.g. Nairobi - Wakulima Market"
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: 8,
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#fff',
-                  fontSize: '0.88rem',
-                }}
+                style={inputStyle}
               />
               <datalist id="dest-list">
                 {KENYA_LOCATIONS.map((loc) => (
@@ -431,21 +443,13 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
 
             {/* Vehicle Category */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 6 }}>
+              <label style={labelStyle}>
                 Vehicle Class
               </label>
               <select
                 value={vehicleCategory}
                 onChange={(e) => setVehicleCategory(e.target.value as VehicleCategory)}
-                style={{
-                  width: '100%',
-                  padding: '9px 12px',
-                  borderRadius: 8,
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#fff',
-                  fontSize: '0.88rem',
-                }}
+                style={inputStyle}
               >
                 <option value="PICKUP">Pickup (approx. 1–1.5 T)</option>
                 <option value="SMALL_TRUCK">Small Truck / Canter (3–5 T)</option>
@@ -457,7 +461,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
 
             {/* Trip Arrangement & Load */}
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 6 }}>
+              <label style={labelStyle}>
                 Hire Mode &amp; Cargo Weight (KG)
               </label>
               <div style={{ display: 'flex', gap: 8 }}>
@@ -465,12 +469,9 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                   value={tripArrangement}
                   onChange={(e) => setTripArrangement(e.target.value as TripArrangement)}
                   style={{
+                    ...inputStyle,
                     flex: 1,
                     padding: '9px 8px',
-                    borderRadius: 8,
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    color: '#fff',
                     fontSize: '0.84rem',
                   }}
                 >
@@ -483,12 +484,9 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                   onChange={(e) => setLoadWeightKg(e.target.value)}
                   placeholder="KG"
                   style={{
+                    ...inputStyle,
                     width: 90,
                     padding: '9px 8px',
-                    borderRadius: 8,
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    color: '#fff',
                     fontSize: '0.84rem',
                   }}
                 />
@@ -526,10 +524,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
               {/* Card 1: Route & Distance */}
               <div
                 style={{
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: 12,
-                  padding: 18,
+                  ...cardStyle,
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, color: '#38bdf8' }}>
@@ -539,30 +534,30 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
                   <div>
-                    <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Drivable Road Distance:</span>
-                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#f8fafc' }}>
+                    <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Drivable Road Distance:</span>
+                    <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>
                       {estimateData.distanceKm.toLocaleString()} km
-                      <span style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 400, marginLeft: 6 }}>
+                      <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', fontWeight: 400, marginLeft: 6 }}>
                         ({(estimateData.distanceMeters || Math.round(estimateData.distanceKm * 1000)).toLocaleString()} metres)
                       </span>
                     </div>
                   </div>
 
-                  <div style={{ fontSize: '0.82rem', color: '#cbd5e1' }}>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
                     <strong>Origin:</strong> {origin}
                   </div>
-                  <div style={{ fontSize: '0.82rem', color: '#cbd5e1' }}>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
                     <strong>Destination:</strong> {destination}
                   </div>
 
                   {routeInfo?.durationSeconds ? (
-                    <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: 4 }}>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: 4 }}>
                       Estimated Driving Time: ~{Math.round(routeInfo.durationSeconds / 3600)}h {Math.round((routeInfo.durationSeconds % 3600) / 60)}m
                     </div>
                   ) : null}
 
-                  <div style={{ fontSize: '0.72rem', color: '#64748b', marginTop: 6, borderTop: '1px solid rgba(255, 255, 255, 0.04)', paddingTop: 4 }}>
-                    Routing data © OpenStreetMap contributors, OSRM
+                  <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: 6, borderTop: '1px solid var(--color-surface-border)', paddingTop: 4 }}>
+                    Genuine road network distances &amp; travel times
                   </div>
                 </div>
               </div>
@@ -570,10 +565,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
               {/* Card 2: Cost Estimate Breakdown */}
               <div
                 style={{
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: 12,
-                  padding: 18,
+                  ...cardStyle,
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -602,33 +594,30 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                 </div>
 
                 <div style={{ marginBottom: 12 }}>
-                  <div style={{ fontSize: '1.7rem', fontWeight: 800, color: '#f8fafc' }}>
+                  <div style={{ fontSize: '1.7rem', fontWeight: 800, color: 'var(--color-text-primary)' }}>
                     KSh {estimateData.estimatedPriceMedian.toLocaleString()}
                   </div>
-                  <div style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
-                    Expected Range: <strong>KSh {estimateData.estimatedPriceMin.toLocaleString()}</strong> – <strong>KSh {estimateData.estimatedPriceMax.toLocaleString()}</strong>
+                  <div style={{ fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
+                    Expected Range: <strong style={{ color: 'var(--color-text-primary)' }}>KSh {estimateData.estimatedPriceMin.toLocaleString()}</strong> – <strong style={{ color: 'var(--color-text-primary)' }}>KSh {estimateData.estimatedPriceMax.toLocaleString()}</strong>
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid rgba(255, 255, 255, 0.06)', paddingTop: 10, fontSize: '0.8rem', color: '#94a3b8' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--color-surface-border)', paddingTop: 10, fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                   <span>Baseline Rate / km:</span>
-                  <strong style={{ color: '#cbd5e1' }}>~KSh {estimateData.baselineRatePerKm} / km</strong>
+                  <strong style={{ color: 'var(--color-text-primary)' }}>~KSh {estimateData.baselineRatePerKm} / km</strong>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 6, fontSize: '0.8rem', color: '#94a3b8' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: 6, fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
                   <span>Supporting Records:</span>
-                  <strong style={{ color: '#cbd5e1' }}>{estimateData.sampleSize} reports ({estimateData.contributorCount} contributors)</strong>
+                  <strong style={{ color: 'var(--color-text-secondary)' }}>{estimateData.sampleSize} reports ({estimateData.contributorCount} contributors)</strong>
                 </div>
               </div>
 
               {/* Card 3: Plain Language & Bilingual Advice */}
               <div
                 style={{
+                  ...cardStyle,
                   gridColumn: '1 / -1',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  border: '1px solid rgba(255, 255, 255, 0.08)',
-                  borderRadius: 12,
-                  padding: 18,
                 }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
@@ -648,9 +637,9 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                         fontSize: '0.74rem',
                         fontWeight: 600,
                         borderRadius: 4,
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        background: lang === 'EN' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                        color: lang === 'EN' ? '#fff' : '#94a3b8',
+                        border: '1px solid var(--color-surface-border)',
+                        background: lang === 'EN' ? 'var(--color-primary, #16a34a)' : 'var(--color-surface-card)',
+                        color: lang === 'EN' ? '#fff' : 'var(--color-text-secondary)',
                         cursor: 'pointer',
                       }}
                     >
@@ -664,9 +653,9 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                         fontSize: '0.74rem',
                         fontWeight: 600,
                         borderRadius: 4,
-                        border: '1px solid rgba(255, 255, 255, 0.1)',
-                        background: lang === 'SW' ? 'rgba(255, 255, 255, 0.15)' : 'transparent',
-                        color: lang === 'SW' ? '#fff' : '#94a3b8',
+                        border: '1px solid var(--color-surface-border)',
+                        background: lang === 'SW' ? 'var(--color-primary, #16a34a)' : 'var(--color-surface-card)',
+                        color: lang === 'SW' ? '#fff' : 'var(--color-text-secondary)',
                         cursor: 'pointer',
                       }}
                     >
@@ -675,20 +664,20 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                   </div>
                 </div>
 
-                <p style={{ margin: '0 0 12px 0', fontSize: '0.86rem', color: '#e2e8f0', lineHeight: 1.6 }}>
+                <p style={{ margin: '0 0 12px 0', fontSize: '0.86rem', color: 'var(--color-text-primary)', lineHeight: 1.6 }}>
                   {lang === 'SW'
                     ? estimateData.explanation?.swahiliSummary || 'Makadirio haya ya usafiri yanasaidia wakulima na wafanyabiashara kupata picha halisi ya gharama lakini hayahakikishi bei ya mwisho ya dereva.'
                     : estimateData.explanation?.englishSummary || 'This estimate provides an empirical benchmark based on community records and genuine road distances. Always negotiate directly with transporters.'}
                 </p>
 
                 {estimateData.assumptions && estimateData.assumptions.length > 0 && (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10, padding: '8px 12px', background: 'rgba(250, 204, 21, 0.08)', borderRadius: 6, border: '1px solid rgba(250, 204, 21, 0.2)' }}>
-                    <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#facc15', marginBottom: 2 }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10, padding: '8px 12px', background: 'rgba(250, 204, 21, 0.1)', borderRadius: 6, border: '1px solid rgba(250, 204, 21, 0.25)' }}>
+                    <div style={{ fontSize: '0.76rem', fontWeight: 700, color: '#ca8a04', marginBottom: 2 }}>
                       Methodology Assumptions:
                     </div>
                     {estimateData.assumptions.map((a, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: '#cbd5e1' }}>
-                        <span style={{ color: '#facc15', fontSize: '0.9rem' }}>•</span>
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>
+                        <span style={{ color: '#ca8a04', fontSize: '0.9rem' }}>•</span>
                         <span>{a}</span>
                       </div>
                     ))}
@@ -698,8 +687,8 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                 {estimateData.warnings && estimateData.warnings.length > 0 && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 10 }}>
                     {estimateData.warnings.map((w, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: '#94a3b8' }}>
-                        <Info size={13} style={{ color: '#facc15', flexShrink: 0 }} />
+                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.78rem', color: 'var(--color-text-muted)' }}>
+                        <Info size={13} style={{ color: '#eab308', flexShrink: 0 }} />
                         <span>{w}</span>
                       </div>
                     ))}
@@ -715,10 +704,10 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
       {activeTab === 'CONTRIBUTE' && (
         <form onSubmit={handleContributeSubmit} style={{ maxWidth: 640 }}>
           <div style={{ marginBottom: 16 }}>
-            <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem', fontWeight: 700, color: '#f8fafc' }}>
+            <h3 style={{ margin: '0 0 4px 0', fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
               Log a Transport Price Record
             </h3>
-            <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8' }}>
+            <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
               Your reported costs help empower the community with honest transport pricing. All submissions undergo automated outlier checks.
             </p>
           </div>
@@ -743,9 +732,9 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
             </div>
           )}
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14, marginBottom: 14 }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 4 }}>
+              <label style={labelStyle}>
                 Origin
               </label>
               <input
@@ -754,15 +743,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                 value={contribOrigin}
                 onChange={(e) => setContribOrigin(e.target.value)}
                 required
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                }}
+                style={inputStyle}
               />
               <datalist id="contrib-origin-list">
                 {KENYA_LOCATIONS.map((loc) => (
@@ -772,7 +753,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 4 }}>
+              <label style={labelStyle}>
                 Destination
               </label>
               <input
@@ -781,15 +762,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                 value={contribDest}
                 onChange={(e) => setContribDest(e.target.value)}
                 required
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                }}
+                style={inputStyle}
               />
               <datalist id="contrib-dest-list">
                 {KENYA_LOCATIONS.map((loc) => (
@@ -799,21 +772,13 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 4 }}>
+              <label style={labelStyle}>
                 Vehicle Class
               </label>
               <select
                 value={contribVehicle}
                 onChange={(e) => setContribVehicle(e.target.value as VehicleCategory)}
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                }}
+                style={inputStyle}
               >
                 <option value="PICKUP">Pickup (1–1.5 T)</option>
                 <option value="SMALL_TRUCK">Small Truck / Canter (3–5 T)</option>
@@ -824,7 +789,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 4 }}>
+              <label style={labelStyle}>
                 Total Paid / Quoted Price (KSh)
               </label>
               <input
@@ -834,34 +799,18 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                 placeholder="e.g. 15000"
                 required
                 min="1"
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                }}
+                style={inputStyle}
               />
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 4 }}>
+              <label style={labelStyle}>
                 Evidence Type
               </label>
               <select
                 value={contribEvidence}
                 onChange={(e) => setContribEvidence(e.target.value as PriceEvidenceType)}
-                style={{
-                  width: '100%',
-                  padding: '8px 10px',
-                  borderRadius: 6,
-                  border: '1px solid rgba(255, 255, 255, 0.12)',
-                  background: 'rgba(15, 23, 42, 0.6)',
-                  color: '#fff',
-                  fontSize: '0.85rem',
-                }}
+                style={inputStyle}
               >
                 <option value="REPORTED_COMPLETED_JOURNEY">Completed Journey (Actual Paid)</option>
                 <option value="TRANSPORTER_QUOTATION">Transporter Quotation</option>
@@ -871,7 +820,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 4 }}>
+              <label style={labelStyle}>
                 Hire Arrangement &amp; Weight (KG)
               </label>
               <div style={{ display: 'flex', gap: 6 }}>
@@ -879,13 +828,8 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                   value={contribArrangement}
                   onChange={(e) => setContribArrangement(e.target.value as TripArrangement)}
                   style={{
+                    ...inputStyle,
                     flex: 1,
-                    padding: '8px 6px',
-                    borderRadius: 6,
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    color: '#fff',
-                    fontSize: '0.82rem',
                   }}
                 >
                   <option value="EXCLUSIVE">Exclusive</option>
@@ -897,13 +841,8 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                   onChange={(e) => setContribWeight(e.target.value)}
                   placeholder="KG"
                   style={{
-                    width: 80,
-                    padding: '8px 6px',
-                    borderRadius: 6,
-                    border: '1px solid rgba(255, 255, 255, 0.12)',
-                    background: 'rgba(15, 23, 42, 0.6)',
-                    color: '#fff',
-                    fontSize: '0.82rem',
+                    ...inputStyle,
+                    width: 85,
                   }}
                 />
               </div>
@@ -911,7 +850,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
           </div>
 
           <div style={{ marginBottom: 16 }}>
-            <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#cbd5e1', marginBottom: 4 }}>
+            <label style={labelStyle}>
               Optional Notes / Transporter Details
             </label>
             <textarea
@@ -919,15 +858,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
               value={contribNotes}
               onChange={(e) => setContribNotes(e.target.value)}
               placeholder="e.g. Included loading labour, dry weather route, tarmac all the way."
-              style={{
-                width: '100%',
-                padding: '8px 10px',
-                borderRadius: 6,
-                border: '1px solid rgba(255, 255, 255, 0.12)',
-                background: 'rgba(15, 23, 42, 0.6)',
-                color: '#fff',
-                fontSize: '0.85rem',
-              }}
+              style={inputStyle}
             />
           </div>
 
@@ -948,10 +879,10 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
             <div>
-              <h3 style={{ margin: '0 0 2px 0', fontSize: '1rem', fontWeight: 700, color: '#f8fafc' }}>
+              <h3 style={{ margin: '0 0 2px 0', fontSize: '1rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                 My Submitted Transport Records
               </h3>
-              <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8' }}>
+              <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-secondary)' }}>
                 Review past reports, verification badges, and appeal anomalous flags if necessary.
               </p>
             </div>
@@ -970,7 +901,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
               <LoadSpinner fullPage={false} size="md" text="Loading records..." />
             </div>
           ) : myRecords.length === 0 ? (
-            <div style={{ padding: 30, textAlign: 'center', color: '#94a3b8', fontSize: '0.88rem' }}>
+            <div style={{ padding: 30, textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '0.88rem' }}>
               You have not submitted any transport records yet.
             </div>
           ) : (
@@ -981,8 +912,8 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                   <div
                     key={rec._id}
                     style={{
-                      background: 'rgba(15, 23, 42, 0.5)',
-                      border: `1px solid ${isQuarantined ? 'rgba(239, 68, 68, 0.3)' : 'rgba(255, 255, 255, 0.08)'}`,
+                      background: 'var(--color-surface-raised)',
+                      border: `1px solid ${isQuarantined ? 'rgba(239, 68, 68, 0.4)' : 'var(--color-surface-border)'}`,
                       borderRadius: 10,
                       padding: 14,
                       display: 'flex',
@@ -994,7 +925,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                   >
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: '#f8fafc' }}>
+                        <span style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                           {rec.origin?.name} → {rec.destination?.name}
                         </span>
                         <span
@@ -1021,12 +952,12 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                         </span>
                       </div>
 
-                      <div style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)' }}>
                         Distance: <strong>{rec.routing?.distanceKm} km</strong> | Vehicle: <strong>{rec.vehicleCategory}</strong> | Date: {new Date(rec.journeyDate).toLocaleDateString()}
                       </div>
 
                       {isQuarantined && rec.anomalyFlags && rec.anomalyFlags.length > 0 && (
-                        <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#fca5a5' }}>
+                        <div style={{ marginTop: 6, fontSize: '0.75rem', color: '#f87171' }}>
                           <strong>Flag:</strong> {rec.anomalyFlags[0].details || rec.anomalyFlags[0].flag}
                         </div>
                       )}
@@ -1036,7 +967,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                       <div style={{ fontSize: '1.15rem', fontWeight: 800, color: '#4ade80' }}>
                         KSh {rec.reportedPriceKSh?.toLocaleString()}
                       </div>
-                      <div style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
                         ~KSh {Math.round(rec.reportedPriceKSh / (rec.routing?.distanceKm || 1))} / km
                       </div>
 
@@ -1051,7 +982,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                             borderRadius: 4,
                             border: '1px solid rgba(239, 68, 68, 0.3)',
                             background: 'rgba(239, 68, 68, 0.15)',
-                            color: '#fca5a5',
+                            color: '#f87171',
                             cursor: 'pointer',
                           }}
                         >
@@ -1072,13 +1003,13 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                         style={{
                           width: '100%',
                           marginTop: 10,
-                          padding: 10,
+                          padding: 12,
                           borderRadius: 8,
-                          background: 'rgba(0,0,0,0.4)',
-                          border: '1px solid rgba(255,255,255,0.06)',
+                          background: 'var(--color-surface-card)',
+                          border: '1px solid var(--color-surface-border)',
                         }}
                       >
-                        <span style={{ fontSize: '0.8rem', color: '#cbd5e1', display: 'block', marginBottom: 4 }}>
+                        <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', display: 'block', marginBottom: 6 }}>
                           Provide context or receipt details to administrative reviewer:
                         </span>
                         <input
@@ -1087,13 +1018,7 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                           onChange={(e) => setAppealNotes(e.target.value)}
                           placeholder="e.g. Transporter charged extra due to mud/rain on feeder road."
                           style={{
-                            width: '100%',
-                            padding: '6px 10px',
-                            borderRadius: 6,
-                            border: '1px solid rgba(255,255,255,0.1)',
-                            background: 'rgba(15,23,42,0.8)',
-                            color: '#fff',
-                            fontSize: '0.82rem',
+                            ...inputStyle,
                             marginBottom: 8,
                           }}
                         />
@@ -1102,11 +1027,11 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                             type="button"
                             onClick={() => setAppealTargetId(null)}
                             style={{
-                              padding: '4px 10px',
+                              padding: '5px 12px',
                               fontSize: '0.76rem',
                               border: 'none',
                               background: 'transparent',
-                              color: '#94a3b8',
+                              color: 'var(--color-text-secondary)',
                               cursor: 'pointer',
                             }}
                           >
@@ -1117,9 +1042,9 @@ export const TransportIntelligenceSection: React.FC<Props> = ({
                             onClick={() => handleAppealSubmit(rec._id)}
                             disabled={appealSubmitting}
                             style={{
-                              padding: '4px 12px',
+                              padding: '5px 14px',
                               fontSize: '0.76rem',
-                              borderRadius: 4,
+                              borderRadius: 6,
                               border: 'none',
                               background: 'var(--color-primary, #16a34a)',
                               color: '#fff',

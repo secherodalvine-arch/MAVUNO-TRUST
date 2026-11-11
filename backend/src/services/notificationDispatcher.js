@@ -43,28 +43,31 @@ export async function dispatchFarmerNotification({
     sms: { attempted: false, success: false },
   };
 
-  // 1. In-App Notification (Database + WebSocket)
-  try {
-    await createNotification({
-      userId,
-      type,
-      title,
-      body,
-      link,
-      meta,
-    });
-    results.inApp = true;
-  } catch (err) {
-    console.error('[NotificationDispatcher] Failed to create in-app notification:', err.message);
-  }
-
   // Retrieve user preferences and contact tokens
   let user = null;
   try {
-    user = await User.findById(userId).select('fcmToken phoneNumber smsNotificationEnabled pushNotificationEnabled');
+    user = await User.findById(userId).select(
+      'fcmToken phoneNumber email smsNotificationEnabled pushNotificationEnabled inAppNotificationEnabled emailNotificationEnabled'
+    );
   } catch (err) {
     console.error('[NotificationDispatcher] Failed to lookup user for notification dispatch:', err.message);
-    return results;
+  }
+
+  // 1. In-App Notification (Database + WebSocket) - respects inAppNotificationEnabled
+  if (!user || user.inAppNotificationEnabled !== false) {
+    try {
+      await createNotification({
+        userId,
+        type,
+        title,
+        body,
+        link,
+        meta,
+      });
+      results.inApp = true;
+    } catch (err) {
+      console.error('[NotificationDispatcher] Failed to create in-app notification:', err.message);
+    }
   }
 
   if (!user) return results;

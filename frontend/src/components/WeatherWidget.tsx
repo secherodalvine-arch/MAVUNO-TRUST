@@ -58,11 +58,12 @@ export const WeatherWidget: React.FC = () => {
   return (
     <div
       style={{
-        background: 'var(--color-surface, #1e293b)',
-        border: '1px solid var(--color-border, #334155)',
+        background: 'var(--color-surface-card)',
+        border: '1px solid var(--color-surface-border)',
         borderRadius: '12px',
         padding: '20px',
         marginBottom: '24px',
+        boxShadow: 'var(--shadow-sm)',
       }}
     >
       {/* Header */}
@@ -90,11 +91,12 @@ export const WeatherWidget: React.FC = () => {
             <Sun size={18} />
           </div>
           <div>
-            <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--color-text-primary, #f8fafc)' }}>
+            <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--color-text-primary)' }}>
               Farm Weather
             </h3>
-            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary, #94a3b8)', margin: 0 }}>
-              Open-Meteo · Real-time & 7-day forecast
+            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', margin: '2px 0 0 0', display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <MapPin size={12} style={{ color: '#16a34a', flexShrink: 0 }} />
+              <span>{weather?.locationName || 'Local Farm'} · 7-Day Forecast</span>
             </p>
           </div>
         </div>
@@ -102,11 +104,11 @@ export const WeatherWidget: React.FC = () => {
           onClick={loadWeather}
           disabled={loading}
           style={{
-            background: 'transparent',
-            border: '1px solid var(--color-border, #334155)',
+            background: 'var(--color-surface-raised)',
+            border: '1px solid var(--color-surface-border)',
             borderRadius: '6px',
             padding: '5px 10px',
-            color: '#94a3b8',
+            color: 'var(--color-text-secondary)',
             cursor: loading ? 'not-allowed' : 'pointer',
             fontSize: '0.78rem',
             display: 'flex',
@@ -120,7 +122,7 @@ export const WeatherWidget: React.FC = () => {
       </div>
 
       {loading ? (
-        <div style={{ textAlign: 'center', padding: '24px', color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: '24px', color: 'var(--color-text-muted)' }}>
           <RefreshCw size={20} className="animate-spin" style={{ margin: '0 auto 8px' }} />
           <p style={{ fontSize: '0.85rem', margin: 0 }}>Fetching weather for your farm...</p>
         </div>
@@ -128,22 +130,43 @@ export const WeatherWidget: React.FC = () => {
         <div
           style={{
             background: 'rgba(234, 179, 8, 0.08)',
-            border: '1px solid rgba(234, 179, 8, 0.2)',
+            border: '1px solid rgba(234, 179, 8, 0.25)',
             borderRadius: '8px',
             padding: '14px',
             display: 'flex',
-            alignItems: 'center',
+            alignItems: 'flex-start',
             gap: '10px',
           }}
         >
-          <MapPin size={16} color="#eab308" />
-          <div>
-            <p style={{ fontSize: '0.85rem', color: '#fde047', margin: '0 0 2px', fontWeight: 500 }}>
-              GPS Coordinates Required
+          {weather?.code === 'COORDINATES_REQUIRED' ? (
+            <MapPin size={18} color="#eab308" style={{ flexShrink: 0, marginTop: 2 }} />
+          ) : (
+            <AlertCircle size={18} color="#eab308" style={{ flexShrink: 0, marginTop: 2 }} />
+          )}
+          <div style={{ flex: 1 }}>
+            <p style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', margin: '0 0 2px', fontWeight: 600 }}>
+              {weather?.code === 'COORDINATES_REQUIRED' ? 'GPS Coordinates Required' : 'Weather Service Notice'}
             </p>
-            <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0 }}>
-              {weather?.message || 'Register your farm GPS location to see local weather data.'}
+            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', margin: 0, lineHeight: 1.4 }}>
+              {weather?.code === 'COORDINATES_REQUIRED'
+                ? 'Register your farm GPS coordinates in your profile to view automated weather conditions and satellite monitoring.'
+                : weather?.message || 'Weather service is temporarily synchronizing. Click Refresh to reload.'}
             </p>
+            {weather?.code === 'COORDINATES_REQUIRED' && (
+              <a
+                href="/farmer/profile"
+                style={{
+                  display: 'inline-block',
+                  marginTop: '8px',
+                  fontSize: '0.78rem',
+                  fontWeight: 600,
+                  color: 'var(--color-primary, #16a34a)',
+                  textDecoration: 'none',
+                }}
+              >
+                Set Farm Location in Profile →
+              </a>
+            )}
           </div>
         </div>
       ) : weather.current ? (
@@ -160,20 +183,20 @@ export const WeatherWidget: React.FC = () => {
             {/* Temperature */}
             <div
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid var(--color-border, #334155)',
+                background: 'var(--color-surface-raised)',
+                border: '1px solid var(--color-surface-border)',
                 borderRadius: '8px',
                 padding: '12px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                 <Thermometer size={14} color="#f97316" />
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Temperature</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Temperature</span>
               </div>
-              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#f8fafc' }}>
+              <div style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>
                 {weather.current.temperatureC !== null ? `${weather.current.temperatureC}°C` : 'N/A'}
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
                 Feels {weather.current.apparentTemperatureC !== null ? `${weather.current.apparentTemperatureC}°C` : 'N/A'}
               </div>
             </div>
@@ -181,20 +204,20 @@ export const WeatherWidget: React.FC = () => {
             {/* Conditions */}
             <div
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid var(--color-border, #334155)',
+                background: 'var(--color-surface-raised)',
+                border: '1px solid var(--color-surface-border)',
                 borderRadius: '8px',
                 padding: '12px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                 <WeatherIcon code={weather.current.weatherCode} size={14} />
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Conditions</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Conditions</span>
               </div>
-              <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#f8fafc' }}>
+              <div style={{ fontSize: '0.95rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
                 {weather.current.weatherDescription}
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
                 Rain: {weather.current.rainMm !== null ? `${weather.current.rainMm} mm` : '0 mm'}
               </div>
             </div>
@@ -202,15 +225,15 @@ export const WeatherWidget: React.FC = () => {
             {/* Humidity */}
             <div
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid var(--color-border, #334155)',
+                background: 'var(--color-surface-raised)',
+                border: '1px solid var(--color-surface-border)',
                 borderRadius: '8px',
                 padding: '12px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                 <Droplets size={14} color="#60a5fa" />
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Humidity</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Humidity</span>
               </div>
               <div
                 style={{
@@ -223,7 +246,7 @@ export const WeatherWidget: React.FC = () => {
                   ? `${weather.current.relativeHumidityPct}%`
                   : 'N/A'}
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
                 {weather.current.humidityLabel || ''}
               </div>
             </div>
@@ -231,20 +254,20 @@ export const WeatherWidget: React.FC = () => {
             {/* Wind */}
             <div
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid var(--color-border, #334155)',
+                background: 'var(--color-surface-raised)',
+                border: '1px solid var(--color-surface-border)',
                 borderRadius: '8px',
                 padding: '12px',
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
                 <Wind size={14} color="#a78bfa" />
-                <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>Wind</span>
+                <span style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)' }}>Wind</span>
               </div>
-              <div style={{ fontSize: '1.1rem', fontWeight: 600, color: '#f8fafc' }}>
+              <div style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
                 {weather.current.windSpeedKph !== null ? `${weather.current.windSpeedKph} km/h` : 'N/A'}
               </div>
-              <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginTop: '2px' }}>
+              <div style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
                 {weather.current.windDescription || ''}
               </div>
             </div>
@@ -253,20 +276,20 @@ export const WeatherWidget: React.FC = () => {
             {(weather.current.soilTemperatureC !== null || weather.current.soilMoisture !== null) && (
               <div
                 style={{
-                  background: 'rgba(255,255,255,0.03)',
-                  border: '1px solid var(--color-border, #334155)',
+                  background: 'var(--color-surface-raised)',
+                  border: '1px solid var(--color-surface-border)',
                   borderRadius: '8px',
                   padding: '12px',
                 }}
               >
-                <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: '4px' }}>Soil</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginBottom: '4px' }}>Soil</div>
                 {weather.current.soilTemperatureC !== null && (
-                  <div style={{ fontSize: '0.85rem', color: '#f8fafc', fontWeight: 500 }}>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', fontWeight: 500 }}>
                     Temp: {weather.current.soilTemperatureC}°C
                   </div>
                 )}
                 {weather.current.soilMoisture !== null && (
-                  <div style={{ fontSize: '0.78rem', color: '#94a3b8', marginTop: '2px' }}>
+                  <div style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
                     Moisture: {weather.current.soilMoisture.toFixed(3)} m³/m³
                   </div>
                 )}
@@ -283,7 +306,7 @@ export const WeatherWidget: React.FC = () => {
                 borderRadius: '6px',
                 padding: '8px 12px',
                 fontSize: '0.78rem',
-                color: '#93c5fd',
+                color: '#0284c7',
                 marginBottom: '14px',
               }}
             >
@@ -294,7 +317,7 @@ export const WeatherWidget: React.FC = () => {
           {/* 7-day forecast */}
           {weather.forecast && weather.forecast.length > 0 && (
             <div>
-              <div style={{ fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600, marginBottom: '8px' }}>
+              <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: '8px' }}>
                 7-DAY FORECAST
               </div>
               <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }}>
@@ -303,26 +326,26 @@ export const WeatherWidget: React.FC = () => {
                     key={day.date}
                     style={{
                       flexShrink: 0,
-                      background: 'rgba(255,255,255,0.03)',
-                      border: '1px solid var(--color-border, #334155)',
+                      background: 'var(--color-surface-raised)',
+                      border: '1px solid var(--color-surface-border)',
                       borderRadius: '8px',
                       padding: '10px',
                       textAlign: 'center',
                       minWidth: '80px',
                     }}
                   >
-                    <div style={{ fontSize: '0.68rem', color: '#94a3b8', marginBottom: '4px' }}>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)', marginBottom: '4px' }}>
                       {new Date(day.date).toLocaleDateString('en-KE', { weekday: 'short', month: 'short', day: 'numeric' })}
                     </div>
                     <WeatherIcon code={day.weatherCode} size={16} />
-                    <div style={{ fontSize: '0.78rem', color: '#f8fafc', fontWeight: 600, marginTop: '4px' }}>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--color-text-primary)', fontWeight: 600, marginTop: '4px' }}>
                       {day.maxTempC !== null ? `${day.maxTempC}°` : '–'}
                     </div>
-                    <div style={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                    <div style={{ fontSize: '0.68rem', color: 'var(--color-text-secondary)' }}>
                       {day.minTempC !== null ? `${day.minTempC}°` : '–'}
                     </div>
                     {day.precipitationMm > 0 && (
-                      <div style={{ fontSize: '0.65rem', color: '#60a5fa', marginTop: '2px' }}>
+                      <div style={{ fontSize: '0.65rem', color: '#0284c7', marginTop: '2px' }}>
                         {day.precipitationMm}mm
                       </div>
                     )}
@@ -332,14 +355,15 @@ export const WeatherWidget: React.FC = () => {
             </div>
           )}
 
-          <div style={{ fontSize: '0.68rem', color: '#475569', marginTop: '10px' }}>
-            Source: Open-Meteo (open-meteo.com) · Updated:{' '}
-            {weather.fetchedAt ? new Date(weather.fetchedAt).toLocaleTimeString('en-KE') : 'Recently'}
+          <div style={{ fontSize: '0.68rem', color: 'var(--color-text-muted)', marginTop: '10px' }}>
+            {weather.locationName ? `Location: ${weather.locationName} · ` : ''}Updated:{' '}
+            {weather.fetchedAt ? new Date(weather.fetchedAt).toLocaleTimeString('en-KE', { hour: '2-digit', minute: '2-digit' }) : 'Recently'}
             {weather.fromCache ? ' (cached)' : ''}
+            {weather.isEstimate ? ' (regional climate estimate)' : ''}
           </div>
         </>
       ) : (
-        <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8' }}>
+        <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-muted)' }}>
           <AlertCircle size={20} style={{ margin: '0 auto 8px' }} />
           <p style={{ fontSize: '0.85rem', margin: 0 }}>{error || 'Weather data could not be loaded.'}</p>
         </div>

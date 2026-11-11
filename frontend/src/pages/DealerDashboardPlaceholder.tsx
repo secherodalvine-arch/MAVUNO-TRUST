@@ -218,7 +218,7 @@ export const DealerDashboardPlaceholder: React.FC = () => {
             <Truck size={20} />
           </div>
           <span className="dash-card-title">Transport Intel</span>
-          <p className="dash-card-desc">OpenStreetMap road distances &amp; shared haulier cost estimates for farm collection.</p>
+          <p className="dash-card-desc">Real driving distances &amp; shared haulier cost estimates for farm collection.</p>
           <span className="dash-card-link">Calculate Logistics <ArrowRight size={13} /></span>
         </Link>
 

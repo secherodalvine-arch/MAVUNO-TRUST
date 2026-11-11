@@ -7,14 +7,14 @@
 .vw-overlay {
   position: fixed;
   inset: 0;
-  z-index: 10000;
-  background: rgba(4, 15, 8, 0.75);
+  z-index: 100000;
+  background: rgba(4, 15, 8, 0.78);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 24px;
   box-sizing: border-box;
   animation: vw-overlay-fade 0.22s ease-out;
   overflow-y: auto;
@@ -28,9 +28,10 @@
 
 /* ── Centered Modal Dialog ── */
 .vw-dialog {
+  position: relative;
   width: 100%;
   max-width: 520px;
-  max-height: min(720px, calc(100dvh - 40px));
+  max-height: min(720px, calc(100dvh - 48px));
   background: #0c180f;
   border: 1px solid rgba(74, 222, 128, 0.28);
   border-radius: 22px;
@@ -573,9 +574,9 @@
 /* ── Floating Action Button (FAB Launcher) ── */
 .vw-fab {
   position: fixed;
-  bottom: 28px;
-  right: 28px;
-  z-index: 9990;
+  bottom: max(24px, env(safe-area-inset-bottom, 24px));
+  right: max(24px, env(safe-area-inset-right, 24px));
+  z-index: 99990;
   width: 60px;
   height: 60px;
   border-radius: 50%;
@@ -586,7 +587,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, opacity 0.2s ease;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease, background 0.25s ease;
   outline: none;
   color: #ffffff;
 }
@@ -594,6 +595,12 @@
 .vw-fab:hover {
   transform: scale(1.08);
   box-shadow: 0 12px 36px rgba(34, 197, 94, 0.6), 0 0 0 4px rgba(74, 222, 128, 0.25);
+}
+
+.vw-fab--open {
+  background: #0f1c13;
+  border: 1.5px solid rgba(74, 222, 128, 0.5);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.7);
 }
 
 .vw-fab--hidden {
@@ -648,14 +655,17 @@
 /* Tablets & Mobile (<= 640px) */
 @media (max-width: 640px) {
   .vw-overlay {
-    padding: 10px;
-    align-items: flex-end; /* Bottom-sheet feel on mobile for effortless reach */
+    padding: 12px;
+    align-items: center;
+    justify-content: center;
   }
 
   .vw-dialog {
-    max-width: 100%;
-    max-height: calc(100dvh - 20px);
-    border-radius: 20px 20px 14px 14px;
+    width: 100%;
+    max-width: calc(100vw - 24px);
+    max-height: calc(100dvh - 24px);
+    border-radius: 18px;
+    margin: auto;
   }
 
   .vw-header {

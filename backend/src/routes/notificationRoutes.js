@@ -5,11 +5,89 @@ import Offer from '../models/Offer.js';
 import Transaction from '../models/Transaction.js';
 import Complaint from '../models/Complaint.js';
 import FarmerCropListing from '../models/FarmerCropListing.js';
+import User from '../models/User.js';
 
 const router = Router();
 
 // All notification routes require authentication
 router.use(requireAuth);
+
+/**
+ * GET /api/notifications/preferences
+ * Retrieve current user notification preferences
+ */
+router.get('/preferences', async (req, res, next) => {
+  try {
+    const userId = req.user.userId || req.user._id;
+    const user = await User.findById(userId).select(
+      'inAppNotificationEnabled emailNotificationEnabled smsNotificationEnabled pushNotificationEnabled notificationCadence'
+    );
+    if (!user) {
+      return res.status(404).json({ success: false, error: { message: 'User not found.' } });
+    }
+    res.json({
+      success: true,
+      data: {
+        inAppNotifications: user.inAppNotificationEnabled !== false,
+        emailNotifications: user.emailNotificationEnabled !== false,
+        smsNotifications: user.smsNotificationEnabled !== false,
+        pushNotifications: user.pushNotificationEnabled !== false,
+        notificationCadence: user.notificationCadence || 'NOW',
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * PUT /api/notifications/preferences
+ * Update current user notification preferences
+ */
+router.put('/preferences', async (req, res, next) => {
+  try {
+    const userId = req.user.userId || req.user._id;
+    const updates = {};
+    if (typeof req.body.inAppNotifications === 'boolean') {
+      updates.inAppNotificationEnabled = req.body.inAppNotifications;
+    }
+    if (typeof req.body.emailNotifications === 'boolean') {
+      updates.emailNotificationEnabled = req.body.emailNotifications;
+    }
+    if (typeof req.body.smsNotifications === 'boolean') {
+      updates.smsNotificationEnabled = req.body.smsNotifications;
+    }
+    if (typeof req.body.pushNotifications === 'boolean') {
+      updates.pushNotificationEnabled = req.body.pushNotifications;
+    }
+    if (typeof req.body.notificationCadence === 'string') {
+      const cadence = req.body.notificationCadence.toUpperCase();
+      if (['NOW', 'DAILY', 'WEEKLY', 'MONTHLY'].includes(cadence)) {
+        updates.notificationCadence = cadence;
+      }
+    }
+
+    const user = await User.findByIdAndUpdate(userId, updates, { new: true }).select(
+      'inAppNotificationEnabled emailNotificationEnabled smsNotificationEnabled pushNotificationEnabled notificationCadence'
+    );
+    if (!user) {
+      return res.status(404).json({ success: false, error: { message: 'User not found.' } });
+    }
+    res.json({
+      success: true,
+      message: 'Notification preferences updated successfully.',
+      data: {
+        inAppNotifications: user.inAppNotificationEnabled !== false,
+        emailNotifications: user.emailNotificationEnabled !== false,
+        smsNotifications: user.smsNotificationEnabled !== false,
+        pushNotifications: user.pushNotificationEnabled !== false,
+        notificationCadence: user.notificationCadence || 'NOW',
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 /**
  * Helper to inspect ongoing activities, pending offers, transactions, and complaints,

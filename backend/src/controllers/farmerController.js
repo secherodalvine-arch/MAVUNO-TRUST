@@ -215,7 +215,25 @@ export const getMyFarmWeather = async (req, res, next) => {
             latitude: profile.latitude,
             longitude: profile.longitude,
         });
-        res.json({ success: true, data: weather });
+
+        // Enrich with human-readable location from farmer profile
+        const locationParts = [profile.generalArea, profile.subCounty, profile.county].filter(Boolean);
+        const locationName = locationParts.length > 0 
+            ? locationParts.join(', ') 
+            : (profile.latitude !== undefined && profile.latitude !== null
+                ? `${profile.latitude.toFixed(2)}°, ${profile.longitude.toFixed(2)}°`
+                : 'Registered Farm');
+
+        res.json({
+            success: true,
+            data: {
+                ...weather,
+                locationName,
+                county: profile.county || '',
+                subCounty: profile.subCounty || '',
+                generalArea: profile.generalArea || '',
+            },
+        });
     }
     catch (err) {
         next(err);

@@ -27,7 +27,7 @@ export const TransportPage: React.FC = () => {
               Transport-Cost Intelligence
             </h1>
             <p className="page-subtitle">
-              Transparent transit benchmarks calculated with OpenStreetMap road networks, OSRM routing, and verified community logs.
+              Transparent transit benchmarks calculated with real drivable road networks and verified community logs.
             </p>
           </div>
         </div>
@@ -47,35 +47,37 @@ export const TransportPage: React.FC = () => {
       >
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.4)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
+            background: 'var(--color-surface-card)',
+            border: '1px solid var(--color-surface-border)',
             borderRadius: 12,
             padding: 18,
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, color: '#38bdf8' }}>
             <Layers size={18} />
-            <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>OpenStreetMap &amp; OSRM Road Precision</span>
+            <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>Real Highway &amp; Road Precision</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.6 }}>
-            Distances are computed using actual drivable road networks via Open Source Routing Machine (OSRM) over OpenStreetMap data,
+          <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
+            Distances are computed using actual drivable road networks across Kenya,
             never straight-line approximations. This accounts for genuine highway geometry, county roads, and mountain passes across Kenya.
           </p>
         </div>
 
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.4)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
+            background: 'var(--color-surface-card)',
+            border: '1px solid var(--color-surface-border)',
             borderRadius: 12,
             padding: 18,
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, color: '#4ade80' }}>
             <Shield size={18} />
-            <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>Anti-Manipulation &amp; Privacy</span>
+            <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>Anti-Manipulation &amp; Privacy</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
             Shared estimates filter out coordinated price tampering, statistical outliers, and unverified spikes.
             Private farm coordinates and contributor receipts are strictly protected and never displayed to other users.
           </p>
@@ -83,17 +85,18 @@ export const TransportPage: React.FC = () => {
 
         <div
           style={{
-            background: 'rgba(15, 23, 42, 0.4)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
+            background: 'var(--color-surface-card)',
+            border: '1px solid var(--color-surface-border)',
             borderRadius: 12,
             padding: 18,
+            boxShadow: 'var(--shadow-sm)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8, color: '#facc15' }}>
             <HelpCircle size={18} />
-            <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>Negotiation Benchmark</span>
+            <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--color-text-primary)' }}>Negotiation Benchmark</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.6 }}>
+          <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-secondary)', lineHeight: 1.6 }}>
             Estimates provide market transparency to protect you from broker exploitation, but do not bind private hauliers.
             Always confirm vehicle roadworthiness and agree on loading terms before dispatch.
           </p>

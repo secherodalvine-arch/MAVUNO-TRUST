@@ -426,36 +426,36 @@ export const MyCropsPage: React.FC = () => {
           <div style={{ ...styles.modalCard, maxWidth: '600px' }}>
             <h2 style={styles.modalTitle}>Buyer Demands for {matchModalListing.cropName}</h2>
             {loadingMatches ? (
-              <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>Checking active demands...</div>
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>Checking active demands...</div>
             ) : matchResults.length === 0 ? (
-              <div style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
+              <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
                 No active buyer demands match this crop at the moment.
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxHeight: '60vh', overflowY: 'auto', paddingRight: '8px' }}>
                 {matchResults.map((m, idx) => (
-                  <div key={idx} style={{ padding: '16px', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px', background: 'rgba(255,255,255,0.02)' }}>
-                    <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: '#f8fafc' }}>{m.demand.dealerId?.fullName || 'Verified Dealer'}</h3>
-                    <div style={{ fontSize: '0.9rem', color: '#cbd5e1', marginBottom: '8px' }}>
+                  <div key={idx} style={{ padding: '16px', border: '1px solid var(--color-surface-border)', borderRadius: '8px', background: 'var(--color-surface-raised)' }}>
+                    <h3 style={{ margin: '0 0 8px 0', fontSize: '1.1rem', color: 'var(--color-text-primary)' }}>{m.demand.dealerId?.fullName || 'Verified Dealer'}</h3>
+                    <div style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
                       <strong>Wants:</strong> {m.demand.quantity} {m.demand.unit}
                     </div>
                     {m.demand.targetPricePerUnit && (
-                      <div style={{ fontSize: '0.9rem', color: '#cbd5e1', marginBottom: '8px' }}>
+                      <div style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', marginBottom: '8px' }}>
                         <strong>Target Price:</strong> {m.demand.currency} {m.demand.targetPricePerUnit} / {m.demand.unit}
                       </div>
                     )}
                     
                     <div style={{ marginTop: '12px' }}>
-                      <strong style={{ fontSize: '0.85rem', color: '#4ade80' }}>Match Reasons:</strong>
-                      <ul style={{ margin: '4px 0 8px 0', paddingLeft: '20px', fontSize: '0.85rem', color: '#94a3b8' }}>
+                      <strong style={{ fontSize: '0.85rem', color: '#16a34a' }}>Match Reasons:</strong>
+                      <ul style={{ margin: '4px 0 8px 0', paddingLeft: '20px', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
                         {m.reasons.map((r: string, i: number) => <li key={i}>{r}</li>)}
                       </ul>
                     </div>
 
                     {m.limitations.length > 0 && (
                       <div style={{ marginTop: '8px' }}>
-                        <strong style={{ fontSize: '0.85rem', color: '#fca5a5' }}>Mismatches / Limitations:</strong>
-                        <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', fontSize: '0.85rem', color: '#94a3b8' }}>
+                        <strong style={{ fontSize: '0.85rem', color: '#dc2626' }}>Mismatches / Limitations:</strong>
+                        <ul style={{ margin: '4px 0 0 0', paddingLeft: '20px', fontSize: '0.85rem', color: 'var(--color-text-secondary)' }}>
                           {m.limitations.map((l: string, i: number) => <li key={i}>{l}</li>)}
                         </ul>
                       </div>
@@ -477,7 +477,7 @@ export const MyCropsPage: React.FC = () => {
               </div>
             )}
             
-            <div style={{ ...styles.formActions, marginTop: '20px' }}>
+            <div style={{ ...styles.modalActions, marginTop: '20px' }}>
               <button
                 type="button"
                 onClick={() => setMatchModalListing(null)}
@@ -510,8 +510,8 @@ const styles: Record<string, React.CSSProperties> = {
   badge: {
     display: 'inline-block',
     backgroundColor: 'rgba(34, 197, 94, 0.1)',
-    color: '#4ade80',
-    border: '1px solid rgba(34, 197, 94, 0.2)',
+    color: '#16a34a',
+    border: '1px solid rgba(34, 197, 94, 0.25)',
     fontSize: '0.8rem',
     fontWeight: 600,
     padding: '4px 12px',
@@ -521,16 +521,16 @@ const styles: Record<string, React.CSSProperties> = {
   title: {
     fontSize: '1.8rem',
     fontWeight: 700,
-    color: '#f8fafc',
+    color: 'var(--color-text-primary)',
     margin: '0 0 4px 0',
   },
   subtitle: {
     fontSize: '0.9rem',
-    color: '#94a3b8',
+    color: 'var(--color-text-secondary)',
     margin: 0,
   },
   addBtn: {
-    backgroundColor: '#16a34a',
+    backgroundColor: 'var(--color-primary, #16a34a)',
     color: '#ffffff',
     border: 'none',
     borderRadius: '8px',
@@ -542,7 +542,7 @@ const styles: Record<string, React.CSSProperties> = {
   infoBanner: {
     backgroundColor: 'rgba(59, 130, 246, 0.1)',
     border: '1px solid rgba(59, 130, 246, 0.3)',
-    color: '#93c5fd',
+    color: '#0284c7',
     padding: '14px 18px',
     borderRadius: '10px',
     fontSize: '0.875rem',
@@ -557,11 +557,12 @@ const styles: Record<string, React.CSSProperties> = {
     marginBottom: '20px',
   },
   emptyState: {
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
+    backgroundColor: 'var(--color-surface-card)',
+    border: '1px solid var(--color-surface-border)',
     borderRadius: '16px',
     padding: '48px 24px',
     textAlign: 'center',
+    boxShadow: 'var(--shadow-sm)',
   },
   grid: {
     display: 'grid',
@@ -569,13 +570,14 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '20px',
   },
   card: {
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
+    backgroundColor: 'var(--color-surface-card)',
+    border: '1px solid var(--color-surface-border)',
     borderRadius: '12px',
     padding: '20px',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'space-between',
+    boxShadow: 'var(--shadow-sm)',
   },
   cardHeader: {
     display: 'flex',
@@ -587,7 +589,7 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
     fontSize: '1.2rem',
     fontWeight: 700,
-    color: '#f8fafc',
+    color: 'var(--color-text-primary)',
   },
   statusBadge: {
     fontSize: '0.75rem',
@@ -603,27 +605,27 @@ const styles: Record<string, React.CSSProperties> = {
   },
   detailLabel: {
     fontSize: '0.75rem',
-    color: '#94a3b8',
+    color: 'var(--color-text-muted)',
     textTransform: 'uppercase',
     letterSpacing: '0.5px',
   },
   detailVal: {
     fontSize: '0.95rem',
     fontWeight: 600,
-    color: '#cbd5e1',
+    color: 'var(--color-text-secondary)',
     marginTop: '2px',
   },
   cardFooter: {
     display: 'flex',
     gap: '10px',
     paddingTop: '14px',
-    borderTop: '1px solid #334155',
+    borderTop: '1px solid var(--color-surface-border)',
   },
   editBtn: {
     flex: 1,
-    backgroundColor: 'transparent',
-    border: '1px solid #475569',
-    color: '#cbd5e1',
+    backgroundColor: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-surface-border)',
+    color: 'var(--color-text-primary)',
     borderRadius: '6px',
     padding: '8px',
     fontSize: '0.85rem',
@@ -633,7 +635,7 @@ const styles: Record<string, React.CSSProperties> = {
   deleteBtn: {
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid rgba(239, 68, 68, 0.3)',
-    color: '#fca5a5',
+    color: '#ef4444',
     borderRadius: '6px',
     padding: '8px 14px',
     fontSize: '0.85rem',
@@ -646,28 +648,30 @@ const styles: Record<string, React.CSSProperties> = {
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'var(--mt-overlay, rgba(0,0,0,0.7))',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1000,
     padding: '20px',
+    backdropFilter: 'blur(3px)',
   },
   modalCard: {
     width: '100%',
     maxWidth: '540px',
-    backgroundColor: 'var(--mt-modal-bg, #1e293b)',
-    border: '1px solid var(--mt-modal-border, #334155)',
+    backgroundColor: 'var(--color-surface-card)',
+    border: '1px solid var(--color-surface-border)',
     borderRadius: '16px',
     padding: '28px',
     maxHeight: '90vh',
     overflowY: 'auto',
+    boxShadow: 'var(--shadow-lg, 0 10px 25px rgba(0,0,0,0.2))',
   },
   modalTitle: {
     margin: '0 0 20px 0',
     fontSize: '1.4rem',
     fontWeight: 700,
-    color: 'var(--mt-modal-title, #f8fafc)',
+    color: 'var(--color-text-primary)',
   },
   form: {
     display: 'flex',
@@ -687,24 +691,24 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '0.85rem',
     fontWeight: 600,
-    color: 'var(--mt-modal-label, #cbd5e1)',
+    color: 'var(--color-text-secondary)',
   },
   input: {
-    backgroundColor: 'var(--mt-input-bg, #0f172a)',
-    border: '1px solid var(--mt-input-border, #475569)',
+    backgroundColor: 'var(--mt-input-bg, var(--color-surface-raised))',
+    border: '1px solid var(--mt-input-border, var(--color-surface-border))',
     borderRadius: '8px',
     padding: '10px 12px',
     fontSize: '0.9rem',
-    color: 'var(--mt-modal-title, #f8fafc)',
+    color: 'var(--color-text-primary)',
     outline: 'none',
   },
   textarea: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #475569',
+    backgroundColor: 'var(--mt-input-bg, var(--color-surface-raised))',
+    border: '1px solid var(--mt-input-border, var(--color-surface-border))',
     borderRadius: '8px',
     padding: '10px 12px',
     fontSize: '0.9rem',
-    color: '#f8fafc',
+    color: 'var(--color-text-primary)',
     outline: 'none',
     resize: 'vertical',
   },
@@ -716,15 +720,15 @@ const styles: Record<string, React.CSSProperties> = {
   },
   cancelBtn: {
     backgroundColor: 'transparent',
-    border: '1px solid #475569',
-    color: '#94a3b8',
+    border: '1px solid var(--color-surface-border)',
+    color: 'var(--color-text-secondary)',
     borderRadius: '8px',
     padding: '10px 16px',
     fontSize: '0.9rem',
     cursor: 'pointer',
   },
   submitBtn: {
-    backgroundColor: '#16a34a',
+    backgroundColor: 'var(--color-primary, #16a34a)',
     color: '#ffffff',
     border: 'none',
     borderRadius: '8px',

@@ -213,26 +213,61 @@ export function validateAndNormalizePolygon(input) {
     normalizedRing.push([parseFloat(lng.toFixed(6)), parseFloat(lat.toFixed(6))]);
   }
 
+  // Deduplicate consecutive identical coordinates
+  const cleanRing = [];
+  for (let i = 0; i < normalizedRing.length; i++) {
+    const pt = normalizedRing[i];
+    if (cleanRing.length === 0) {
+      cleanRing.push(pt);
+    } else {
+      const prev = cleanRing[cleanRing.length - 1];
+      if (Math.abs(pt[0] - prev[0]) > 1e-6 || Math.abs(pt[1] - prev[1]) > 1e-6) {
+        cleanRing.push(pt);
+      }
+    }
+  }
+
   // Ensure linear ring closure: First and last coordinates must be identical
-  const first = normalizedRing[0];
-  const last = normalizedRing[normalizedRing.length - 1];
+  const first = cleanRing[0];
+  const last = cleanRing[cleanRing.length - 1];
   const eps = 1e-6;
 
   if (Math.abs(first[0] - last[0]) > eps || Math.abs(first[1] - last[1]) > eps) {
     // Auto-close polygon ring by repeating the starting coordinate
-    normalizedRing.push([...first]);
+    cleanRing.push([...first]);
   }
 
   // Must have at least 4 points once closed (3 unique vertices)
-  if (normalizedRing.length < 4) {
+  if (cleanRing.length < 4) {
     throw Object.assign(
-      new Error('Farm boundary polygon must have at least 3 unique vertices.'),
+      new Error('Farm boundary polygon must have at least 3 unique corner vertices.'),
       { statusCode: 400, code: 'INSUFFICIENT_VERTICES' }
     );
   }
 
+  let effectiveRing = cleanRing;
+
+  // If the polygon has self-intersections or near-zero area, attempt smart radial ordering
+  if (hasSelfIntersections(effectiveRing) || calculateGeodesicArea(effectiveRing) < 1.0) {
+    const uniqueVertices = cleanRing.slice(0, cleanRing.length - 1);
+    if (uniqueVertices.length >= 3) {
+      const cLng = uniqueVertices.reduce((s, p) => s + p[0], 0) / uniqueVertices.length;
+      const cLat = uniqueVertices.reduce((s, p) => s + p[1], 0) / uniqueVertices.length;
+
+      const radiallySorted = [...uniqueVertices].sort((a, b) => {
+        return Math.atan2(a[1] - cLat, a[0] - cLng) - Math.atan2(b[1] - cLat, b[0] - cLng);
+      });
+      radiallySorted.push([...radiallySorted[0]]);
+
+      const sortedArea = calculateGeodesicArea(radiallySorted);
+      if (sortedArea >= 1.0 && !hasSelfIntersections(radiallySorted)) {
+        effectiveRing = radiallySorted;
+      }
+    }
+  }
+
   // Check for self-intersections
-  if (hasSelfIntersections(normalizedRing)) {
+  if (hasSelfIntersections(effectiveRing)) {
     throw Object.assign(
       new Error('Invalid farm boundary: The polygon edges self-intersect. Please adjust the perimeter corners so boundary lines do not cross each other.'),
       { statusCode: 400, code: 'POLYGON_SELF_INTERSECTION' }
@@ -240,13 +275,13 @@ export function validateAndNormalizePolygon(input) {
   }
 
   // Compute area
-  const areaSqMeters = calculateGeodesicArea(normalizedRing);
+  const areaSqMeters = calculateGeodesicArea(effectiveRing);
   const areaAcres = parseFloat((areaSqMeters / SQ_METERS_PER_ACRE).toFixed(2));
   const areaHectares = parseFloat((areaSqMeters / 10000).toFixed(2));
 
   if (areaSqMeters < 1.0) {
     throw Object.assign(
-      new Error('Farm boundary has zero or near-zero area. The coordinates must enclose a valid land parcel.'),
+      new Error('Farm boundary has zero or near-zero area. The corner pins appear to be placed in a straight line or overlapping. Please drag the corner pins outward on the map to enclose your farm parcel.'),
       { statusCode: 400, code: 'DEGENERATE_POLYGON' }
     );
   }
@@ -259,13 +294,13 @@ export function validateAndNormalizePolygon(input) {
     );
   }
 
-  const centroid = calculateCentroid(normalizedRing);
+  const centroid = calculateCentroid(effectiveRing);
 
   return {
     valid: true,
     polygon: {
       type: 'Polygon',
-      coordinates: [normalizedRing],
+      coordinates: [effectiveRing],
     },
     areaSqMeters: Math.round(areaSqMeters),
     areaAcres,

@@ -73,10 +73,11 @@ export function validateCoordinates(latitude, longitude) {
 }
 
 /**
- * Get or create profile for authenticated farmer.
- * When includePrivate is true, returns private location coordinates and exact address.
+ * Get the raw Mongoose document for a farmer profile (for internal mutation use).
+ * Returns the Mongoose document so callers can mutate fields and call .save().
+ * @internal — Do NOT return this document directly to API consumers; use getFarmerProfileByUserId instead.
  */
-export async function getFarmerProfileByUserId(userId, includePrivate = false) {
+async function getFarmerProfileDocument(userId, includePrivate = false) {
     let query = FarmerProfile.findOne({ userId });
     if (includePrivate) {
         query = query.select('+latitude +longitude +locationUpdatedAt +_privateExactLocation');
@@ -91,7 +92,23 @@ export async function getFarmerProfileByUserId(userId, includePrivate = false) {
             displayName: user.fullName,
         });
     }
-    return profile;
+    return profile; // Mongoose document — has .save()
+}
+
+/**
+ * Get or create profile for authenticated farmer.
+ * Returns a plain object enriched with phoneNumber and email from the User model.
+ * When includePrivate is true, includes private location coordinates and exact address.
+ */
+export async function getFarmerProfileByUserId(userId, includePrivate = false) {
+    const profile = await getFarmerProfileDocument(userId, includePrivate);
+    const user = await User.findById(userId).select('phoneNumber email');
+    const profileObj = profile.toObject();
+    if (user) {
+        profileObj.phoneNumber = user.phoneNumber || '';
+        profileObj.email = user.email || '';
+    }
+    return profileObj;
 }
 
 /**
@@ -123,7 +140,7 @@ export async function getFarmerLocation(userId) {
  * Register or update authenticated farmer's farm location & coordinates
  */
 export async function updateFarmerLocation(userId, input = {}) {
-    const profile = await getFarmerProfileByUserId(userId, true);
+    const profile = await getFarmerProfileDocument(userId, true);
     assertOwner({ userId, role: UserRole.FARMER }, profile.userId);
 
     // Validate coordinates
@@ -186,7 +203,7 @@ export async function updateFarmerLocation(userId, input = {}) {
  * Update authenticated farmer's profile
  */
 export async function updateFarmerProfile(userId, input) {
-    const profile = await getFarmerProfileByUserId(userId, true);
+    const profile = await getFarmerProfileDocument(userId, true);
     // Ownership check
     assertOwner({ userId, role: UserRole.FARMER }, profile.userId);
     if (input.displayName !== undefined)
@@ -244,7 +261,28 @@ export async function updateFarmerProfile(userId, input) {
     }
 
     await profile.save();
-    return profile;
+
+    // Update phone number and email on User model if provided
+    let updatedUser = null;
+    const userUpdates = {};
+    if (input.phoneNumber !== undefined) {
+        userUpdates.phoneNumber = input.phoneNumber.trim();
+    }
+    if (input.email !== undefined && input.email.trim()) {
+        userUpdates.email = input.email.trim().toLowerCase();
+    }
+    if (Object.keys(userUpdates).length > 0) {
+        updatedUser = await User.findByIdAndUpdate(userId, userUpdates, { new: true });
+    } else {
+        updatedUser = await User.findById(userId);
+    }
+
+    const resObj = profile.toObject ? profile.toObject() : { ...profile };
+    if (updatedUser) {
+        resObj.phoneNumber = updatedUser.phoneNumber || '';
+        resObj.email = updatedUser.email || '';
+    }
+    return resObj;
 }
 /**
  * Retrieve authenticated farmer's registered farm boundary polygon & area
@@ -600,6 +638,7 @@ export async function submitAssistanceReferral(userId, input, ipAddress = '') {
         consentGiven: input.consentGiven,
         notes: input.notes || '',
         ipAddress,
+        phoneNumber: input.phoneNumber || '',
     });
 }
 

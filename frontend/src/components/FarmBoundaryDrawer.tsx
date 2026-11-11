@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import {
   MapPin,
   RotateCcw,
@@ -7,12 +9,13 @@ import {
   AlertTriangle,
   Layers,
   Shield,
-  Satellite,
   Compass,
   Check,
   Info,
   ChevronDown,
   ChevronUp,
+  Maximize2,
+  Sparkles,
 } from 'lucide-react';
 import {
   getFarmBoundaryApi,
@@ -57,6 +60,23 @@ function calculateLocalAreaAcres(points: [number, number][]): number {
   return parseFloat((sqMeters / 4046.8564224).toFixed(2));
 }
 
+const BASEMAP_TILES = {
+  satellite: {
+    label: 'Satellite + Land',
+    url: 'https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}',
+    subdomains: '0123',
+    maxZoom: 20,
+    attribution: '&copy; Google Maps',
+  },
+  streets: {
+    label: 'Roads & Streets',
+    url: 'https://mt{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
+    subdomains: '0123',
+    maxZoom: 20,
+    attribution: '&copy; Google Maps',
+  },
+};
+
 export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
   referenceLat,
   referenceLng,
@@ -69,23 +89,71 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
-  // Active drawing points as [lng, lat]
+  // Active drawing points as [lng, lat] (GeoJSON standard)
   const [points, setPoints] = useState<[number, number][]>([]);
-  const [zoomLevel, setZoomLevel] = useState<number>(16);
+  const [activeLayer, setActiveLayer] = useState<'satellite' | 'streets'>('satellite');
   const [showAdvancedCoords, setShowAdvancedCoords] = useState(false);
   const [manualGeoJson, setManualGeoJson] = useState<string>('');
 
-  // Default center coordinate
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const polygonLayerRef = useRef<L.Polygon | null>(null);
+  const vertexMarkersRef = useRef<L.Marker[]>([]);
+  const centerMarkerRef = useRef<L.Marker | null>(null);
+
+  // Fallback center: Nakuru, Kenya
   const centerLat = referenceLat && !isNaN(referenceLat) ? referenceLat : -0.2833;
   const centerLng = referenceLng && !isNaN(referenceLng) ? referenceLng : 36.0663;
 
-  const [mapCenter, setMapCenter] = useState<{ lat: number; lng: number }>({
-    lat: centerLat,
-    lng: centerLng,
-  });
+  // Create clean vertex handle icon (replaces the old n+1 text marker)
+  const createVertexIcon = useCallback(() => {
+    return L.divIcon({
+      className: 'farm-boundary-vertex',
+      html: `
+        <div style="
+          width: 16px;
+          height: 16px;
+          background: #10b981;
+          border: 2.5px solid #ffffff;
+          border-radius: 50%;
+          box-shadow: 0 0 8px rgba(16, 185, 129, 0.8), 0 2px 4px rgba(0,0,0,0.5);
+          cursor: grab;
+          transition: transform 0.1s ease;
+        "></div>
+      `,
+      iconSize: [16, 16],
+      iconAnchor: [8, 8],
+    });
+  }, []);
 
-  const svgRef = useRef<SVGSVGElement>(null);
+  const createCenterIcon = useCallback(() => {
+    return L.divIcon({
+      className: 'farm-center-icon',
+      html: `
+        <div style="
+          width: 28px;
+          height: 28px;
+          background: #f59e0b;
+          border: 2.5px solid #ffffff;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: #ffffff;
+        ">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>
+          </svg>
+        </div>
+      `,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14],
+    });
+  }, []);
 
+  // Fetch initial boundary & satellite readiness
   useEffect(() => {
     fetchData();
   }, []);
@@ -123,31 +191,198 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
     }
   };
 
-  // Convert GPS [lng, lat] to SVG coordinate relative to current mapCenter
-  const toSvgCoords = (lng: number, lat: number) => {
-    const scale = Math.pow(2, zoomLevel) * 0.08;
-    const x = 300 + (lng - mapCenter.lng) * scale * 111320;
-    const y = 200 - (lat - mapCenter.lat) * scale * 111320;
-    return { x, y };
+  // Initialize Leaflet map
+  useEffect(() => {
+    if (isLoading || !mapContainerRef.current) return;
+
+    if (!mapInstanceRef.current) {
+      const map = L.map(mapContainerRef.current, {
+        center: [centerLat, centerLng],
+        zoom: 17,
+        zoomControl: true,
+      });
+
+      const initialConfig = BASEMAP_TILES[activeLayer];
+      const tiles = L.tileLayer(initialConfig.url, {
+        subdomains: initialConfig.subdomains,
+        maxZoom: initialConfig.maxZoom,
+        attribution: initialConfig.attribution,
+      }).addTo(map);
+
+      tileLayerRef.current = tiles;
+      mapInstanceRef.current = map;
+
+      // Add center marker
+      const centerMarker = L.marker([centerLat, centerLng], {
+        icon: createCenterIcon(),
+        interactive: true,
+      }).addTo(map);
+      centerMarker.bindPopup(`
+        <div style="font-family: inherit; font-size: 13px; color: #1e293b; padding: 4px;">
+          <strong style="color: #f59e0b;">Farm Reference Spot</strong>
+          <div style="font-size: 11px; color: #64748b; margin-top: 4px;">
+            ${centerLat.toFixed(5)}, ${centerLng.toFixed(5)}
+          </div>
+        </div>
+      `);
+      centerMarkerRef.current = centerMarker;
+
+      // Click on real land adds boundary points
+      map.on('click', (e: L.LeafletMouseEvent) => {
+        const newLng = parseFloat(e.latlng.lng.toFixed(6));
+        const newLat = parseFloat(e.latlng.lat.toFixed(6));
+        setPoints((prev) => [...prev, [newLng, newLat]]);
+        setMessage(null);
+      });
+    }
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [isLoading]);
+
+  // Redraw polygon and draggable vertex handles whenever points change
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+    const map = mapInstanceRef.current;
+
+    // Clear existing vertex markers
+    vertexMarkersRef.current.forEach((m) => map.removeLayer(m));
+    vertexMarkersRef.current = [];
+
+    // Clear existing polygon layer
+    if (polygonLayerRef.current) {
+      map.removeLayer(polygonLayerRef.current);
+      polygonLayerRef.current = null;
+    }
+
+    if (points.length === 0) return;
+
+    // Convert [lng, lat] to Leaflet LatLng tuples [lat, lng]
+    const latLngs: L.LatLngTuple[] = points.map((p) => [p[1], p[0]]);
+
+    // Render polygon (or polyline if only 2 points)
+    if (points.length >= 2) {
+      const polygon = L.polygon(latLngs, {
+        color: '#10b981',
+        weight: 2.5,
+        fillColor: '#10b981',
+        fillOpacity: 0.35,
+        dashArray: points.length < 3 ? '6, 6' : undefined,
+      }).addTo(map);
+
+      polygonLayerRef.current = polygon;
+    }
+
+    // Render interactive draggable markers for each vertex handle
+    points.forEach((pt, index) => {
+      const marker = L.marker([pt[1], pt[0]], {
+        icon: createVertexIcon(),
+        draggable: true,
+      }).addTo(map);
+
+      // Live stretch/drag update
+      marker.on('drag', () => {
+        const currentLatLng = marker.getLatLng();
+        const updatedPoints = [...points];
+        updatedPoints[index] = [
+          parseFloat(currentLatLng.lng.toFixed(6)),
+          parseFloat(currentLatLng.lat.toFixed(6)),
+        ];
+
+        // Update polygon in real time while dragging
+        if (polygonLayerRef.current) {
+          polygonLayerRef.current.setLatLngs(updatedPoints.map((p) => [p[1], p[0]]));
+        }
+      });
+
+      // Update state when dragging completes
+      marker.on('dragend', () => {
+        const endLatLng = marker.getLatLng();
+        setPoints((prev) => {
+          const next = [...prev];
+          next[index] = [
+            parseFloat(endLatLng.lng.toFixed(6)),
+            parseFloat(endLatLng.lat.toFixed(6)),
+          ];
+          return next;
+        });
+      });
+
+      // Right-click or popup click to delete single vertex
+      marker.bindPopup(`
+        <div style="font-family: inherit; font-size: 12px; color: #1e293b; padding: 4px; text-align: center;">
+          <div style="font-weight: 600; margin-bottom: 6px;">Perimeter Corner #${index + 1}</div>
+          <div style="font-size: 11px; color: #64748b; margin-bottom: 8px;">
+            ${pt[1].toFixed(5)}, ${pt[0].toFixed(5)}
+          </div>
+          <button
+            id="delete-vertex-${index}"
+            style="
+              background: #ef4444;
+              color: #ffffff;
+              border: none;
+              border-radius: 4px;
+              padding: 4px 8px;
+              font-size: 11px;
+              cursor: pointer;
+            "
+          >
+            Remove This Corner
+          </button>
+        </div>
+      `);
+
+      marker.on('popupopen', () => {
+        const btn = document.getElementById(`delete-vertex-${index}`);
+        if (btn) {
+          btn.onclick = () => {
+            setPoints((prev) => prev.filter((_, i) => i !== index));
+            map.closePopup();
+          };
+        }
+      });
+
+      vertexMarkersRef.current.push(marker);
+    });
+  }, [points, createVertexIcon]);
+
+  // Switch basemap layer
+  const handleToggleLayer = () => {
+    if (!mapInstanceRef.current) return;
+    const nextLayer = activeLayer === 'satellite' ? 'streets' : 'satellite';
+    setActiveLayer(nextLayer);
+
+    if (tileLayerRef.current) {
+      mapInstanceRef.current.removeLayer(tileLayerRef.current);
+    }
+
+    const nextConfig = BASEMAP_TILES[nextLayer];
+    const newTiles = L.tileLayer(nextConfig.url, {
+      subdomains: nextConfig.subdomains,
+      maxZoom: nextConfig.maxZoom,
+      attribution: nextConfig.attribution,
+    }).addTo(mapInstanceRef.current);
+
+    tileLayerRef.current = newTiles;
   };
 
-  // Convert SVG pixel coordinate back to GPS [lng, lat]
-  const toGpsCoords = (x: number, y: number): [number, number] => {
-    const scale = Math.pow(2, zoomLevel) * 0.08;
-    const lng = mapCenter.lng + (x - 300) / (scale * 111320);
-    const lat = mapCenter.lat - (y - 200) / (scale * 111320);
-    return [parseFloat(lng.toFixed(6)), parseFloat(lat.toFixed(6))];
+  // Center on farm coordinates
+  const handleRecenter = () => {
+    if (mapInstanceRef.current) {
+      mapInstanceRef.current.flyTo([centerLat, centerLng], 17);
+    }
   };
 
-  const handleSvgClick = (e: React.MouseEvent<SVGSVGElement>) => {
-    if (!svgRef.current) return;
-    const rect = svgRef.current.getBoundingClientRect();
-    const clickX = e.clientX - rect.left;
-    const clickY = e.clientY - rect.top;
-
-    const [newLng, newLat] = toGpsCoords(clickX, clickY);
-    setPoints((prev) => [...prev, [newLng, newLat]]);
-    setMessage(null);
+  // Fit bounds to polygon points
+  const handleFitBounds = () => {
+    if (mapInstanceRef.current && points.length >= 2) {
+      const bounds = L.latLngBounds(points.map((p) => [p[1], p[0]]));
+      mapInstanceRef.current.fitBounds(bounds, { padding: [30, 30] });
+    }
   };
 
   const handleUndoPoint = () => {
@@ -166,19 +401,41 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
     // 1 acre ≈ 4047 m²; square side = sqrt(acres * 4047)
     const sideMeters = Math.sqrt(acres * 4046.86);
     const halfSideDegLat = (sideMeters / 2.0) / 111320.0;
-    const halfSideDegLng = (sideMeters / 2.0) / (111320.0 * Math.cos((centerLat * Math.PI) / 180.0));
+    const halfSideDegLng =
+      (sideMeters / 2.0) / (111320.0 * Math.cos((centerLat * Math.PI) / 180.0));
 
-    const p1: [number, number] = [parseFloat((centerLng - halfSideDegLng).toFixed(6)), parseFloat((centerLat - halfSideDegLat).toFixed(6))];
-    const p2: [number, number] = [parseFloat((centerLng + halfSideDegLng).toFixed(6)), parseFloat((centerLat - halfSideDegLat).toFixed(6))];
-    const p3: [number, number] = [parseFloat((centerLng + halfSideDegLng).toFixed(6)), parseFloat((centerLat + halfSideDegLat).toFixed(6))];
-    const p4: [number, number] = [parseFloat((centerLng - halfSideDegLng).toFixed(6)), parseFloat((centerLat + halfSideDegLat).toFixed(6))];
+    const p1: [number, number] = [
+      parseFloat((centerLng - halfSideDegLng).toFixed(6)),
+      parseFloat((centerLat - halfSideDegLat).toFixed(6)),
+    ];
+    const p2: [number, number] = [
+      parseFloat((centerLng + halfSideDegLng).toFixed(6)),
+      parseFloat((centerLat - halfSideDegLat).toFixed(6)),
+    ];
+    const p3: [number, number] = [
+      parseFloat((centerLng + halfSideDegLng).toFixed(6)),
+      parseFloat((centerLat + halfSideDegLat).toFixed(6)),
+    ];
+    const p4: [number, number] = [
+      parseFloat((centerLng - halfSideDegLng).toFixed(6)),
+      parseFloat((centerLat + halfSideDegLat).toFixed(6)),
+    ];
 
     setPoints([p1, p2, p3, p4]);
-    setMapCenter({ lat: centerLat, lng: centerLng });
     setMessage({
       type: 'success',
-      text: `Generated initial perimeter template matching ${acres} acres. You can click points to add corners, or click Save Farm Boundary to confirm.`,
+      text: `Generated initial perimeter template matching ${acres} acres. Click and hold any green handle to stretch and move it to match your real fences.`,
     });
+
+    if (mapInstanceRef.current) {
+      const bounds = L.latLngBounds([
+        [p1[1], p1[0]],
+        [p2[1], p2[0]],
+        [p3[1], p3[0]],
+        [p4[1], p4[0]],
+      ]);
+      mapInstanceRef.current.fitBounds(bounds, { padding: [40, 40] });
+    }
   };
 
   // Apply manual GeoJSON string
@@ -196,12 +453,28 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
         const clean: [number, number][] = ring.map((pt: any) => [Number(pt[0]), Number(pt[1])]);
         setPoints(clean);
         setMessage({ type: 'success', text: `Loaded ${clean.length} boundary coordinates from GeoJSON!` });
+        handleFitBounds();
       } else {
         setMessage({ type: 'error', text: 'Invalid GeoJSON: Expected Polygon with at least 3 coordinates.' });
       }
     } catch (err: any) {
       setMessage({ type: 'error', text: `GeoJSON parse error: ${err.message}` });
     }
+  };
+
+  // Helper to radially sort corner points around their centroid to prevent self-intersections or bow-ties
+  const handleAutoArrangePoints = () => {
+    if (points.length < 3) return;
+    const cLng = points.reduce((s, p) => s + p[0], 0) / points.length;
+    const cLat = points.reduce((s, p) => s + p[1], 0) / points.length;
+    const sorted = [...points].sort((a, b) => {
+      return Math.atan2(a[1] - cLat, a[0] - cLng) - Math.atan2(b[1] - cLat, b[0] - cLng);
+    });
+    setPoints(sorted);
+    setMessage({
+      type: 'success',
+      text: 'Corner points auto-arranged around your farm center to form an open, non-overlapping boundary.',
+    });
   };
 
   // Save Boundary API Call
@@ -214,11 +487,36 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
       return;
     }
 
+    let workingPoints = [...points];
+    let localArea = calculateLocalAreaAcres(workingPoints);
+
+    // If points form a bow-tie or zero area, attempt radial auto-repair
+    if (localArea <= 0 && workingPoints.length >= 3) {
+      const cLng = workingPoints.reduce((s, p) => s + p[0], 0) / workingPoints.length;
+      const cLat = workingPoints.reduce((s, p) => s + p[1], 0) / workingPoints.length;
+      const sorted = [...workingPoints].sort((a, b) => {
+        return Math.atan2(a[1] - cLat, a[0] - cLng) - Math.atan2(b[1] - cLat, b[0] - cLng);
+      });
+      if (calculateLocalAreaAcres(sorted) > 0) {
+        workingPoints = sorted;
+        setPoints(sorted);
+        localArea = calculateLocalAreaAcres(sorted);
+      }
+    }
+
+    if (localArea <= 0) {
+      setMessage({
+        type: 'error',
+        text: 'The drawn perimeter has zero enclosed area. Please drag the green corner pins outward on the map so they enclose your farm parcel.',
+      });
+      return;
+    }
+
     setIsSaving(true);
     setMessage(null);
 
     // Auto-close ring for submission
-    const closedRing = [...points];
+    const closedRing = [...workingPoints];
     if (
       closedRing[0][0] !== closedRing[closedRing.length - 1][0] ||
       closedRing[0][1] !== closedRing[closedRing.length - 1][1]
@@ -236,7 +534,7 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
       setBoundaryData(result.boundary);
       setMessage({
         type: 'success',
-        text: `Farm boundary saved successfully! Perimeter area: ${result.boundary.boundaryAreaAcres} acres. Satellite monitoring is now linked.`,
+        text: `Farm boundary saved successfully! Perimeter area: ${result.boundary.boundaryAreaAcres} acres. Satellite monitoring is now active.`,
       });
       if (onBoundarySaved) {
         onBoundarySaved(result.boundary);
@@ -244,7 +542,10 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
     } catch (err: any) {
       setMessage({
         type: 'error',
-        text: err.response?.data?.message || err.response?.data?.error?.message || 'Failed to save farm boundary.',
+        text:
+          err.response?.data?.message ||
+          err.response?.data?.error?.message ||
+          'Failed to save farm boundary.',
       });
     } finally {
       setIsSaving(false);
@@ -261,7 +562,7 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
       await clearFarmBoundaryApi();
       setBoundaryData(null);
       setPoints([]);
-      setMessage({ type: 'success', text: 'Farm boundary polygon removed.' });
+      setMessage({ type: 'success', text: 'Farm boundary perimeter removed.' });
     } catch (err: any) {
       setMessage({ type: 'error', text: err.response?.data?.message || 'Failed to clear farm boundary.' });
     } finally {
@@ -273,9 +574,9 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
 
   if (isLoading) {
     return (
-      <div style={{ padding: '24px', textAlign: 'center', color: '#94a3b8' }}>
-        <Layers size={20} style={{ color: '#2dd4bf', animation: 'spin 2s linear infinite' }} />
-        <span style={{ marginLeft: '8px' }}>Loading Farm Boundary &amp; Satellite Status...</span>
+      <div style={{ padding: '32px', textAlign: 'center', color: '#94a3b8' }}>
+        <Layers size={22} style={{ color: '#10b981', animation: 'spin 2s linear infinite' }} />
+        <span style={{ marginLeft: '10px' }}>Loading satellite farmland map...</span>
       </div>
     );
   }
@@ -286,11 +587,11 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', marginBottom: '16px' }}>
         <div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-            <Layers size={22} style={{ color: '#2dd4bf' }} />
-            <h2 style={styles.cardTitle}>Farm Boundary Polygon &amp; Sentinel-2 Area Scope</h2>
+            <Layers size={22} style={{ color: '#10b981' }} />
+            <h2 style={styles.cardTitle}>Farm Boundary &amp; Land Perimeter</h2>
           </div>
           <p style={styles.cardDesc}>
-            Draw or define your exact farm perimeter. Sentinel-2 satellite observations will calculate vegetation index (NDVI) strictly within this registered polygon.
+            Draw or adjust your exact farm perimeter on the satellite map to monitor crop health, canopy development, and vegetation progress over time.
           </p>
         </div>
 
@@ -313,19 +614,19 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
           <span>
             {boundaryData?.hasBoundary
               ? `Boundary Linked (${boundaryData.boundaryAreaAcres} Acres)`
-              : 'Boundary Not Yet Drawn'}
+              : 'Perimeter Not Yet Drawn'}
           </span>
         </div>
       </div>
 
-      {/* ── Privacy & GEE Readiness Banner ── */}
+      {/* ── Privacy & Confidentiality Banner ── */}
       <div style={styles.privacyNoticeBox}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4ade80', fontWeight: 700, marginBottom: '6px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#16a34a', fontWeight: 700, marginBottom: '4px' }}>
           <Shield size={18} />
-          <span>Strict Boundary Confidentiality &amp; GEE Satellite Scope</span>
+          <span>Strict Boundary Confidentiality</span>
         </div>
-        <p style={{ margin: 0, fontSize: '0.85rem', color: '#cbd5e1', lineHeight: 1.5 }}>
-          Your farm polygon coordinates are strictly confidential and <strong>never published on dealer searches or public profiles</strong>. The boundary is used exclusively to filter Copernicus Sentinel-2 Level-2A surface reflectance pixels (10m resolution) for cloud-masked NDVI calculations.
+        <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
+          Your registered farm perimeter is strictly confidential and <strong>never published on dealer searches or public profiles</strong>. The boundary is used exclusively to analyze crop vegetation health and canopy density over your registered parcel.
         </p>
       </div>
 
@@ -335,7 +636,7 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
             ...styles.alert,
             backgroundColor: message.type === 'success' ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
             borderColor: message.type === 'success' ? 'rgba(34, 197, 94, 0.35)' : 'rgba(239, 68, 68, 0.35)',
-            color: message.type === 'success' ? '#86efac' : '#fca5a5',
+            color: message.type === 'success' ? '#16a34a' : '#ef4444',
           }}
         >
           {message.type === 'success' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
@@ -345,23 +646,23 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
 
       {/* ── Drawing Toolbar ── */}
       <div style={styles.toolbar}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-          <span style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600 }}>
-            Corners: <strong style={{ color: '#2dd4bf' }}>{points.length}</strong>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+          <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 600 }}>
+            Corners: <strong style={{ color: '#10b981' }}>{points.length}</strong>
           </span>
 
-          <span style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, marginLeft: '12px' }}>
-            Calculated Area: <strong style={{ color: calculatedAcres > 0 ? '#4ade80' : '#94a3b8' }}>{calculatedAcres} Acres</strong>
+          <span style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', fontWeight: 600, marginLeft: '6px' }}>
+            Calculated Area: <strong style={{ color: calculatedAcres > 0 ? '#10b981' : 'var(--color-text-muted)' }}>{calculatedAcres} Acres</strong>
           </span>
 
           {farmSizeAcres && farmSizeAcres > 0 && (
-            <span style={{ fontSize: '0.8rem', color: '#94a3b8' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
               (Profile size: {farmSizeAcres} acres)
             </span>
           )}
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
           <button
             type="button"
             onClick={handleGenerateTemplateBox}
@@ -369,7 +670,7 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
             title="Generate initial perimeter template matching your registered acres"
           >
             <Compass size={14} />
-            <span>Generate Initial Perimeter Template</span>
+            <span>Generate Initial Template</span>
           </button>
 
           {points.length > 0 && (
@@ -387,131 +688,103 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
               <button
                 type="button"
                 onClick={handleClearPoints}
-                style={{ ...styles.toolBtn, color: '#f87171' }}
-                title="Clear current drawing points"
+                style={{ ...styles.toolBtn, color: '#ef4444' }}
+                title="Clear current perimeter points"
               >
                 <Trash2 size={14} />
-                <span>Clear Canvas</span>
+                <span>Clear</span>
               </button>
             </>
           )}
 
-          {/* Zoom controls */}
-          <div style={{ display: 'flex', border: '1px solid #475569', borderRadius: '6px', overflow: 'hidden' }}>
+          {points.length >= 3 && (
             <button
               type="button"
-              onClick={() => setZoomLevel((z) => Math.min(z + 1, 19))}
-              style={styles.zoomBtn}
-              title="Zoom In"
+              onClick={handleAutoArrangePoints}
+              style={{ ...styles.toolBtn, color: '#0284c7' }}
+              title="Automatically arrange corners clockwise so boundary does not cross itself"
             >
-              +
+              <Sparkles size={14} />
+              <span>Auto-Arrange Corners</span>
             </button>
+          )}
+
+          {points.length >= 2 && (
             <button
               type="button"
-              onClick={() => setZoomLevel((z) => Math.max(z - 1, 13))}
-              style={styles.zoomBtn}
-              title="Zoom Out"
+              onClick={handleFitBounds}
+              style={styles.toolBtn}
+              title="Fit map view to boundary"
             >
-              -
+              <Maximize2 size={14} />
+              <span>Fit View</span>
             </button>
-          </div>
+          )}
+
+          <button
+            type="button"
+            onClick={handleRecenter}
+            style={styles.toolBtn}
+            title="Center map on farm coordinates"
+          >
+            <MapPin size={14} />
+            <span>Center</span>
+          </button>
         </div>
       </div>
 
-      {/* ── Interactive Map Drawing Viewport ── */}
-      <div style={styles.canvasContainer}>
-        <div style={styles.canvasInstructions}>
-          <span>Click anywhere inside the map canvas to place boundary corner pins.</span>
+      {/* ── Real Interactive Leaflet Satellite Farmland Viewport ── */}
+      <div style={{ position: 'relative', width: '100%', height: '420px', borderRadius: '12px', overflow: 'hidden', border: '1px solid var(--color-surface-border)' }}>
+        {/* Leaflet Map Div */}
+        <div ref={mapContainerRef} style={{ width: '100%', height: '100%' }} />
+
+        {/* Floating Basemap Switcher */}
+        <div style={{ position: 'absolute', top: '12px', right: '12px', zIndex: 1000 }}>
+          <button
+            type="button"
+            onClick={handleToggleLayer}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              background: 'rgba(15, 23, 42, 0.88)',
+              backdropFilter: 'blur(8px)',
+              color: '#f8fafc',
+              border: '1px solid rgba(255, 255, 255, 0.25)',
+              borderRadius: '8px',
+              padding: '6px 14px',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+            }}
+          >
+            <Layers size={14} color="#38bdf8" />
+            <span>{activeLayer === 'satellite' ? 'Satellite View' : 'Streets View'}</span>
+          </button>
         </div>
 
-        <svg
-          ref={svgRef}
-          onClick={handleSvgClick}
-          viewBox="0 0 600 400"
-          style={styles.svgViewport}
+        {/* Interactive Drawing Instructions Overlay */}
+        <div
+          style={{
+            position: 'absolute',
+            bottom: '10px',
+            left: '12px',
+            zIndex: 1000,
+            background: 'rgba(15, 23, 42, 0.85)',
+            backdropFilter: 'blur(6px)',
+            padding: '6px 12px',
+            borderRadius: '8px',
+            fontSize: '0.78rem',
+            color: '#f8fafc',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            pointerEvents: 'none',
+          }}
         >
-          {/* Background grid */}
-          <defs>
-            <pattern id="farmGrid" width="40" height="40" patternUnits="userSpaceOnUse">
-              <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
-            </pattern>
-          </defs>
-          <rect width="600" height="400" fill="#0b1329" />
-          <rect width="600" height="400" fill="url(#farmGrid)" />
-
-          {/* Center reference point pin */}
-          {(() => {
-            const { x, y } = toSvgCoords(centerLng, centerLat);
-            return (
-              <g transform={`translate(${x}, ${y})`}>
-                <circle r="6" fill="#f59e0b" fillOpacity="0.3" />
-                <circle r="3" fill="#f59e0b" />
-                <text x="8" y="4" fill="#f59e0b" fontSize="10" fontFamily="sans-serif">
-                  Farm Center
-                </text>
-              </g>
-            );
-          })()}
-
-          {/* Polygon fill & stroke */}
-          {points.length >= 2 && (
-            <polyline
-              points={points
-                .map((p) => {
-                  const { x, y } = toSvgCoords(p[0], p[1]);
-                  return `${x},${y}`;
-                })
-                .join(' ')}
-              fill={points.length >= 3 ? 'rgba(45, 212, 191, 0.22)' : 'none'}
-              stroke="#2dd4bf"
-              strokeWidth="2.5"
-              strokeDasharray={points.length >= 3 ? 'none' : '4,4'}
-            />
-          )}
-
-          {/* Polygon closing line if 3 or more points */}
-          {points.length >= 3 && (() => {
-            const first = toSvgCoords(points[0][0], points[0][1]);
-            const last = toSvgCoords(points[points.length - 1][0], points[points.length - 1][1]);
-            return (
-              <line
-                x1={last.x}
-                y1={last.y}
-                x2={first.x}
-                y2={first.y}
-                stroke="#2dd4bf"
-                strokeWidth="2.5"
-                strokeDasharray="3,3"
-              />
-            );
-          })()}
-
-          {/* Point vertices markers */}
-          {points.map((p, idx) => {
-            const { x, y } = toSvgCoords(p[0], p[1]);
-            return (
-              <g key={idx} transform={`translate(${x}, ${y})`}>
-                <circle r="7" fill="#0f172a" stroke="#2dd4bf" strokeWidth="2" />
-                <text
-                  x="0"
-                  y="3.5"
-                  textAnchor="middle"
-                  fill="#ffffff"
-                  fontSize="9"
-                  fontWeight="bold"
-                  fontFamily="sans-serif"
-                >
-                  {idx + 1}
-                </text>
-              </g>
-            );
-          })}
-        </svg>
-
-        {/* Legend / Status overlay inside canvas */}
-        <div style={styles.canvasOverlayLegend}>
-          <span>Scale: ~10m/pixel (Sentinel-2 SR resolution)</span>
-          <span>Center: {centerLat.toFixed(4)}, {centerLng.toFixed(4)}</span>
+          <Sparkles size={14} color="#10b981" />
+          <span>Click land to add corners. Click and hold green points to drag/stretch perimeter.</span>
         </div>
       </div>
 
@@ -523,7 +796,7 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
           style={{
             background: 'none',
             border: 'none',
-            color: '#60a5fa',
+            color: '#0284c7',
             fontSize: '0.85rem',
             display: 'flex',
             alignItems: 'center',
@@ -531,44 +804,45 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
             cursor: 'pointer',
             padding: 0,
             marginBottom: '8px',
+            fontWeight: 500,
           }}
         >
           {showAdvancedCoords ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-          <span>{showAdvancedCoords ? 'Hide Coordinate Points & GeoJSON Import' : 'View Coordinate Points & GeoJSON Import'}</span>
+          <span>{showAdvancedCoords ? 'Hide Survey Coordinates & GeoJSON Import' : 'View Survey Coordinates & GeoJSON Import'}</span>
         </button>
 
         {showAdvancedCoords && (
-          <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '8px', padding: '14px', marginTop: '6px' }}>
+          <div style={{ backgroundColor: 'var(--color-surface-raised)', border: '1px solid var(--color-surface-border)', borderRadius: '8px', padding: '14px', marginTop: '6px' }}>
             {points.length > 0 ? (
               <div style={{ maxHeight: '140px', overflowY: 'auto', marginBottom: '12px' }}>
-                <table style={{ width: '100%', fontSize: '0.82rem', color: '#cbd5e1', borderCollapse: 'collapse' }}>
+                <table style={{ width: '100%', fontSize: '0.82rem', color: 'var(--color-text-primary)', borderCollapse: 'collapse' }}>
                   <thead>
-                    <tr style={{ borderBottom: '1px solid #334155', textAlign: 'left', color: '#94a3b8' }}>
-                      <th style={{ padding: '4px 8px' }}>Corner #</th>
-                      <th style={{ padding: '4px 8px' }}>Longitude</th>
-                      <th style={{ padding: '4px 8px' }}>Latitude</th>
+                    <tr style={{ borderBottom: '1px solid var(--color-surface-border)', textAlign: 'left', color: 'var(--color-text-secondary)' }}>
+                      <th style={{ padding: '6px 8px' }}>Corner</th>
+                      <th style={{ padding: '6px 8px' }}>Longitude</th>
+                      <th style={{ padding: '6px 8px' }}>Latitude</th>
                     </tr>
                   </thead>
                   <tbody>
                     {points.map((p, idx) => (
-                      <tr key={idx} style={{ borderBottom: '1px solid #1e293b' }}>
-                        <td style={{ padding: '4px 8px', fontWeight: 600 }}>Vertex {idx + 1}</td>
-                        <td style={{ padding: '4px 8px', fontFamily: 'monospace' }}>{p[0].toFixed(6)}</td>
-                        <td style={{ padding: '4px 8px', fontFamily: 'monospace' }}>{p[1].toFixed(6)}</td>
+                      <tr key={idx} style={{ borderBottom: '1px solid var(--color-surface-border)' }}>
+                        <td style={{ padding: '6px 8px', fontWeight: 600 }}>Point {idx + 1}</td>
+                        <td style={{ padding: '6px 8px', fontFamily: 'monospace' }}>{p[0].toFixed(6)}</td>
+                        <td style={{ padding: '6px 8px', fontFamily: 'monospace' }}>{p[1].toFixed(6)}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p style={{ fontSize: '0.82rem', color: '#64748b', margin: '0 0 10px 0' }}>
-                No coordinates placed yet. Click on the map above to add corner vertices.
+              <p style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', margin: '0 0 10px 0' }}>
+                No boundary coordinates placed yet. Click on the satellite map above to add perimeter corners.
               </p>
             )}
 
             {/* GeoJSON Import Box */}
             <div>
-              <label style={{ fontSize: '0.8rem', color: '#cbd5e1', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
+              <label style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontWeight: 600, display: 'block', marginBottom: '4px' }}>
                 Paste GeoJSON Polygon (Surveyor/GPS Export):
               </label>
               <textarea
@@ -581,7 +855,7 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
               <button
                 type="button"
                 onClick={handleApplyManualGeoJson}
-                style={{ ...styles.toolBtn, marginTop: '6px' }}
+                style={{ ...styles.toolBtn, marginTop: '8px' }}
               >
                 Apply GeoJSON Coordinates
               </button>
@@ -591,15 +865,15 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
       </div>
 
       {/* ── Action Buttons ── */}
-      <div style={{ display: 'flex', gap: '12px', marginTop: '20px', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '12px', marginTop: '20px', flexWrap: 'wrap', alignItems: 'center' }}>
         <button
           type="button"
           onClick={handleSaveBoundary}
-          disabled={isSaving || points.length < 3}
+          disabled={isSaving || points.length < 3 || calculatedAcres <= 0}
           style={{
             ...styles.primaryActionBtn,
-            backgroundColor: points.length >= 3 ? '#0d9488' : '#334155',
-            cursor: points.length >= 3 ? 'pointer' : 'not-allowed',
+            backgroundColor: points.length >= 3 && calculatedAcres > 0 ? '#16a34a' : 'var(--color-surface-border)',
+            cursor: points.length >= 3 && calculatedAcres > 0 ? 'pointer' : 'not-allowed',
             opacity: isSaving ? 0.7 : 1,
           }}
         >
@@ -619,25 +893,23 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
         )}
 
         {boundaryData?.boundaryUpdatedAt && (
-          <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'flex', alignItems: 'center', gap: '4px', marginLeft: 'auto' }}>
             <Info size={14} />
             Boundary updated: {new Date(boundaryData.boundaryUpdatedAt).toLocaleDateString()}
           </span>
         )}
       </div>
 
-      {/* ── Satellite Service GEE Readiness Status Card ── */}
+      {/* ── Satellite Monitoring Status Card ── */}
       <div style={styles.geeStatusCard}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-          <Satellite size={16} style={{ color: satelliteStatus?.ready ? '#4ade80' : '#fbbf24' }} />
-          <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#f8fafc' }}>
-            Sentinel-2 &amp; Earth Engine Readiness
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+          <CheckCircle2 size={16} style={{ color: satelliteStatus?.ready ? '#16a34a' : '#0284c7' }} />
+          <span style={{ fontSize: '0.88rem', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+            Satellite Crop Health Monitoring {satelliteStatus?.ready ? '· Feed Active' : ''}
           </span>
         </div>
-        <p style={{ margin: 0, fontSize: '0.82rem', color: '#94a3b8', lineHeight: 1.4 }}>
-          {satelliteStatus?.ready
-            ? 'Earth Engine credentials verified. Sentinel-2 Surface Reflectance (COPERNICUS/S2_SR_HARMONIZED) is ready to compute 10m NDVI.'
-            : 'Satellite pipeline architecture is active. Waiting for Google Earth Engine project registration (GEE_PROJECT_ID in backend/.env) to stream real Copernicus observations.'}
+        <p style={{ margin: 0, fontSize: '0.82rem', color: 'var(--color-text-secondary)', lineHeight: 1.4 }}>
+          Automated satellite analysis observes your registered farm perimeter to calculate vegetation health and canopy trends over time.
         </p>
       </div>
     </div>
@@ -646,30 +918,31 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
 
 const styles: Record<string, React.CSSProperties> = {
   card: {
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
+    backgroundColor: 'var(--color-surface-card)',
+    border: '1px solid var(--color-surface-border)',
     borderRadius: '16px',
     padding: '24px',
     marginBottom: '24px',
+    boxShadow: 'var(--shadow-sm)',
   },
   cardTitle: {
     fontSize: '1.25rem',
     fontWeight: 700,
-    color: '#f8fafc',
+    color: 'var(--color-text-primary)',
     margin: 0,
   },
   cardDesc: {
     fontSize: '0.85rem',
-    color: '#94a3b8',
+    color: 'var(--color-text-secondary)',
     margin: '4px 0 0 0',
-    lineHeight: 1.4,
+    lineHeight: 1.5,
   },
   privacyNoticeBox: {
-    backgroundColor: 'rgba(15, 23, 42, 0.7)',
-    border: '1px solid rgba(34, 197, 94, 0.25)',
+    backgroundColor: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-surface-border)',
     borderRadius: '10px',
-    padding: '12px 16px',
-    margin: '16px 0',
+    padding: '14px 16px',
+    marginBottom: '16px',
   },
   alert: {
     padding: '12px 16px',
@@ -687,109 +960,69 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     flexWrap: 'wrap',
     gap: '10px',
-    backgroundColor: '#0f172a',
-    border: '1px solid #334155',
-    borderRadius: '8px',
     padding: '10px 14px',
-    marginBottom: '10px',
+    backgroundColor: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-surface-border)',
+    borderRadius: '8px',
+    marginBottom: '12px',
   },
   toolBtn: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: '#1e293b',
-    color: '#cbd5e1',
-    border: '1px solid #475569',
+    padding: '6px 12px',
     borderRadius: '6px',
-    padding: '6px 10px',
-    fontSize: '0.8rem',
+    border: '1px solid var(--color-surface-border)',
+    backgroundColor: 'var(--color-surface-card)',
+    color: 'var(--color-text-primary)',
+    fontSize: '0.78rem',
     fontWeight: 500,
     cursor: 'pointer',
-  },
-  zoomBtn: {
-    backgroundColor: '#1e293b',
-    color: '#cbd5e1',
-    border: 'none',
-    padding: '4px 10px',
-    fontSize: '0.9rem',
-    fontWeight: 'bold',
-    cursor: 'pointer',
-  },
-  canvasContainer: {
-    position: 'relative',
-    borderRadius: '12px',
-    overflow: 'hidden',
-    border: '1px solid #475569',
-    backgroundColor: '#0b1329',
-  },
-  canvasInstructions: {
-    position: 'absolute',
-    top: '10px',
-    left: '10px',
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
-    padding: '4px 10px',
-    borderRadius: '6px',
-    fontSize: '0.78rem',
-    color: '#cbd5e1',
-    pointerEvents: 'none',
-    border: '1px solid rgba(255,255,255,0.1)',
-  },
-  canvasOverlayLegend: {
-    position: 'absolute',
-    bottom: '8px',
-    right: '10px',
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'flex-end',
-    fontSize: '0.72rem',
-    color: '#64748b',
-    pointerEvents: 'none',
-  },
-  svgViewport: {
-    width: '100%',
-    height: '340px',
-    display: 'block',
-    cursor: 'crosshair',
-  },
-  textarea: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #475569',
-    borderRadius: '6px',
-    padding: '8px 10px',
-    fontSize: '0.82rem',
-    color: '#f8fafc',
-    width: '100%',
-    boxSizing: 'border-box',
-    fontFamily: 'monospace',
-    outline: 'none',
+    transition: 'all 0.15s ease',
   },
   primaryActionBtn: {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '8px',
-    color: '#ffffff',
-    border: 'none',
+    padding: '10px 20px',
     borderRadius: '8px',
-    padding: '11px 22px',
-    fontSize: '0.92rem',
+    border: 'none',
+    color: '#ffffff',
+    fontSize: '0.88rem',
     fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'background-color 0.15s ease',
   },
   clearBtn: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '10px 16px',
+    borderRadius: '8px',
+    border: '1px solid rgba(239, 68, 68, 0.4)',
     backgroundColor: 'transparent',
     color: '#ef4444',
-    border: '1px solid rgba(239, 68, 68, 0.3)',
-    borderRadius: '8px',
-    padding: '11px 16px',
-    fontSize: '0.88rem',
+    fontSize: '0.85rem',
+    fontWeight: 500,
     cursor: 'pointer',
   },
+  textarea: {
+    width: '100%',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    border: '1px solid var(--color-surface-border)',
+    backgroundColor: 'var(--color-surface-card)',
+    color: 'var(--color-text-primary)',
+    fontSize: '0.82rem',
+    fontFamily: 'monospace',
+    boxSizing: 'border-box',
+    resize: 'vertical',
+  },
   geeStatusCard: {
-    backgroundColor: 'rgba(15, 23, 42, 0.6)',
-    border: '1px solid #334155',
-    borderRadius: '8px',
-    padding: '12px 16px',
-    marginTop: '18px',
+    backgroundColor: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-surface-border)',
+    borderRadius: '10px',
+    padding: '14px 16px',
+    marginTop: '20px',
   },
 };
-
-export default FarmBoundaryDrawer;

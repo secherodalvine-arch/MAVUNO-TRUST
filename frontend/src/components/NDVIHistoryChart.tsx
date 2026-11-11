@@ -52,13 +52,13 @@ export const NDVIHistoryChart: React.FC = () => {
     return (
       <div
         style={{
-          background: 'var(--color-surface, #1e293b)',
-          border: '1px solid var(--color-border, #334155)',
+          background: 'var(--color-surface-card)',
+          border: '1px solid var(--color-surface-border)',
           borderRadius: '12px',
           padding: '20px',
           marginBottom: '24px',
           textAlign: 'center',
-          color: '#94a3b8',
+          color: 'var(--color-text-muted)',
         }}
       >
         <RefreshCw size={18} className="animate-spin" style={{ margin: '0 auto 8px' }} />
@@ -71,20 +71,21 @@ export const NDVIHistoryChart: React.FC = () => {
     return (
       <div
         style={{
-          background: 'var(--color-surface, #1e293b)',
-          border: '1px solid var(--color-border, #334155)',
+          background: 'var(--color-surface-card)',
+          border: '1px solid var(--color-surface-border)',
           borderRadius: '12px',
           padding: '20px',
           marginBottom: '24px',
+          boxShadow: 'var(--shadow-sm)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-          <BarChart3 size={18} color="#94a3b8" />
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--color-text-primary, #f8fafc)' }}>
+          <BarChart3 size={18} color="var(--color-text-muted)" />
+          <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--color-text-primary)' }}>
             Vegetation Health History
           </h3>
         </div>
-        <p style={{ fontSize: '0.85rem', color: '#94a3b8', margin: 0 }}>
+        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: 0 }}>
           No historical NDVI observations yet. Run your first satellite analysis to start tracking farm vegetation trends over time.
         </p>
       </div>
@@ -129,11 +130,12 @@ export const NDVIHistoryChart: React.FC = () => {
   return (
     <div
       style={{
-        background: 'var(--color-surface, #1e293b)',
-        border: '1px solid var(--color-border, #334155)',
+        background: 'var(--color-surface-card)',
+        border: '1px solid var(--color-surface-border)',
         borderRadius: '12px',
         padding: '20px',
         marginBottom: '24px',
+        boxShadow: 'var(--shadow-sm)',
       }}
     >
       {/* Header */}
@@ -166,13 +168,13 @@ export const NDVIHistoryChart: React.FC = () => {
                 fontSize: '1rem',
                 fontWeight: 600,
                 margin: 0,
-                color: 'var(--color-text-primary, #f8fafc)',
+                color: 'var(--color-text-primary)',
               }}
             >
               Vegetation Health History
             </h3>
-            <p style={{ fontSize: '0.78rem', color: '#94a3b8', margin: 0 }}>
-              NDVI trend — Sentinel-2 · Last {history.length} observations
+            <p style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', margin: 0 }}>
+              Vegetation health trend · Last {history.length} observations
             </p>
           </div>
         </div>
@@ -181,11 +183,11 @@ export const NDVIHistoryChart: React.FC = () => {
           <button
             onClick={loadHistory}
             style={{
-              background: 'transparent',
-              border: '1px solid var(--color-border, #334155)',
+              background: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-surface-border)',
               borderRadius: '6px',
               padding: '4px 8px',
-              color: '#94a3b8',
+              color: 'var(--color-text-secondary)',
               cursor: 'pointer',
               fontSize: '0.72rem',
               display: 'flex',
@@ -212,7 +214,7 @@ export const NDVIHistoryChart: React.FC = () => {
             y={toY(0.8)}
             width={plotWidth}
             height={toY(0.4) - toY(0.8)}
-            fill="rgba(16, 185, 129, 0.06)"
+            fill="rgba(16, 185, 129, 0.08)"
           />
 
           {/* Y-axis reference lines */}
@@ -223,11 +225,11 @@ export const NDVIHistoryChart: React.FC = () => {
                 y1={toY(v)}
                 x2={padLeft + plotWidth}
                 y2={toY(v)}
-                stroke="#334155"
+                stroke="var(--color-surface-border, #334155)"
                 strokeWidth="1"
                 strokeDasharray="3 3"
               />
-              <text x={padLeft - 4} y={toY(v) + 4} textAnchor="end" fontSize="8" fill="#64748b">
+              <text x={padLeft - 4} y={toY(v) + 4} textAnchor="end" fontSize="8" fill="var(--color-text-muted, #64748b)">
                 {v.toFixed(1)}
               </text>
             </g>
@@ -246,7 +248,7 @@ export const NDVIHistoryChart: React.FC = () => {
             const color = getSeverityColor(o.vegetationSeverity);
             return (
               <g key={o._id}>
-                <circle cx={cx} cy={cy} r="4" fill={color} stroke="#1e293b" strokeWidth="1.5" />
+                <circle cx={cx} cy={cy} r="4" fill={color} stroke="var(--color-surface-card, #1e293b)" strokeWidth="1.5" />
               </g>
             );
           })}
@@ -266,7 +268,7 @@ export const NDVIHistoryChart: React.FC = () => {
                   y={chartHeight - 4}
                   textAnchor="middle"
                   fontSize="8"
-                  fill="#64748b"
+                  fill="var(--color-text-muted, #64748b)"
                 >
                   {formatDate(o.observationDate)}
                 </text>
@@ -284,14 +286,14 @@ export const NDVIHistoryChart: React.FC = () => {
         ].map(({ color, label }) => (
           <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
             <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: color }} />
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>{label}</span>
+            <span style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)' }}>{label}</span>
           </div>
         ))}
       </div>
 
       {/* Recent observations table */}
       <div style={{ marginTop: '14px' }}>
-        <div style={{ fontSize: '0.72rem', color: '#64748b', fontWeight: 600, marginBottom: '6px' }}>
+        <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', fontWeight: 600, marginBottom: '6px' }}>
           RECENT OBSERVATIONS
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -303,11 +305,12 @@ export const NDVIHistoryChart: React.FC = () => {
                 justifyContent: 'space-between',
                 alignItems: 'center',
                 padding: '6px 10px',
-                background: 'rgba(255,255,255,0.025)',
+                background: 'var(--color-surface-raised, rgba(255,255,255,0.025))',
+                border: '1px solid var(--color-surface-border)',
                 borderRadius: '6px',
               }}
             >
-              <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+              <span style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)' }}>
                 {formatDate(o.observationDate)}
               </span>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

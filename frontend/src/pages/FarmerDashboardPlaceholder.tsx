@@ -65,10 +65,10 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
       {/* Stage 2 Gemini B Market Intelligence Recommendation Section */}
       <MarketRecommendationSection />
 
-      {/* Smart Farm Advisor & Sentinel-2 Satellite Monitoring Section */}
+      {/* Smart Farm Advisor & Satellite Monitoring Section */}
       <SmartFarmAdvisorSection />
 
-      {/* Farm Weather Widget (Open-Meteo) */}
+      {/* Farm Weather Widget */}
       <WeatherWidget />
 
       {/* Historical NDVI Vegetation Trend Chart */}
@@ -84,7 +84,7 @@ export const FarmerDashboardPlaceholder: React.FC = () => {
             <Truck size={20} />
           </div>
           <span className="dash-card-title">Transport Intel</span>
-          <p className="dash-card-desc">OpenStreetMap road distances &amp; shared haulier cost estimates across Kenya.</p>
+          <p className="dash-card-desc">Real driving distances &amp; shared haulier cost estimates across Kenya.</p>
           <span className="dash-card-link">Calculate Transport <ArrowRight size={13} /></span>
         </Link>
 

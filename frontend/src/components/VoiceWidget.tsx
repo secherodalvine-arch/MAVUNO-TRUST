@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Mic,
   MicOff,
@@ -12,6 +13,7 @@ import {
   ShieldCheck,
   TrendingUp,
   Scale,
+  Languages,
 } from 'lucide-react';
 import apiClient from '../services/apiClient';
 import { loadElevenLabsClient } from '../lib/elevenLabsClient';
@@ -223,198 +225,212 @@ export const VoiceWidget: React.FC = () => {
 
   return (
     <>
-      {/* ── Modal Overlay & Dialog Container ── */}
-      {open && (
-        <div className="vw-overlay" role="presentation" onClick={handleClose}>
-          <div
-            className="vw-dialog"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="vw-title"
-            onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking inside dialog
-          >
-            {/* ── Header ── */}
-            <div className="vw-header">
-              <div className="vw-header-left">
-                <div className="vw-header-avatar" aria-hidden="true">
-                  <Mic size={20} />
-                </div>
-                <div className="vw-header-titles">
-                  <div className="vw-title-row">
-                    <h2 id="vw-title" className="vw-title">
-                      AI Voice Assistant
-                    </h2>
-                    <span className="vw-badge-live">Bilingual · Kiswahili &amp; English</span>
+      {/* ── Modal Overlay & Dialog Container (Portaled to body to prevent stacking context or header clipping) ── */}
+      {open &&
+        createPortal(
+          <div className="vw-overlay" role="presentation" onClick={handleClose}>
+            <div
+              className="vw-dialog"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="vw-title"
+              onClick={(e) => e.stopPropagation()} // Prevent backdrop click when clicking inside dialog
+            >
+              {/* ── Header ── */}
+              <div className="vw-header">
+                <div className="vw-header-left">
+                  <div className="vw-header-avatar" aria-hidden="true">
+                    <Mic size={20} />
                   </div>
-                  <div className="vw-subtitle">
-                    {statusText ? (
-                      <span className="vw-status-active">
-                        <span
-                          className={`vw-pulse-dot ${
-                            callState === 'connecting' ? 'vw-pulse-dot--amber' : 'vw-pulse-dot--green'
-                          }`}
-                        />
-                        {statusText}
-                      </span>
+                  <div className="vw-header-titles">
+                    <div className="vw-title-row">
+                      <h2 id="vw-title" className="vw-title">
+                        AI Voice Assistant
+                      </h2>
+                      <span className="vw-badge-live">Bilingual · Kiswahili &amp; English</span>
+                    </div>
+                    <div className="vw-subtitle">
+                      {statusText ? (
+                        <span className="vw-status-active">
+                          <span
+                            className={`vw-pulse-dot ${
+                              callState === 'connecting' ? 'vw-pulse-dot--amber' : 'vw-pulse-dot--green'
+                            }`}
+                          />
+                          {statusText}
+                        </span>
+                      ) : (
+                        'Ask questions about trades, prices & legal rights'
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  className="vw-close-btn"
+                  onClick={handleClose}
+                  aria-label="Close voice assistant"
+                  title="Close (Esc)"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* ── Body ── */}
+              <div className="vw-body">
+                {/* Waveform Stage Card */}
+                <div className="vw-stage">
+                  <VoiceWaveform state={callState} />
+
+                  <div className="vw-stage-meta">
+                    <span className="vw-stage-pill">
+                      <Sparkles size={13} className="vw-sparkle" />
+                      <span>{statusText || 'Interactive Voice • Maongezi ya Sauti'}</span>
+                    </span>
+                  </div>
+
+                  {/* Main Action Buttons */}
+                  <div className="vw-actions">
+                    {!isCalling ? (
+                      <button
+                        type="button"
+                        className="vw-btn-start"
+                        onClick={() => startCall()}
+                      >
+                        <Mic size={20} />
+                        <span>Start Voice Call • Anza Maongezi</span>
+                      </button>
                     ) : (
-                      'Ask questions about trades, prices & legal rights'
+                      <div className="vw-btn-active-group">
+                        <button
+                          type="button"
+                          className={`vw-btn-mute ${isMuted ? 'vw-btn-mute--active' : ''}`}
+                          onClick={toggleMute}
+                          title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+                        >
+                          {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
+                          <span>{isMuted ? 'Unmute' : 'Mute'}</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          className="vw-btn-end"
+                          onClick={endCall}
+                          title="End voice conversation"
+                        >
+                          <PhoneOff size={18} />
+                          <span>End Call • Maliza</span>
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
-              </div>
 
-              <button
-                type="button"
-                className="vw-close-btn"
-                onClick={handleClose}
-                aria-label="Close voice assistant"
-                title="Close (Esc)"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            {/* ── Body ── */}
-            <div className="vw-body">
-              {/* Waveform Stage Card */}
-              <div className="vw-stage">
-                <VoiceWaveform state={callState} />
-
-                <div className="vw-stage-meta">
-                  <span className="vw-stage-pill">
-                    <Sparkles size={13} className="vw-sparkle" />
-                    <span>{statusText || 'Interactive Voice • Maongezi ya Sauti'}</span>
-                  </span>
-                </div>
-
-                {/* Main Action Buttons */}
-                <div className="vw-actions">
-                  {!isCalling ? (
-                    <button
-                      type="button"
-                      className="vw-btn-start"
-                      onClick={() => startCall()}
-                    >
-                      <Mic size={20} />
-                      <span>Start Voice Call • Anza Maongezi</span>
-                    </button>
-                  ) : (
-                    <div className="vw-btn-active-group">
+                {/* Error Notice with Retry */}
+                {callError && (
+                  <div className="vw-error" role="alert">
+                    <AlertCircle size={16} className="vw-error-icon" />
+                    <div className="vw-error-text">
+                      <p>{callError}</p>
                       <button
                         type="button"
-                        className={`vw-btn-mute ${isMuted ? 'vw-btn-mute--active' : ''}`}
-                        onClick={toggleMute}
-                        title={isMuted ? 'Unmute microphone' : 'Mute microphone'}
+                        className="vw-error-retry"
+                        onClick={() => startCall()}
                       >
-                        {isMuted ? <MicOff size={18} /> : <Mic size={18} />}
-                        <span>{isMuted ? 'Unmute' : 'Mute'}</span>
-                      </button>
-
-                      <button
-                        type="button"
-                        className="vw-btn-end"
-                        onClick={endCall}
-                        title="End voice conversation"
-                      >
-                        <PhoneOff size={18} />
-                        <span>End Call • Maliza</span>
+                        <RefreshCw size={12} />
+                        Try Again
                       </button>
                     </div>
-                  )}
-                </div>
+                  </div>
+                )}
+
+                {/* Sample Questions when Idle */}
+                {!isCalling && transcript.length === 0 && (
+                  <div className="vw-prompts">
+                    <div className="vw-prompts-title">
+                      <HelpCircle size={13} />
+                      <span>Things you can ask • Maswali unayoweza kuuliza:</span>
+                    </div>
+                    <div className="vw-prompts-grid">
+                      {SAMPLE_PROMPTS.map((p, idx) => (
+                        <div key={idx} className="vw-prompt-card">
+                          <div className="vw-prompt-icon">{p.icon}</div>
+                          <div className="vw-prompt-content">
+                            <div className="vw-prompt-en">{p.en}</div>
+                            <div className="vw-prompt-sw">
+                              <Languages size={11} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '4px', color: '#10b981' }} />
+                              {p.sw}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Live Transcript Box */}
+                {transcript.length > 0 && (
+                  <div className="vw-transcript">
+                    <div className="vw-transcript-head">
+                      <Volume2 size={13} />
+                      <span>Live Conversation Transcript</span>
+                    </div>
+                    <div className="vw-transcript-scroll">
+                      {transcript.map((msg, i) => (
+                        <div
+                          key={i}
+                          className={`vw-bubble ${
+                            msg.role === 'user' ? 'vw-bubble--user' : 'vw-bubble--agent'
+                          }`}
+                        >
+                          <span className="vw-bubble-name">
+                            {msg.role === 'user' ? 'You' : 'MavunoTrust Voice AI'}
+                          </span>
+                          <p className="vw-bubble-text">{msg.text}</p>
+                        </div>
+                      ))}
+                      <div ref={transcriptEndRef} />
+                    </div>
+                  </div>
+                )}
               </div>
 
-              {/* Error Notice with Retry */}
-              {callError && (
-                <div className="vw-error" role="alert">
-                  <AlertCircle size={16} className="vw-error-icon" />
-                  <div className="vw-error-text">
-                    <p>{callError}</p>
-                    <button
-                      type="button"
-                      className="vw-error-retry"
-                      onClick={() => startCall()}
-                    >
-                      <RefreshCw size={12} />
-                      Try Again
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* Sample Questions when Idle */}
-              {!isCalling && transcript.length === 0 && (
-                <div className="vw-prompts">
-                  <div className="vw-prompts-title">
-                    <HelpCircle size={13} />
-                    <span>Things you can ask • Maswali unayoweza kuuliza:</span>
-                  </div>
-                  <div className="vw-prompts-grid">
-                    {SAMPLE_PROMPTS.map((p, idx) => (
-                      <div key={idx} className="vw-prompt-card">
-                        <div className="vw-prompt-icon">{p.icon}</div>
-                        <div className="vw-prompt-content">
-                          <div className="vw-prompt-en">{p.en}</div>
-                          <div className="vw-prompt-sw">🇰🇪 {p.sw}</div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Live Transcript Box */}
-              {transcript.length > 0 && (
-                <div className="vw-transcript">
-                  <div className="vw-transcript-head">
-                    <Volume2 size={13} />
-                    <span>Live Conversation Transcript</span>
-                  </div>
-                  <div className="vw-transcript-scroll">
-                    {transcript.map((msg, i) => (
-                      <div
-                        key={i}
-                        className={`vw-bubble ${
-                          msg.role === 'user' ? 'vw-bubble--user' : 'vw-bubble--agent'
-                        }`}
-                      >
-                        <span className="vw-bubble-name">
-                          {msg.role === 'user' ? 'You' : 'MavunoTrust Voice AI'}
-                        </span>
-                        <p className="vw-bubble-text">{msg.text}</p>
-                      </div>
-                    ))}
-                    <div ref={transcriptEndRef} />
-                  </div>
-                </div>
-              )}
+              {/* ── Footer ── */}
+              <div className="vw-footer">
+                <span>MavunoTrust Conversational AI · Powered by ElevenLabs</span>
+              </div>
             </div>
-
-            {/* ── Footer ── */}
-            <div className="vw-footer">
-              <span>MavunoTrust Conversational AI · Powered by ElevenLabs</span>
-            </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* ── Trigger FAB Button (Bottom Right) ── */}
       <button
         type="button"
         id="voice-assistant-fab"
-        className={`vw-fab ${open ? 'vw-fab--hidden' : ''}`}
-        onClick={() => setOpen(true)}
-        aria-label="Open MavunoTrust AI voice assistant"
+        className={`vw-fab ${open ? 'vw-fab--open' : ''}`}
+        onClick={() => {
+          if (open) {
+            handleClose();
+          } else {
+            setOpen(true);
+            // NOTE: Explicitly DO NOT startCall() here — user will click Call inside dialog
+          }
+        }}
+        aria-label={open ? 'Close AI voice assistant' : 'Open MavunoTrust AI voice assistant'}
         aria-expanded={open}
-        title="Open AI voice assistant"
+        title={open ? 'Close AI voice assistant' : 'Open AI voice assistant'}
       >
         <span className="vw-fab-inner">
-          <Mic size={24} />
+          {open ? <X size={24} /> : <Mic size={24} />}
         </span>
-        <span className="vw-fab-ring" aria-hidden="true" />
-        <span className="vw-fab-badge" aria-hidden="true">
-          AI
-        </span>
+        {!open && <span className="vw-fab-ring" aria-hidden="true" />}
+        {!open && (
+          <span className="vw-fab-badge" aria-hidden="true">
+            AI
+          </span>
+        )}
       </button>
     </>
   );

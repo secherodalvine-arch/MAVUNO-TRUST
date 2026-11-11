@@ -7,6 +7,7 @@ import {
   type FarmLocationDTO,
 } from '../services/farmerService';
 import { FarmBoundaryDrawer } from '../components/FarmBoundaryDrawer';
+import { FarmLocationMap } from '../components/FarmLocationMap';
 import {
   Sprout,
   CheckCircle2,
@@ -20,6 +21,7 @@ import {
   Check,
   RefreshCw,
   Info,
+  Smartphone,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 
@@ -63,6 +65,8 @@ export const FarmerProfilePage: React.FC = () => {
   const [isPublicProfile, setIsPublicProfile] = useState(true);
   const [primaryCrops, setPrimaryCrops] = useState('');
   const [farmSizeAcres, setFarmSizeAcres] = useState<number | ''>('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [userEmail, setUserEmail] = useState('');
 
   // Private Farm Location & Satellite Coordinate States
   const [latitude, setLatitude] = useState<string>('');
@@ -92,8 +96,11 @@ export const FarmerProfilePage: React.FC = () => {
         setPrivateExactLocation(profileData._privateExactLocation || '');
         setIsPublicProfile(profileData.isPublicProfile !== false);
         setFarmSizeAcres(profileData.farmSizeAcres ?? '');
+        setPhoneNumber(profileData.phoneNumber || user?.phoneNumber || '');
+        setUserEmail(profileData.email || user?.email || '');
       } else {
         setDisplayName(user?.fullName || '');
+        setUserEmail(user?.email || '');
       }
 
       if (locationData) {
@@ -290,6 +297,7 @@ export const FarmerProfilePage: React.FC = () => {
         _privateExactLocation: privateExactLocation.trim(),
         latitude: parsedLat,
         longitude: parsedLng,
+        phoneNumber: phoneNumber.trim(),
       });
 
       setMessage({ type: 'success', text: 'Farmer profile and location updated successfully!' });
@@ -360,7 +368,7 @@ export const FarmerProfilePage: React.FC = () => {
               </h2>
             </div>
             <p style={styles.cardDesc}>
-              Precision farm coordinates allow automated Sentinel-2 satellite observation to monitor crop vegetation index (NDVI) and seasonal canopy health over time.
+              Precision farm coordinates allow automated satellite observation to monitor crop vegetation health, canopy vigor, and seasonal trends over time.
             </p>
           </div>
 
@@ -390,11 +398,11 @@ export const FarmerProfilePage: React.FC = () => {
 
         {/* Satellite Privacy Banner */}
         <div style={styles.satellitePrivacyBox}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#4ade80', fontWeight: 700, marginBottom: '6px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#16a34a', fontWeight: 700, marginBottom: '6px' }}>
             <Shield size={18} />
             <span>Privacy Guarantee: Confidential Farm Coordinates</span>
           </div>
-          <p style={{ margin: 0, fontSize: '0.86rem', color: '#cbd5e1', lineHeight: 1.5 }}>
+          <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--color-text-secondary)', lineHeight: 1.5 }}>
             Your exact latitude and longitude coordinates are <strong>100% private</strong>. They are never published on dealer searches, public profiles, or market feeds. Only your general area ({county || 'County not set'}, {subCounty || 'Sub-county not set'}) is shown to potential buyers.
           </p>
         </div>
@@ -405,7 +413,7 @@ export const FarmerProfilePage: React.FC = () => {
               ...styles.alert,
               backgroundColor: locationMessage.type === 'success' ? 'rgba(34, 197, 94, 0.12)' : 'rgba(239, 68, 68, 0.12)',
               borderColor: locationMessage.type === 'success' ? 'rgba(34, 197, 94, 0.35)' : 'rgba(239, 68, 68, 0.35)',
-              color: locationMessage.type === 'success' ? '#86efac' : '#fca5a5',
+              color: locationMessage.type === 'success' ? '#16a34a' : '#ef4444',
               marginTop: '12px',
             }}
           >
@@ -474,10 +482,10 @@ export const FarmerProfilePage: React.FC = () => {
           </div>
 
           {/* Coordinates Inputs */}
-          <div style={{ backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px', padding: '16px', marginTop: '8px' }}>
+          <div style={{ backgroundColor: 'var(--color-surface-raised)', border: '1px solid var(--color-surface-border)', borderRadius: '12px', padding: '16px', marginTop: '8px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
-              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: '#f8fafc', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <MapPin size={16} style={{ color: '#2dd4bf' }} />
+              <span style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--color-text-primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <MapPin size={16} style={{ color: '#0d9488' }} />
                 GPS Coordinates (Decimal Degrees)
               </span>
 
@@ -530,7 +538,7 @@ export const FarmerProfilePage: React.FC = () => {
 
             {/* Quick Presets for Agricultural Hubs */}
             <div style={{ marginTop: '14px' }}>
-              <span style={{ fontSize: '0.8rem', color: '#94a3b8', display: 'block', marginBottom: '8px' }}>
+              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '8px' }}>
                 Quick Preset Hubs (click to populate typical county center):
               </span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
@@ -547,39 +555,35 @@ export const FarmerProfilePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Map Preview when coordinates are present */}
-            {hasValidEnteredCoords && (
-              <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#1e293b', borderRadius: '8px', border: '1px solid #334155' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '0.85rem', color: '#cbd5e1', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Globe size={15} style={{ color: '#60a5fa' }} />
-                    Coordinates Visual Verification: {numLat.toFixed(4)}, {numLng.toFixed(4)}
+            {/* Interactive Farm Location & Satellite Map */}
+            <div style={{ marginTop: '16px', padding: '14px', backgroundColor: 'var(--color-surface-raised)', borderRadius: '10px', border: '1px solid var(--color-surface-border)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <span style={{ fontSize: '0.85rem', color: 'var(--color-text-primary)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <MapPin size={15} style={{ color: '#16a34a' }} />
+                  Interactive Farm Spot &amp; Satellite View
+                </span>
+                {hasValidEnteredCoords && (
+                  <span style={{ fontSize: '0.8rem', color: 'var(--color-text-secondary)', fontFamily: 'monospace' }}>
+                    {numLat.toFixed(5)}, {numLng.toFixed(5)}
                   </span>
-                  <a
-                    href={`https://www.openstreetmap.org/?mlat=${numLat}&mlon=${numLng}#map=14/${numLat}/${numLng}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ fontSize: '0.8rem', color: '#60a5fa', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    <span>Inspect on OpenStreetMap ↗</span>
-                  </a>
-                </div>
-
-                <div style={{ borderRadius: '6px', overflow: 'hidden', height: '180px', border: '1px solid #475569' }}>
-                  <iframe
-                    title="Farm Location Map"
-                    width="100%"
-                    height="100%"
-                    frameBorder="0"
-                    scrolling="no"
-                    marginHeight={0}
-                    marginWidth={0}
-                    src={`https://www.openstreetmap.org/export/embed.html?bbox=${numLng - 0.05}%2C${numLat - 0.05}%2C${numLng + 0.05}%2C${numLat + 0.05}&layer=mapnik&marker=${numLat}%2C${numLng}`}
-                    style={{ border: 0 }}
-                  />
-                </div>
+                )}
               </div>
-            )}
+
+              <FarmLocationMap
+                latitude={hasValidEnteredCoords ? numLat : null}
+                longitude={hasValidEnteredCoords ? numLng : null}
+                county={county}
+                subCounty={subCounty}
+                onLocationChange={(newLat, newLng) => {
+                  setLatitude(String(newLat));
+                  setLongitude(String(newLng));
+                  setLocationMessage({
+                    type: 'success',
+                    text: `Farm pin repositioned to (${newLat}, ${newLng}). Click Save Farm Location to confirm.`,
+                  });
+                }}
+              />
+            </div>
           </div>
 
           {/* Location Action Buttons */}
@@ -712,24 +716,71 @@ export const FarmerProfilePage: React.FC = () => {
               id="isPublicProfile"
               checked={isPublicProfile}
               onChange={(e) => setIsPublicProfile(e.target.checked)}
-              style={{ width: '18px', height: '18px', accentColor: '#16a34a' }}
+              style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary, #16a34a)' }}
             />
-            <label htmlFor="isPublicProfile" style={{ color: '#f8fafc', fontSize: '0.9rem', cursor: 'pointer' }}>
+            <label htmlFor="isPublicProfile" style={{ color: 'var(--color-text-primary)', fontSize: '0.9rem', cursor: 'pointer' }}>
               Enable Public Profile (allows verified dealers to discover your general crop offerings)
             </label>
           </div>
-
-          <button
-            type="submit"
-            disabled={isSaving}
-            style={{
-              ...styles.submitBtn,
-              opacity: isSaving ? 0.7 : 1,
-            }}
-          >
-            {isSaving ? 'Saving Profile Changes...' : 'Save Full Profile Changes →'}
-          </button>
         </div>
+
+        {/* Contact & Notification Details */}
+        <div style={styles.card}>
+          <h2 style={styles.cardTitle}>
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ display: 'inline-flex', width: 22, height: 22, alignItems: 'center', justifyContent: 'center', background: 'rgba(56,189,248,0.15)', borderRadius: '6px', color: '#38bdf8' }}>
+                <Smartphone size={14} />
+              </span>
+              Contact & Notification Details
+            </span>
+          </h2>
+          <p style={styles.cardDesc}>
+            Your phone number is used to receive SMS referral confirmations and farm alerts. Your email is linked to your account login.
+          </p>
+
+          <div style={styles.fieldRow}>
+            {/* Phone Number */}
+            <div style={styles.field}>
+              <label style={styles.label}>Phone Number (for SMS Notifications)</label>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                style={styles.input}
+                placeholder="e.g. +254 712 345 678"
+              />
+              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted, #64748b)', marginTop: '4px', display: 'block' }}>
+                Used to receive SMS referral confirmations and farm health alerts.
+              </span>
+            </div>
+
+            {/* Email — read-only display */}
+            <div style={styles.field}>
+              <label style={styles.label}>Email (Account Login)</label>
+              <input
+                type="email"
+                value={userEmail}
+                readOnly
+                style={{ ...styles.input, opacity: 0.6, cursor: 'not-allowed' }}
+                placeholder="your@email.com"
+              />
+              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted, #64748b)', marginTop: '4px', display: 'block' }}>
+                To change your login email, please contact support.
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={isSaving}
+          style={{
+            ...styles.submitBtn,
+            opacity: isSaving ? 0.7 : 1,
+          }}
+        >
+          {isSaving ? 'Saving Profile Changes...' : 'Save Full Profile Changes →'}
+        </button>
       </form>
     </div>
   );
@@ -749,7 +800,7 @@ const styles: Record<string, React.CSSProperties> = {
     height: '38px',
     borderRadius: '10px',
     backgroundColor: 'rgba(34, 197, 94, 0.15)',
-    color: '#4ade80',
+    color: '#16a34a',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -757,12 +808,12 @@ const styles: Record<string, React.CSSProperties> = {
   title: {
     fontSize: '1.8rem',
     fontWeight: 700,
-    color: '#f8fafc',
+    color: 'var(--color-text-primary)',
     margin: 0,
   },
   subtitle: {
     fontSize: '0.9rem',
-    color: '#94a3b8',
+    color: 'var(--color-text-secondary)',
     margin: '4px 0 0 0',
     lineHeight: 1.5,
   },
@@ -782,25 +833,26 @@ const styles: Record<string, React.CSSProperties> = {
     gap: '24px',
   },
   card: {
-    backgroundColor: '#1e293b',
-    border: '1px solid #334155',
+    backgroundColor: 'var(--color-surface-card)',
+    border: '1px solid var(--color-surface-border)',
     borderRadius: '16px',
     padding: '28px',
+    boxShadow: 'var(--shadow-sm)',
   },
   cardTitle: {
     fontSize: '1.25rem',
     fontWeight: 700,
-    color: '#f8fafc',
+    color: 'var(--color-text-primary)',
     margin: '0 0 4px 0',
   },
   cardDesc: {
     fontSize: '0.85rem',
-    color: '#94a3b8',
+    color: 'var(--color-text-secondary)',
     margin: '0 0 16px 0',
     lineHeight: 1.4,
   },
   satellitePrivacyBox: {
-    backgroundColor: 'rgba(15, 23, 42, 0.7)',
+    backgroundColor: 'rgba(34, 197, 94, 0.08)',
     border: '1px solid rgba(34, 197, 94, 0.25)',
     borderRadius: '10px',
     padding: '14px 16px',
@@ -820,39 +872,39 @@ const styles: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '0.85rem',
     fontWeight: 600,
-    color: '#cbd5e1',
+    color: 'var(--color-text-secondary)',
   },
   helperText: {
     fontSize: '0.75rem',
-    color: '#64748b',
+    color: 'var(--color-text-muted)',
     marginTop: '2px',
   },
   input: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #475569',
+    backgroundColor: 'var(--mt-input-bg, var(--color-surface-raised))',
+    border: '1px solid var(--mt-input-border, var(--color-surface-border))',
     borderRadius: '8px',
     padding: '10px 14px',
     fontSize: '0.9rem',
-    color: '#f8fafc',
+    color: 'var(--color-text-primary)',
     outline: 'none',
   },
   select: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #475569',
+    backgroundColor: 'var(--mt-input-bg, var(--color-surface-raised))',
+    border: '1px solid var(--mt-input-border, var(--color-surface-border))',
     borderRadius: '8px',
     padding: '10px 14px',
     fontSize: '0.9rem',
-    color: '#f8fafc',
+    color: 'var(--color-text-primary)',
     outline: 'none',
     cursor: 'pointer',
   },
   textarea: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #475569',
+    backgroundColor: 'var(--mt-input-bg, var(--color-surface-raised))',
+    border: '1px solid var(--mt-input-border, var(--color-surface-border))',
     borderRadius: '8px',
     padding: '10px 14px',
     fontSize: '0.9rem',
-    color: '#f8fafc',
+    color: 'var(--color-text-primary)',
     outline: 'none',
     fontFamily: 'inherit',
     resize: 'vertical',
@@ -861,9 +913,9 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     alignItems: 'center',
     gap: '6px',
-    backgroundColor: 'rgba(45, 212, 191, 0.12)',
-    color: '#2dd4bf',
-    border: '1px solid rgba(45, 212, 191, 0.3)',
+    backgroundColor: 'rgba(13, 148, 136, 0.12)',
+    color: '#0d9488',
+    border: '1px solid rgba(13, 148, 136, 0.3)',
     borderRadius: '6px',
     padding: '6px 12px',
     fontSize: '0.82rem',
@@ -871,10 +923,10 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   presetChip: {
-    backgroundColor: '#0f172a',
-    border: '1px solid #475569',
+    backgroundColor: 'var(--color-surface-raised)',
+    border: '1px solid var(--color-surface-border)',
     borderRadius: '6px',
-    color: '#94a3b8',
+    color: 'var(--color-text-secondary)',
     padding: '4px 10px',
     fontSize: '0.78rem',
     cursor: 'pointer',
@@ -902,7 +954,7 @@ const styles: Record<string, React.CSSProperties> = {
     cursor: 'pointer',
   },
   submitBtn: {
-    backgroundColor: '#16a34a',
+    backgroundColor: 'var(--color-primary, #16a34a)',
     color: '#ffffff',
     border: 'none',
     borderRadius: '8px',

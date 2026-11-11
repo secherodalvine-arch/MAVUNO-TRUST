@@ -78,6 +78,7 @@ export async function requestAssistanceReferral({
   consentGiven,
   notes = '',
   ipAddress = '',
+  phoneNumber = '',
 }) {
   // STRICT PRIVACY CHECK: Consent must be explicitly true
   if (consentGiven !== true) {
@@ -93,10 +94,17 @@ export async function requestAssistanceReferral({
 
   // Retrieve farmer profile (general info only — coordinates not needed)
   const profile = await FarmerProfile.findOne({ userId }).select('county subCounty generalArea primaryCrops');
-  const user = await User.findById(userId).select('fullName phoneNumber email');
+  const user = await User.findById(userId).select('fullName phoneNumber email smsNotificationEnabled pushNotificationEnabled');
 
   if (!user) {
     throw Object.assign(new Error('User account not found.'), { statusCode: 404 });
+  }
+
+  // If a phone number is submitted with the referral, update and enable SMS alerts
+  if (phoneNumber && typeof phoneNumber === 'string' && phoneNumber.trim()) {
+    user.phoneNumber = phoneNumber.trim();
+    user.smsNotificationEnabled = true;
+    await user.save();
   }
 
   // 1. Record explicit user consent in UserConsent collection (audit trail)
@@ -121,7 +129,7 @@ export async function requestAssistanceReferral({
   const notifBody = `Your referral (${referralId}) has been registered. You can connect with ${partner.name} directly via USSD ${partner.ussdCode || ''} or Toll-Free ${partner.tollFreeHotline}.`;
   const smsBody = `MavunoTrust: Assistance referral created (${referralId}). Connect with ${partner.name} at ${partner.ussdCode || partner.tollFreeHotline}.`;
 
-  await dispatchFarmerNotification({
+  const dispatchResult = await dispatchFarmerNotification({
     userId,
     type: 'ASSISTANCE_REFERRAL',
     title: notifTitle,
@@ -143,6 +151,16 @@ export async function requestAssistanceReferral({
       id: partner.id,
       name: partner.name,
       description: partner.description,
+      ussdCode: partner.ussdCode,
+      tollFreeHotline: partner.tollFreeHotline,
+      website: partner.website,
+    },
+    phoneNumber: user.phoneNumber,
+    phoneDelivered: Boolean(user.phoneNumber),
+    dispatchResult,
+    instructions: `Your assistance referral #${referralId} has been confirmed. The referral information and direct USSD codes have been dispatched to your phone (${user.phoneNumber || 'registered device'}).`,
+  };
+}
       ussdCode: partner.ussdCode || null,
       tollFreeHotline: partner.tollFreeHotline || null,
       smsChannel: partner.smsChannel || null,
