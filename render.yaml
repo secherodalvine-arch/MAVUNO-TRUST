@@ -41,50 +41,20 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+      # Render Secret Files paths (Provisioned in Render Dashboard -> Environment -> Secret Files)
+      - key: GEE_CREDENTIALS_PATH
+        value: /etc/secrets/gee-service-account.json
+      - key: FIREBASE_CREDENTIALS_PATH
+        value: /etc/secrets/firebase-service-account.json
+      # Fallback Direct Environment Variables (Alternative to Secret Files)
       - key: GEE_PROJECT_ID
         sync: false
       - key: GEE_SERVICE_ACCOUNT_EMAIL
         sync: false
       - key: GEE_PRIVATE_KEY
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_SERVER_KEY
         sync: false
 
-  # ============================================================================
-  # STAGING SERVICE: MavunoTrust Isolated Staging Backend
-  # ============================================================================
-  - type: web
-    name: mavunotrust-backend-staging
-    env: node
-    plan: free
-    branch: staging
-    rootDir: backend
-    buildCommand: npm install
-    startCommand: npm start
-    envVars:
-      - key: NODE_ENV
-        value: staging
-      - key: MONGODB_URI
-        sync: false
-      - key: DB_NAME
-        value: mavunotrust-staging
-      - key: FRONTEND_URL
-        sync: false
-      - key: CORS_ORIGIN
-        sync: false
-      - key: JWT_SECRET
-        sync: false
-      - key: ACCESS_TOKEN_EXPIRE_MINUTES
-        value: 60
-      - key: REFRESH_TOKEN_EXPIRE_DAYS
-        value: 7
-      - key: KAMIS_BASE_URL
-        value: https://kamis.kilimo.go.ke
-      - key: MAVUNOAGENT_MODEL
-        value: gemini-2.5-flash
-      - key: GEMINI_API_KEY
-        sync: false
-      - key: GEE_PROJECT_ID
-        sync: false
-      - key: GEE_SERVICE_ACCOUNT_EMAIL
-        sync: false
-      - key: GEE_PRIVATE_KEY
-        sync: false

@@ -20,6 +20,7 @@ import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { validateAndNormalizePolygon } from '../utils/polygonValidator.js';
+import { getEarthEngineCredentials, getGoogleOAuth2Token } from '../config/googleCredentials.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,32 +30,24 @@ const SENTINEL_COLLECTION = 'COPERNICUS/S2_SR_HARMONIZED';
 const DEFAULT_CLOUD_THRESHOLD = 20.0; // Max 20% scene cloud cover
 const DEFAULT_LOOKBACK_DAYS = 45; // Sentinel-2 has a 5-day revisit cadence
 
-// In-memory cache for OAuth2 access token
-let cachedAccessToken = null;
-let tokenExpiresAt = 0;
-
 /**
- * Checks whether Google Earth Engine credentials and project configuration exist in the environment.
+ * Checks whether Google Earth Engine credentials and project configuration exist in the environment or secret files.
  */
 export function getEarthEngineConfig() {
-  const projectId = process.env.GEE_PROJECT_ID || process.env.GOOGLE_CLOUD_PROJECT || null;
-  const clientEmail = process.env.GEE_SERVICE_ACCOUNT_EMAIL || process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || null;
-  const privateKey = process.env.GEE_PRIVATE_KEY
-    ? process.env.GEE_PRIVATE_KEY.replace(/\\n/g, '\n')
-    : null;
+  const creds = getEarthEngineCredentials();
 
   const missing = [];
-  if (!projectId) missing.push('GEE_PROJECT_ID');
-  if (!clientEmail) missing.push('GEE_SERVICE_ACCOUNT_EMAIL');
-  if (!privateKey) missing.push('GEE_PRIVATE_KEY');
-
-  const isConfigured = missing.length === 0;
+  if (!creds.projectId) missing.push('GEE_PROJECT_ID (or Render Secret File /etc/secrets/gee-service-account.json)');
+  if (!creds.clientEmail) missing.push('GEE_SERVICE_ACCOUNT_EMAIL (or Render Secret File /etc/secrets/gee-service-account.json)');
+  if (!creds.privateKey) missing.push('GEE_PRIVATE_KEY (or Render Secret File /etc/secrets/gee-service-account.json)');
 
   return {
-    isConfigured,
-    projectId,
-    clientEmail,
-    privateKey,
+    isConfigured: creds.isConfigured,
+    source: creds.source,
+    credentialsPath: creds.path,
+    projectId: creds.projectId,
+    clientEmail: creds.clientEmail,
+    privateKey: creds.privateKey,
     missing,
     dataset: SENTINEL_COLLECTION,
     bands: {
@@ -72,71 +65,7 @@ export function getEarthEngineConfig() {
  * Uses native Node.js crypto (RS256 JWT assertion) without external dependencies.
  */
 export async function getGoogleOAuth2AccessToken(clientEmail, privateKey) {
-  const now = Math.floor(Date.now() / 1000);
-
-  // Return cached token if valid for at least 5 more minutes
-  if (cachedAccessToken && tokenExpiresAt > now + 300) {
-    return cachedAccessToken;
-  }
-
-  const header = {
-    alg: 'RS256',
-    typ: 'JWT',
-  };
-
-  const claimSet = {
-    iss: clientEmail,
-    scope: 'https://www.googleapis.com/auth/earthengine',
-    aud: 'https://oauth2.googleapis.com/token',
-    exp: now + 3600,
-    iat: now,
-  };
-
-  const base64UrlEncode = (obj) =>
-    Buffer.from(JSON.stringify(obj))
-      .toString('base64')
-      .replace(/=/g, '')
-      .replace(/\+/g, '-')
-      .replace(/\//g, '_');
-
-  const encodedHeader = base64UrlEncode(header);
-  const encodedClaimSet = base64UrlEncode(claimSet);
-  const signatureInput = `${encodedHeader}.${encodedClaimSet}`;
-
-  const signer = crypto.createSign('RSA-SHA256');
-  signer.update(signatureInput);
-  signer.end();
-
-  const signature = signer
-    .sign(privateKey, 'base64')
-    .replace(/=/g, '')
-    .replace(/\+/g, '-')
-    .replace(/\//g, '_');
-
-  const assertion = `${signatureInput}.${signature}`;
-
-  const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({
-      grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer',
-      assertion,
-    }),
-  });
-
-  if (!tokenResponse.ok) {
-    const errorText = await tokenResponse.text();
-    throw Object.assign(
-      new Error(`Failed to obtain Google Earth Engine OAuth2 token: ${tokenResponse.status} ${errorText}`),
-      { statusCode: 502, code: 'GEE_AUTH_FAILED' }
-    );
-  }
-
-  const tokenData = await tokenResponse.json();
-  cachedAccessToken = tokenData.access_token;
-  tokenExpiresAt = now + (tokenData.expires_in || 3600);
-
-  return cachedAccessToken;
+  return getGoogleOAuth2Token(clientEmail, privateKey, 'https://www.googleapis.com/auth/earthengine');
 }
 
 /**

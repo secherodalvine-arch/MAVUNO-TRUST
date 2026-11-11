@@ -358,8 +358,8 @@ Analyze this evidence and provide the JSON recommendation.
         county,
         allMarketPrices,
         allBuyers,
-        allBenchmarks,
-        allFaoPrices,
+        allBenchmarks: benchmarks,
+        allFaoPrices: faoHistory,
       });
       generatedBy = 'DETERMINISTIC_EVIDENCE_ENGINE';
     }

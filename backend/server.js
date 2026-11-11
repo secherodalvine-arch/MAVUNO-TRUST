@@ -12,6 +12,8 @@ import offerRoutes from './src/routes/offerRoutes.js';
 import mcpRouter from './src/mcp/mcpRouter.js';
 import { errorHandler } from './src/middleware/errorHandler.js';
 import { requestLogger } from './src/middleware/requestLogger.js';
+import { getEarthEngineConfig } from './src/services/satelliteService.js';
+import { fcmService } from './src/services/fcmService.js';
 
 // Load environment variables first
 dotenv.config();
@@ -82,7 +84,24 @@ const startServer = async () => {
   httpServer.listen(PORT, () => {
     console.log(`\nMavunoTrust API running on http://localhost:${PORT}`);
     console.log(`   Health check: http://localhost:${PORT}/api/health\n`);
-    
+
+    // Verify & log service integrations
+    const gee = getEarthEngineConfig();
+    if (gee.isConfigured) {
+      console.log(`[INFO] Google Earth Engine initialized successfully (Source: ${gee.source})`);
+    } else {
+      console.log(`[WARN] Google Earth Engine unconfigured. Add /etc/secrets/gee-service-account.json in Render`);
+    }
+
+    const fcmStatus = fcmService.getStatus();
+    if (fcmStatus.configured) {
+      console.log(`[INFO] Firebase Cloud Messaging initialized successfully (Source: ${fcmStatus.source})`);
+    } else {
+      console.log(`[WARN] Firebase Cloud Messaging unconfigured. Add /etc/secrets/firebase-service-account.json in Render`);
+    }
+
+    console.log(`[INFO] Backend services ready\n`);
+
     // Start MavunoAgent background scheduler (KAMIS extraction)
     // Run immediately only if needed, otherwise rely on interval
     import('./src/agents/mavunoagent/scheduler.js').then(({ startMavunoAgentScheduler }) => {

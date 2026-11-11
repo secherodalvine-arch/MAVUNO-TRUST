@@ -19,6 +19,17 @@ frontend/build/
 backend/.env
 frontend/.env
 
+# Credentials & Service Account Keys (Never commit to Git)
+credentials/
+backend/credentials/
+*service-account*.json
+*satellite-monitoring*.json
+*.pem
+*.key
+*.p12
+/etc/secrets/
+backend/*.json.key
+
 # Logs
 *.log
 npm-debug.log*
