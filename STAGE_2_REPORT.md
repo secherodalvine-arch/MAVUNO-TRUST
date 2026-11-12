@@ -83,7 +83,7 @@ Connected successfully to MongoDB and returned real database mock data. It safel
 - File: backend/.env
 - Function: N/A
 - Problem: `MAVUNOAGENT_MODEL` is set to `gemini-3.5-flash`, which is not a valid Gemini model version.
-- Impact: API calls will systematically fail with HTTP errors until corrected to `gemini-2.5-flash` or `gemini-1.5-flash`.
+- Impact: API calls will systematically fail with HTTP errors until corrected to `gemini-3.8-flash` or `gemini-3.5-flash`.
 - Recommended fix: Update `.env` to use a valid model.
 
 ## 16. Stage 3 Readiness

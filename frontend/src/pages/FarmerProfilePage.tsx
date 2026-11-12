@@ -23,17 +23,15 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { getSubCounties, getWards, resolveKenyaPlace, getCountyCoordinates } from '../constants/kenyaLocations';
-
-const KENYA_COUNTIES = [
-  'Baringo', 'Bomet', 'Bungoma', 'Busia', 'Elgeyo-Marakwet', 'Embu', 'Garissa',
-  'Homa Bay', 'Isiolo', 'Kajiado', 'Kakamega', 'Kericho', 'Kiambu', 'Kilifi',
-  'Kirinyaga', 'Kisii', 'Kisumu', 'Kitui', 'Kwale', 'Laikipia', 'Lamu', 'Machakos',
-  'Makueni', 'Mandera', 'Marsabit', 'Meru', 'Migori', 'Mombasa', 'Murang\'a',
-  'Nairobi', 'Nakuru', 'Nandi', 'Narok', 'Nyamira', 'Nyandarua', 'Nyeri',
-  'Samburu', 'Siaya', 'Taita-Taveta', 'Tana River', 'Tharaka-Nithi', 'Trans Nzoia',
-  'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot'
-];
+import {
+  KENYA_COUNTIES,
+  getSubCounties,
+  getWards,
+  resolveKenyaPlace,
+  getCountyCoordinates,
+  findNearestKenyaLocation,
+  reverseGeocodeKenyaLocation,
+} from '../constants/kenyaLocations';
 
 export const FarmerProfilePage: React.FC = () => {
   const { user } = useAuth();
@@ -142,10 +140,36 @@ export const FarmerProfilePage: React.FC = () => {
         const lng = parseFloat(pos.coords.longitude.toFixed(6));
         setLatitude(String(lat));
         setLongitude(String(lng));
+
+        // Auto-adjust County and Sub-County from nearest Kenya administrative centroid
+        const nearest = findNearestKenyaLocation(lat, lng);
+        if (nearest) {
+          if (nearest.county) setCounty(nearest.county);
+          if (nearest.subCounty) setSubCounty(nearest.subCounty);
+        }
+
+        // Asynchronously refine with reverse geocoding
+        reverseGeocodeKenyaLocation(lat, lng).then((geo) => {
+          if (geo) {
+            if (geo.county) {
+              const matched = KENYA_COUNTIES.find(
+                (c) => c.toLowerCase() === geo.county?.toLowerCase()
+              );
+              if (matched) setCounty(matched);
+            }
+            if (geo.subCounty) {
+              setSubCounty(geo.subCounty);
+            }
+            if (geo.ward) {
+              setGeneralArea(geo.ward);
+            }
+          }
+        });
+
         setIsLocatingDevice(false);
         setLocationMessage({
           type: 'success',
-          text: `Current location detected (${lat}, ${lng}) with accuracy to ±${Math.round(pos.coords.accuracy)}m. Click Save Farm Location to store.`,
+          text: `Current location detected (${lat}, ${lng})${nearest ? ' near ' + (nearest.subCounty ? nearest.subCounty + ', ' : '') + nearest.county : ''}. Administrative fields adjusted. Click Save Farm Location to store.`,
         });
       },
       (err) => {
@@ -157,6 +181,43 @@ export const FarmerProfilePage: React.FC = () => {
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
+  };
+
+  // Dedicated Clear Farm Location & Coordinates Handler
+  const handleClearLocation = async () => {
+    setIsSavingLocation(true);
+    setLocationMessage(null);
+    setCounty('');
+    setSubCounty('');
+    setGeneralArea('');
+    setFarmSizeAcres('');
+    setLatitude('');
+    setLongitude('');
+
+    try {
+      await updateFarmLocationApi({
+        county: '',
+        subCounty: '',
+        generalArea: '',
+        farmSizeAcres: null,
+        latitude: null,
+        longitude: null,
+      });
+
+      setHasRegisteredCoordinates(false);
+      setLocationUpdatedAt(null);
+      setLocationMessage({
+        type: 'success',
+        text: 'County, Sub-County, Ward, Farm Size, and Coordinates cleared successfully.',
+      });
+    } catch (err: any) {
+      setLocationMessage({
+        type: 'error',
+        text: err.response?.data?.error?.message || err.response?.data?.message || 'Failed to clear farm location.',
+      });
+    } finally {
+      setIsSavingLocation(false);
+    }
   };
 
   // Dedicated Save / Update Farm Location Handler
@@ -602,14 +663,22 @@ export const FarmerProfilePage: React.FC = () => {
                 longitude={hasValidEnteredCoords ? numLng : null}
                 county={county}
                 subCounty={subCounty}
+                generalArea={generalArea}
                 onLocationChange={(newLat, newLng) => {
                   setLatitude(String(newLat));
                   setLongitude(String(newLng));
+                  const nearest = findNearestKenyaLocation(newLat, newLng);
+                  if (nearest && nearest.distanceKm <= 35) {
+                    setCounty(nearest.county);
+                    if (nearest.subCounty) setSubCounty(nearest.subCounty);
+                  }
                   setLocationMessage({
                     type: 'success',
-                    text: `Farm pin repositioned to (${newLat}, ${newLng}). Click Save Farm Location to confirm.`,
+                    text: `Farm pin repositioned to (${newLat}, ${newLng})${nearest ? ' near ' + (nearest.subCounty ? nearest.subCounty + ', ' : '') + nearest.county : ''}. Click Save Farm Location to confirm.`,
                   });
                 }}
+                onRequestGPS={handleDetectGPS}
+                isLocatingDevice={isLocatingDevice}
               />
             </div>
           </div>
@@ -639,18 +708,14 @@ export const FarmerProfilePage: React.FC = () => {
               )}
             </button>
 
-            {hasRegisteredCoordinates && (
+            {(hasRegisteredCoordinates || latitude || longitude || county || subCounty || generalArea || farmSizeAcres !== '') && (
               <button
                 type="button"
-                onClick={() => {
-                  setLatitude('');
-                  setLongitude('');
-                  handleSaveLocationOnly();
-                }}
+                onClick={handleClearLocation}
                 disabled={isSavingLocation}
                 style={styles.clearBtn}
               >
-                Clear Location Coordinates
+                Clear Farm Location &amp; Coordinates
               </button>
             )}
 

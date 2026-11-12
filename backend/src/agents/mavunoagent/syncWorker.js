@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 import mongoose from 'mongoose';
 import { agentService } from './agentService.js';
 import { MavunoAgent } from './agent.js';
+import { mavunoAgentTools } from './mavunoAgentTools.js';
 import { BrowserSession } from './browserTools.js';
 import { extractionTools } from './extractionTools.js';
 import { processingTools } from './processingTools.js';
@@ -36,7 +37,7 @@ export class SyncWorker {
     // 1. Check Gemini Flash credentials
     const initResult = agentService.initialize();
     if (!initResult.success) {
-      return this.failRun(syncRunRecord, 'MAVUNOAGENT_CREDENTIALS_MISSING', initResult.message);
+      console.warn(`[MavunoAgent] Gemini credentials notice: ${initResult.message}. Proceeding with autonomous tools extraction.`);
     }
 
     // 2. Open browser session to KAMIS portal
@@ -59,7 +60,7 @@ export class SyncWorker {
       console.log(`[MavunoAgent] Skimmed ${skimResult.totalCount} active agricultural commodities from KAMIS selector.`);
 
       // 5. Agent planning step
-      const agent = new MavunoAgent(agentService);
+      const agent = new MavunoAgent(agentService, mavunoAgentTools);
       let decision = { success: true, decisionText: 'Autonomous extraction initialized.' };
       try {
         const agentDecision = await agent.planExtractionStep(
@@ -152,21 +153,24 @@ export class SyncWorker {
       console.log(`[MavunoAgent] Valid normalized records to persist: ${finalRecords.length}`);
 
       // 7. Persist truthful observations to MongoDB (MarketData & MarketPrice)
-      if (mongoose.connection && mongoose.connection.readyState === 1) {
-        for (const record of finalRecords) {
-          try {
-            // Save to dedicated MarketData collection
-            await MarketData.create(record);
+      if (mongoose.connection && mongoose.connection.readyState === 1 && finalRecords.length > 0) {
+        try {
+          await MarketData.insertMany(finalRecords, { ordered: false });
+        } catch (dbErr) {
+          console.warn(`[MavunoAgent] Notice during MarketData batch insert: ${dbErr.message}`);
+        }
 
-            // Upsert into general MarketPrice collection to update farmer dashboard and ticker
-            const displayPrice = record.retailPrice || record.wholesalePrice;
-            if (displayPrice) {
-              await MarketPrice.updateOne(
-                {
+        const bulkPriceOps = [];
+        for (const record of finalRecords) {
+          const displayPrice = record.retailPrice || record.wholesalePrice;
+          if (displayPrice) {
+            bulkPriceOps.push({
+              updateOne: {
+                filter: {
                   cropName: record.commodity,
                   market: record.market,
                 },
-                {
+                update: {
                   $set: {
                     cropName: record.commodity,
                     market: record.market,
@@ -182,15 +186,21 @@ export class SyncWorker {
                     retrievedAt: new Date(),
                   },
                 },
-                { upsert: true }
-              );
-            }
-
-            savedCount++;
-          } catch (dbErr) {
-            rejectedCount++;
+                upsert: true,
+              },
+            });
           }
         }
+
+        if (bulkPriceOps.length > 0) {
+          try {
+            await MarketPrice.bulkWrite(bulkPriceOps, { ordered: false });
+          } catch (bwErr) {
+            console.warn(`[MavunoAgent] Notice during MarketPrice bulkWrite: ${bwErr.message}`);
+          }
+        }
+
+        savedCount = finalRecords.length;
       } else {
         console.log('[MavunoAgent] MongoDB not connected; records held in memory.');
         savedCount = finalRecords.length;

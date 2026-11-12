@@ -362,9 +362,23 @@ export interface NDVIObservationDTO {
   createdAt: string;
 }
 
+export interface FarmInfoDTO {
+  farmName?: string;
+  county?: string;
+  subCounty?: string;
+  generalArea?: string;
+  farmSizeAcres?: number | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  hasRegisteredCoordinates?: boolean;
+  locationText?: string;
+  primaryCrops?: string[];
+}
+
 export interface NDVIHistoryDTO {
   observations: NDVIObservationDTO[];
   count: number;
+  farm?: FarmInfoDTO | null;
 }
 
 export const getNDVIHistoryApi = async (limit = 30): Promise<NDVIHistoryDTO> => {

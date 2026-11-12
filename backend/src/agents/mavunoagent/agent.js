@@ -5,6 +5,8 @@
  * retrieve wholesale/retail market prices, normalize and store observations to database.
  */
 
+import { mavunoAgentTools } from './mavunoAgentTools.js';
+
 export const MAVUNOAGENT_SYSTEM_INSTRUCTIONS = `
 You are MavunoAgent for MavunoTrust.
 Your purpose is to navigate the public Kenya Agricultural Market Information System (KAMIS) portal, skim all available product market pages, retrieve price observations, and update the database so farmers get current market price data.
@@ -19,17 +21,31 @@ RULES & BOUNDARIES:
 `.trim();
 
 export class MavunoAgent {
-  constructor(service, toolsRegistry = null) {
+  constructor(service, toolsRegistry = mavunoAgentTools) {
     this.agentService = service;
-    this.toolsRegistry = toolsRegistry;
+    this.toolsRegistry = toolsRegistry || mavunoAgentTools;
   }
 
   getSystemInstructions() {
     return MAVUNOAGENT_SYSTEM_INSTRUCTIONS;
   }
 
+  getToolsRegistry() {
+    return this.toolsRegistry;
+  }
+
   /**
-   * Generates retrieval decisions using Gemini 3.5 Flash and available MCP tools.
+   * Executes a tool via the agent's tool registry.
+   */
+  async executeTool(name, args = {}, session = null) {
+    if (!this.toolsRegistry?.executeTool) {
+      throw new Error(`No tool registry available to execute ${name}`);
+    }
+    return await this.toolsRegistry.executeTool(name, args, session);
+  }
+
+  /**
+   * Generates retrieval decisions using Gemini Flash and registered MavunoAgent tools.
    */
   async planExtractionStep(syncRunId, promptTask) {
     const prompt = `[SyncRun: ${syncRunId}]\n${promptTask}`;

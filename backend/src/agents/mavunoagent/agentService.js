@@ -1,5 +1,9 @@
 import dotenv from 'dotenv';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+dotenv.config({ path: path.resolve(__dirname, '../../../.env') });
 dotenv.config();
 
 export class AgentService {
@@ -7,14 +11,14 @@ export class AgentService {
     this.isInitialized = false;
     this.apiKey = null;
     this.model = 'gemini-3.5-flash';
-    this.baseUrl = 'https://kamis.kilimo.go.ke';
+    this.baseUrl = 'https://kamis.kilimo.go.ke/site/market';
     this.lastError = null;
   }
 
   initialize() {
     const key = process.env.MAVUNOAGENT_GEMINI_API_KEY || process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     const model = (process.env.MAVUNOAGENT_MODEL || process.env.GEMINI_MODEL || 'gemini-3.5-flash').trim();
-    const baseUrl = process.env.KAMIS_BASE_URL || 'https://kamis.kilimo.go.ke';
+    const baseUrl = process.env.KAMIS_BASE_URL || 'https://kamis.kilimo.go.ke/site/market';
 
     this.model = model;
     this.baseUrl = baseUrl;
@@ -78,14 +82,13 @@ export class AgentService {
     const systemInstruction = options.systemInstruction || `You are MavunoAgent, the specialized agricultural market data extraction agent for MavunoTrust.
 Your role is to skim through the KAMIS platform (https://kamis.kilimo.go.ke), navigate product sections, extract market prices for all available agricultural commodities, and structure them for database ingestion.
 Never fabricate prices or modify prices. Preserve units, wholesale vs retail prices, market locations, and observation dates truthfully.`;
-    const timeoutMs = options.timeoutMs || 45000;
+    const timeoutMs = options.timeoutMs || 15000;
 
     const candidateModels = Array.from(new Set([
       this.model,
       'gemini-3.5-flash',
-      'gemini-3.6-flash',
-      'gemini-3-flash-preview',
-      'gemini-2.5-flash',
+      'gemini-3.1-flash-lite',
+      'gemini-3.8-flash',
     ].filter(Boolean)));
 
     const requestBody = JSON.stringify({
@@ -144,22 +147,27 @@ Never fabricate prices or modify prices. Preserve units, wholesale vs retail pri
               };
             }
 
-            const textResponse = (candidate.content?.parts || [])
+            const parts = candidate.content?.parts || [];
+            const textResponse = parts
               .filter((p) => typeof p.text === 'string' && !p.thought)
               .map((p) => p.text)
               .join('');
 
-            if (!textResponse) {
+            const functionCalls = parts
+              .filter((p) => p.functionCall)
+              .map((p) => p.functionCall);
+
+            if (!textResponse && functionCalls.length === 0) {
               const isStop = finishReason === 'STOP';
               console.warn(
-                `[MavunoAgent] Gemini candidate has no usable text (model=${activeModel}, finishReason=${finishReason}).` +
+                `[MavunoAgent] Gemini candidate has no usable text or tool calls (model=${activeModel}, finishReason=${finishReason}).` +
                 (isStop ? ' This may indicate a thinking-only response; thinkingBudget:0 should prevent this.' : '')
               );
               return {
                 success: false,
                 error: {
                   code: 'MAVUNOAGENT_EMPTY_OUTPUT',
-                  message: `Gemini returned no usable text output (finishReason: ${finishReason || 'UNKNOWN'}). Please try again.`,
+                  message: `Gemini returned no usable output (finishReason: ${finishReason || 'UNKNOWN'}). Please try again.`,
                   finishReason: finishReason || 'UNKNOWN',
                   isTransient: true,
                 },
@@ -169,7 +177,8 @@ Never fabricate prices or modify prices. Preserve units, wholesale vs retail pri
             this.lastError = null;
             return {
               success: true,
-              decisionText: textResponse,
+              decisionText: textResponse || `Tool invocation: ${functionCalls.map((f) => f.name).join(', ')}`,
+              functionCalls,
               rawResponse: data,
               usedModel: activeModel,
             };

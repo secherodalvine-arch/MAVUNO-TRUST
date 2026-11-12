@@ -18,8 +18,7 @@
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const getGeminiApiUrl = () => {
-  const model = (process.env.GEMINI_MODEL || 'gemini-3.5-flash').trim();
+const getGeminiApiUrl = (model = (process.env.GEMINI_MODEL || 'gemini-3.8-flash').trim()) => {
   return `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
 };
 
@@ -201,7 +200,14 @@ async function callGeminiAdvisory(contextMessage) {
     );
   }
 
-  const url = `${getGeminiApiUrl()}?key=${apiKey}`;
+  const candidateModels = Array.from(new Set([
+    (process.env.GEMINI_MODEL || 'gemini-3.8-flash').trim(),
+    'gemini-3.8-flash',
+    'gemini-3.5-flash',
+    'gemini-2.0-flash',
+    'gemini-1.5-flash',
+  ].filter(Boolean)));
+
   const payload = {
     system_instruction: {
       parts: [{ text: ADVISORY_SYSTEM_PROMPT }],
@@ -217,45 +223,65 @@ async function callGeminiAdvisory(contextMessage) {
     },
   };
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  });
+  let lastError = null;
 
-  if (!response.ok) {
-    throw Object.assign(
-      new Error(`Gemini API responded with HTTP ${response.status}`),
-      { statusCode: 502, code: 'GEMINI_API_ERROR' }
-    );
+  for (const model of candidateModels) {
+    const url = `${getGeminiApiUrl(model)}?key=${apiKey}`;
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        if (response.status === 404 || response.status === 503 || response.status === 429) {
+          console.warn(`[FarmAdvisorService] Model ${model} returned HTTP ${response.status}. Trying fallback model...`);
+          lastError = new Error(`Gemini API responded with HTTP ${response.status} on ${model}`);
+          continue;
+        }
+        throw Object.assign(
+          new Error(`Gemini API responded with HTTP ${response.status}`),
+          { statusCode: 502, code: 'GEMINI_API_ERROR' }
+        );
+      }
+
+      const data = await response.json();
+
+      if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
+        throw Object.assign(
+          new Error('Gemini returned an empty response.'),
+          { statusCode: 502, code: 'GEMINI_EMPTY_RESPONSE' }
+        );
+      }
+
+      const rawText = data.candidates[0].content.parts[0].text;
+
+      try {
+        // Strip markdown code fences if Gemini wraps in ```json ... ```
+        const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
+        return JSON.parse(cleaned);
+      } catch (parseErr) {
+        // Return raw text in a structured wrapper if JSON parsing fails
+        return {
+          vegetationObservation: rawText,
+          ndviSummary: 'AI generated a text response rather than structured JSON.',
+          practicalRecommendations: ['Please consult your local agricultural extension officer for personalized advice.'],
+          limitations: ['The AI advisory could not be parsed as structured data.'],
+          confidence: 'LOW',
+          disclaimer: 'This is an automated vegetation observation, not a confirmed crop disease diagnosis.',
+        };
+      }
+    } catch (err) {
+      lastError = err;
+      console.warn(`[FarmAdvisorService] Attempt on model ${model} failed (${err.message}). Trying fallback model...`);
+    }
   }
 
-  const data = await response.json();
-
-  if (!data.candidates || data.candidates.length === 0 || !data.candidates[0].content) {
-    throw Object.assign(
-      new Error('Gemini returned an empty response.'),
-      { statusCode: 502, code: 'GEMINI_EMPTY_RESPONSE' }
-    );
-  }
-
-  const rawText = data.candidates[0].content.parts[0].text;
-
-  try {
-    // Strip markdown code fences if Gemini wraps in ```json ... ```
-    const cleaned = rawText.replace(/^```json\s*/i, '').replace(/```\s*$/, '').trim();
-    return JSON.parse(cleaned);
-  } catch (parseErr) {
-    // Return raw text in a structured wrapper if JSON parsing fails
-    return {
-      vegetationObservation: rawText,
-      ndviSummary: 'AI generated a text response rather than structured JSON.',
-      practicalRecommendations: ['Please consult your local agricultural extension officer for personalized advice.'],
-      limitations: ['The AI advisory could not be parsed as structured data.'],
-      confidence: 'LOW',
-      disclaimer: 'This is an automated vegetation observation, not a confirmed crop disease diagnosis.',
-    };
-  }
+  throw Object.assign(
+    new Error(`Gemini advisory generation failed on all candidate models: ${lastError?.message}`),
+    { statusCode: 502, code: 'GEMINI_API_ERROR' }
+  );
 }
 
 // ── Main Advisory Function ────────────────────────────────────────────────────

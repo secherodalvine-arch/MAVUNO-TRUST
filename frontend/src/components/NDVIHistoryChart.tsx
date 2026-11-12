@@ -1,7 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, Minus, RefreshCw, BarChart3 } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import {
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  RefreshCw,
+  BarChart3,
+  MapPin,
+  Sprout,
+  ArrowRight,
+} from 'lucide-react';
 import { LoadSpinner } from './LoadSpinner';
-import { getNDVIHistoryApi, type NDVIObservationDTO } from '../services/farmerService';
+import {
+  getNDVIHistoryApi,
+  getFarmLocationApi,
+  type NDVIObservationDTO,
+  type FarmInfoDTO,
+} from '../services/farmerService';
 
 function getSeverityColor(severity: string | undefined): string {
   switch (severity) {
@@ -31,13 +46,38 @@ function TrendIndicator({ observations }: { observations: NDVIObservationDTO[] }
 
 export const NDVIHistoryChart: React.FC = () => {
   const [history, setHistory] = useState<NDVIObservationDTO[]>([]);
+  const [farmInfo, setFarmInfo] = useState<FarmInfoDTO | null>(null);
   const [loading, setLoading] = useState(true);
 
   const loadHistory = async () => {
     setLoading(true);
     try {
       const data = await getNDVIHistoryApi(20);
-      setHistory(data.observations);
+      setHistory(data.observations || []);
+
+      if (data.farm) {
+        setFarmInfo(data.farm);
+      } else {
+        // Fallback: fetch farm location directly
+        const loc = await getFarmLocationApi().catch(() => null);
+        if (loc) {
+          setFarmInfo({
+            farmName: 'Registered Farmland',
+            county: loc.county,
+            subCounty: loc.subCounty,
+            generalArea: loc.generalArea,
+            farmSizeAcres: loc.farmSizeAcres,
+            latitude: loc.latitude,
+            longitude: loc.longitude,
+            hasRegisteredCoordinates: loc.hasRegisteredCoordinates,
+            locationText:
+              [loc.generalArea, loc.subCounty, loc.county].filter(Boolean).join(', ') ||
+              (loc.latitude && loc.longitude
+                ? `${Number(loc.latitude).toFixed(4)}°, ${Number(loc.longitude).toFixed(4)}°`
+                : 'Location not registered'),
+          });
+        }
+      }
     } catch {
       // Non-critical: defaults to empty history state
     } finally {
@@ -67,6 +107,80 @@ export const NDVIHistoryChart: React.FC = () => {
     );
   }
 
+  // Render Observed Farm & Location Summary Banner
+  const renderFarmLocationBanner = () => (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '12px',
+        marginTop: '10px',
+        padding: '10px 14px',
+        background: 'var(--color-surface-raised, rgba(255,255,255,0.03))',
+        borderRadius: '8px',
+        border: '1px solid var(--color-surface-border)',
+        fontSize: '0.82rem',
+      }}
+    >
+      {/* Farm Name & Size */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-primary)', fontWeight: 600 }}>
+        <Sprout size={16} color="#10b981" style={{ flexShrink: 0 }} />
+        <span>Observed Farm:</span>
+        <span style={{ color: '#10b981' }}>{farmInfo?.farmName || 'Registered Farmland'}</span>
+        {farmInfo?.farmSizeAcres ? (
+          <span
+            style={{
+              fontSize: '0.72rem',
+              color: '#10b981',
+              background: 'rgba(16, 185, 129, 0.12)',
+              border: '1px solid rgba(16, 185, 129, 0.25)',
+              padding: '1px 6px',
+              borderRadius: '4px',
+              fontWeight: 500,
+            }}
+          >
+            {farmInfo.farmSizeAcres} Acres
+          </span>
+        ) : null}
+      </div>
+
+      <span style={{ color: 'var(--color-text-muted)' }}>•</span>
+
+      {/* Farm Location Details */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-text-secondary)', flexWrap: 'wrap' }}>
+        <MapPin size={15} color="#0d9488" style={{ flexShrink: 0 }} />
+        <span>
+          <strong>Location: </strong>
+          {farmInfo?.locationText || 'Location not specified'}
+        </span>
+        {farmInfo?.latitude && farmInfo?.longitude ? (
+          <span style={{ fontFamily: 'monospace', fontSize: '0.74rem', color: '#94a3b8', background: 'rgba(255,255,255,0.05)', padding: '1px 5px', borderRadius: '4px' }}>
+            ({Number(farmInfo.latitude).toFixed(4)}°, {Number(farmInfo.longitude).toFixed(4)}°)
+          </span>
+        ) : null}
+      </div>
+
+      {(!farmInfo || !farmInfo.hasRegisteredCoordinates) && (
+        <Link
+          to="/farmer/profile"
+          style={{
+            marginLeft: 'auto',
+            fontSize: '0.75rem',
+            color: '#38bdf8',
+            textDecoration: 'none',
+            fontWeight: 500,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+          }}
+        >
+          Set Farm Location <ArrowRight size={12} />
+        </Link>
+      )}
+    </div>
+  );
+
   if (history.length === 0) {
     return (
       <div
@@ -79,14 +193,57 @@ export const NDVIHistoryChart: React.FC = () => {
           boxShadow: 'var(--shadow-sm)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-          <BarChart3 size={18} color="var(--color-text-muted)" />
-          <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--color-text-primary)' }}>
-            Vegetation Health History
-          </h3>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '8px',
+                background: 'rgba(16, 185, 129, 0.12)',
+                color: '#10b981',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <BarChart3 size={18} />
+            </div>
+            <div>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: 0, color: 'var(--color-text-primary)' }}>
+                Vegetation Health History
+              </h3>
+              <p style={{ fontSize: '0.78rem', color: 'var(--color-text-secondary)', margin: 0 }}>
+                Historical NDVI Time-Series &amp; Satellite Monitoring
+              </p>
+            </div>
+          </div>
+
+          <button
+            onClick={loadHistory}
+            style={{
+              background: 'var(--color-surface-raised)',
+              border: '1px solid var(--color-surface-border)',
+              borderRadius: '6px',
+              padding: '4px 8px',
+              color: 'var(--color-text-secondary)',
+              cursor: 'pointer',
+              fontSize: '0.72rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+          >
+            <RefreshCw size={11} />
+            Refresh
+          </button>
         </div>
-        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', margin: 0 }}>
-          No historical NDVI observations yet. Run your first satellite analysis to start tracking farm vegetation trends over time.
+
+        {/* Observed Farm and Location Details */}
+        {renderFarmLocationBanner()}
+
+        <p style={{ fontSize: '0.85rem', color: 'var(--color-text-secondary)', marginTop: '14px', marginBottom: 0 }}>
+          No historical NDVI observations recorded yet for <strong>{farmInfo?.farmName || 'this farm'}</strong>. Run your first satellite analysis to track vegetation trends over time.
         </p>
       </div>
     );
@@ -144,7 +301,7 @@ export const NDVIHistoryChart: React.FC = () => {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          marginBottom: '14px',
+          marginBottom: '6px',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -201,8 +358,11 @@ export const NDVIHistoryChart: React.FC = () => {
         </div>
       </div>
 
+      {/* Observed Farm and Location Details */}
+      {renderFarmLocationBanner()}
+
       {/* SVG Line Chart */}
-      <div style={{ overflowX: 'auto' }}>
+      <div style={{ overflowX: 'auto', marginTop: '16px' }}>
         <svg
           viewBox={`0 0 ${chartWidth} ${chartHeight}`}
           style={{ width: '100%', minWidth: '300px', height: 'auto', display: 'block' }}

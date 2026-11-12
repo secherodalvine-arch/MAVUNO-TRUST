@@ -2,6 +2,7 @@ import * as farmerService from '../services/farmerService.js';
 import * as satelliteService from '../services/satelliteService.js';
 import { getFarmWeather } from '../services/weatherService.js';
 import FarmObservation from '../models/FarmObservation.js';
+import FarmerProfile from '../models/FarmerProfile.js';
 
 export const getMyFarmerProfile = async (req, res, next) => {
     try {
@@ -244,11 +245,37 @@ export const getMyNDVIHistory = async (req, res, next) => {
     try {
         const userId = req.user.userId;
         const limit = Math.min(parseInt(req.query.limit) || 30, 100);
-        const observations = await FarmObservation.find({ userId })
-            .sort({ observationDate: -1 })
-            .limit(limit)
-            .select('observationDate meanNDVI minNDVI maxNDVI vegetationLabel vegetationSeverity cloudCoverPercent farmAreaAcres createdAt');
-        res.json({ success: true, data: { observations, count: observations.length } });
+        const [observations, locationData, profile] = await Promise.all([
+            FarmObservation.find({ userId })
+                .sort({ observationDate: -1 })
+                .limit(limit)
+                .select('observationDate meanNDVI minNDVI maxNDVI vegetationLabel vegetationSeverity cloudCoverPercent farmAreaAcres createdAt'),
+            farmerService.getFarmerLocation(userId).catch(() => null),
+            FarmerProfile.findOne({ userId }).select('displayName primaryCrops').catch(() => null),
+        ]);
+
+        const farm = locationData ? {
+            farmName: profile?.displayName ? `${profile.displayName}'s Farm` : 'Registered Farmland',
+            county: locationData.county || '',
+            subCounty: locationData.subCounty || '',
+            generalArea: locationData.generalArea || '',
+            farmSizeAcres: locationData.farmSizeAcres ?? null,
+            latitude: locationData.latitude ?? null,
+            longitude: locationData.longitude ?? null,
+            hasRegisteredCoordinates: locationData.hasRegisteredCoordinates,
+            locationText: [locationData.generalArea, locationData.subCounty, locationData.county].filter(Boolean).join(', ') ||
+                          (locationData.latitude && locationData.longitude ? `${Number(locationData.latitude).toFixed(4)}°, ${Number(locationData.longitude).toFixed(4)}°` : 'Kenya'),
+            primaryCrops: profile?.primaryCrops || [],
+        } : null;
+
+        res.json({
+            success: true,
+            data: {
+                observations,
+                count: observations.length,
+                farm,
+            }
+        });
     }
     catch (err) {
         next(err);

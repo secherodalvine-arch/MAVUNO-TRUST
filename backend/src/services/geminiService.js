@@ -31,8 +31,14 @@ export class GeminiService {
         if (!apiKey) {
             throw Object.assign(new Error('Gemini API key is not configured. Set GEMINI_API_KEY in environment.'), { statusCode: 503, code: 'CREDENTIALS_MISSING' });
         }
-        const model = (process.env.GEMINI_MODEL || 'gemini-3.5-flash').trim();
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+        const candidateModels = Array.from(new Set([
+            (process.env.GEMINI_MODEL || 'gemini-3.8-flash').trim(),
+            'gemini-3.8-flash',
+            'gemini-3.5-flash',
+            'gemini-2.0-flash',
+            'gemini-1.5-flash',
+        ].filter(Boolean)));
+
         const payload = {
             system_instruction: {
                 parts: [{ text: SYSTEM_INSTRUCTION }]
@@ -44,25 +50,35 @@ export class GeminiService {
                 temperature: 0.1, // Keep it highly deterministic and strict
             }
         };
-        try {
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-            if (!response.ok) {
-                throw new Error(`Gemini API responded with HTTP ${response.status}`);
+
+        let lastError = null;
+        for (const model of candidateModels) {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) {
+                    if (response.status === 404 || response.status === 503 || response.status === 429) {
+                        console.warn(`[GeminiService] Model ${model} returned HTTP ${response.status}. Attempting fallback...`);
+                        lastError = new Error(`Gemini API responded with HTTP ${response.status} on ${model}`);
+                        continue;
+                    }
+                    throw new Error(`Gemini API responded with HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
+                    return data.candidates[0].content.parts[0].text;
+                }
+                return "I'm sorry, I couldn't generate an answer at this time.";
+            } catch (err) {
+                lastError = err;
+                console.warn(`[GeminiService] Error querying ${model}: ${err.message}. Trying next candidate model...`);
             }
-            const data = await response.json();
-            // Extract the text response from the Gemini payload
-            if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
-                return data.candidates[0].content.parts[0].text;
-            }
-            return "I'm sorry, I couldn't generate an answer at this time.";
         }
-        catch (err) {
-            throw Object.assign(new Error(`Failed to query Gemini: ${err.message}`), { statusCode: 502, code: 'GEMINI_GENERATION_FAILED' });
-        }
+        throw Object.assign(new Error(`Failed to query Gemini: ${lastError?.message || 'All candidate models failed'}`), { statusCode: 502, code: 'GEMINI_GENERATION_FAILED' });
     }
 }
 export const geminiService = new GeminiService();

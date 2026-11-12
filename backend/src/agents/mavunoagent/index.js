@@ -3,5 +3,6 @@ export { AgentService, agentService } from './agentService.js';
 export { BrowserSession, browserTools } from './browserTools.js';
 export { extractionTools } from './extractionTools.js';
 export { processingTools } from './processingTools.js';
+export { mavunoAgentTools, MavunoAgentToolsRegistry, MAVUNOAGENT_TOOL_DECLARATIONS } from './mavunoAgentTools.js';
 export { SyncWorker, syncWorker } from './syncWorker.js';
 export { scheduler, startMavunoAgentScheduler, stopMavunoAgentScheduler } from './scheduler.js';

@@ -135,7 +135,7 @@ MavunoTrust follows a modular, decoupled architecture built around modern web st
 - **Routing / Distance Engine**: OSRM (OpenStreetMap Road Network)
 
 ### AI & Agentic Layer
-- **Large Language Model**: Google Gemini (`gemini-2.5-flash`, `gemini-1.5-flash`) via `@google/genai`
+- **Large Language Model**: Google Gemini (`gemini-3.8-flash`, `gemini-3.5-flash`) via `@google/genai`
 - **Voice Synthesis & Agents**: ElevenLabs Conversational Voice AI (Dual Agent: Homepage Reader + Bilingual Customer Support)
 - **Agent Orchestrator**: Custom resilient multi-tier agent pipelines with exponential backoff and deterministic fallbacks
 
@@ -345,7 +345,8 @@ REFRESH_TOKEN_EXPIRE_DAYS=7
 
 # MavunoAgent — KAMIS Market Data Extraction Agent
 KAMIS_BASE_URL=https://kamis.kilimo.go.ke
-MAVUNOAGENT_MODEL=gemini-2.5-flash
+MAVUNOAGENT_MODEL=gemini-3.8-flash
+GEMINI_MODEL=gemini-3.8-flash
 GEMINI_API_KEY=your_gemini_api_key
 
 # ElevenLabs API — Homepage Voice Agent

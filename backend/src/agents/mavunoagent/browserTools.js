@@ -11,8 +11,11 @@
 const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
 
 export class BrowserSession {
-  constructor(baseUrl = 'https://kamis.kilimo.go.ke') {
-    this.baseUrl = baseUrl.replace(/\/+$/, '');
+  constructor(baseUrl = 'https://kamis.kilimo.go.ke/site/market') {
+    const raw = (baseUrl || 'https://kamis.kilimo.go.ke/site/market').replace(/\/+$/, '');
+    this.targetMarketUrl = raw.includes('/site/market') ? raw : `${raw}/site/market`;
+    this.rootUrl = raw.replace(/\/site\/market.*$/, '') || 'https://kamis.kilimo.go.ke';
+    this.baseUrl = this.targetMarketUrl;
     this.currentUrl = null;
     this.isOpen = false;
     this.html = '';
@@ -20,38 +23,69 @@ export class BrowserSession {
   }
 
   /**
-   * Opens the initial portal session.
+   * Opens the initial portal session with robust candidate fallback and timeouts.
    */
-  async open(url = this.baseUrl) {
-    this.currentUrl = url;
-    try {
-      const res = await fetch(this.currentUrl, {
-        headers: {
-          'User-Agent': USER_AGENT,
-          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        },
-      });
-
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} opening ${url}`);
+  async open(url = null) {
+    const candidateUrls = [];
+    if (url) {
+      candidateUrls.push(url);
+      if (!url.includes('/site/market')) {
+        candidateUrls.push(`${url.replace(/\/+$/, '')}/site/market`);
       }
-
-      this.html = await res.text();
-      this.isOpen = true;
-
-      const titleMatch = this.html.match(/<title[^>]*>(.*?)<\/title>/i);
-      const title = titleMatch ? titleMatch[1].trim() : 'KAMIS';
-
-      return {
-        success: true,
-        url: this.currentUrl,
-        title,
-        status: 'CONNECTED',
-      };
-    } catch (err) {
-      this.isOpen = false;
-      throw new Error(`Browser failed to connect to KAMIS: ${err.message}`);
     }
+    candidateUrls.push(this.targetMarketUrl);
+    candidateUrls.push('https://kamis.kilimo.go.ke/site/market');
+    candidateUrls.push('http://kamis.kilimo.go.ke/site/market');
+    candidateUrls.push(`${this.rootUrl}/site/index`);
+    candidateUrls.push(this.rootUrl);
+
+    const uniqueCandidates = [...new Set(candidateUrls.filter(Boolean))];
+
+    let lastError = null;
+    for (const candidate of uniqueCandidates) {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        const res = await fetch(candidate, {
+          signal: controller.signal,
+          headers: {
+            'User-Agent': USER_AGENT,
+            Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Cache-Control': 'no-cache',
+            Pragma: 'no-cache',
+          },
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status} opening ${candidate}`);
+        }
+
+        const text = await res.text();
+        if (text && text.length > 500) {
+          this.currentUrl = candidate;
+          this.html = text;
+          this.isOpen = true;
+
+          const titleMatch = this.html.match(/<title[^>]*>(.*?)<\/title>/i);
+          const title = titleMatch ? titleMatch[1].trim() : 'KAMIS';
+
+          return {
+            success: true,
+            url: this.currentUrl,
+            title,
+            status: 'CONNECTED',
+          };
+        }
+      } catch (err) {
+        lastError = err;
+      }
+    }
+
+    this.isOpen = false;
+    throw new Error(`Browser failed to connect to KAMIS: ${lastError ? lastError.message : 'All endpoint candidates failed'}`);
   }
 
   /**
@@ -91,8 +125,12 @@ export class BrowserSession {
           url: fullUrl,
         });
 
-        if (fullUrl.includes('site/market') && !fullUrl.includes('market_search')) {
-          targetMarketUrl = fullUrl;
+        if (
+          fullUrl.includes('site/market') &&
+          !fullUrl.includes('market_search') &&
+          !fullUrl.toLowerCase().includes('export')
+        ) {
+          targetMarketUrl = fullUrl.split('?')[0].replace(/\/site\/market\/\d+.*$/, '/site/market');
         }
       }
     }
@@ -112,32 +150,60 @@ export class BrowserSession {
    */
   async navigateToMarketPage(marketUrl = null) {
     if (!this.isOpen) {
-      await this.open();
+      await this.open(marketUrl || this.targetMarketUrl);
     }
 
     const nav = await this.findMarketNavigation();
-    const url = marketUrl || nav.targetMarketUrl || `${this.baseUrl}/site/market`;
+    const url = marketUrl || nav.targetMarketUrl || this.targetMarketUrl || `${this.baseUrl}/site/market`;
 
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': USER_AGENT,
-        Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      },
-    });
-
-    if (!res.ok) {
-      throw new Error(`Failed to navigate to market page ${url}: HTTP ${res.status}`);
+    // If current page is already the market page with the commodity selector, reuse it
+    if ((this.currentUrl === url || this.currentUrl?.includes('/site/market')) && this.html && this.html.includes('id="selProduct"')) {
+      return {
+        success: true,
+        url: this.currentUrl,
+        html: this.html,
+        message: `Already on active market page at ${this.currentUrl}`,
+      };
     }
 
-    this.currentUrl = url;
-    this.html = await res.text();
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-    return {
-      success: true,
-      url: this.currentUrl,
-      html: this.html,
-      message: `Navigated to market page at ${this.currentUrl}`,
-    };
+      const res = await fetch(url, {
+        signal: controller.signal,
+        headers: {
+          'User-Agent': USER_AGENT,
+          Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+          'Accept-Language': 'en-US,en;q=0.9',
+        },
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        throw new Error(`Failed to navigate to market page ${url}: HTTP ${res.status}`);
+      }
+
+      this.currentUrl = url;
+      this.html = await res.text();
+
+      return {
+        success: true,
+        url: this.currentUrl,
+        html: this.html,
+        message: `Navigated to market page at ${this.currentUrl}`,
+      };
+    } catch (err) {
+      if (this.html && this.html.includes('id="selProduct"')) {
+        return {
+          success: true,
+          url: this.currentUrl,
+          html: this.html,
+          message: `Retained current market page (${err.message})`,
+        };
+      }
+      throw err;
+    }
   }
 
   /**
@@ -187,7 +253,10 @@ export class BrowserSession {
    * Fetches market observations for a specific commodity or general produce table.
    */
   async fetchMarketTable({ productId = null, perPage = 50, pageOffset = 0 } = {}) {
-    let url = `${this.baseUrl}/site/market`;
+    let url = (this.targetMarketUrl || `${this.baseUrl}/site/market`).split('?')[0];
+    if (!url.includes('/site/market')) {
+      url = `${url.replace(/\/+$/, '')}/site/market`;
+    }
     if (pageOffset > 0) {
       url += `/${pageOffset}`;
     }
@@ -200,12 +269,18 @@ export class BrowserSession {
 
     const fullUrl = `${url}?${queryParams.toString()}`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
     const res = await fetch(fullUrl, {
+      signal: controller.signal,
       headers: {
         'User-Agent': USER_AGENT,
         Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
       },
     });
+    clearTimeout(timeoutId);
 
     if (!res.ok) {
       throw new Error(`Failed to fetch market data from ${fullUrl}: HTTP ${res.status}`);
