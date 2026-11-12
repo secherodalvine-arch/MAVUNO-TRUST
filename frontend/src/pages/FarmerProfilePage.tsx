@@ -23,7 +23,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
-import { getSubCounties, getWards, resolveKenyaPlace } from '../constants/kenyaLocations';
+import { getSubCounties, getWards, resolveKenyaPlace, getCountyCoordinates } from '../constants/kenyaLocations';
 
 const KENYA_COUNTIES = [
   'Baringo', 'Bomet', 'Bungoma', 'Busia', 'Elgeyo-Marakwet', 'Embu', 'Garissa',
@@ -33,17 +33,6 @@ const KENYA_COUNTIES = [
   'Nairobi', 'Nakuru', 'Nandi', 'Narok', 'Nyamira', 'Nyandarua', 'Nyeri',
   'Samburu', 'Siaya', 'Taita-Taveta', 'Tana River', 'Tharaka-Nithi', 'Trans Nzoia',
   'Turkana', 'Uasin Gishu', 'Vihiga', 'Wajir', 'West Pokot'
-];
-
-const KENYA_AG_PRESETS = [
-  { label: 'Nakuru (Njoro / Rongai)', lat: -0.2833, lng: 36.0663, county: 'Nakuru', subCounty: 'Njoro' },
-  { label: 'Uasin Gishu (Eldoret / Moiben)', lat: 0.5143, lng: 35.2698, county: 'Uasin Gishu', subCounty: 'Moiben' },
-  { label: 'Trans Nzoia (Kitale / Cherangany)', lat: 1.0167, lng: 35.0062, county: 'Trans Nzoia', subCounty: 'Cherangany' },
-  { label: 'Nyeri (Mathira / Tetu)', lat: -0.4201, lng: 36.9476, county: 'Nyeri', subCounty: 'Mathira' },
-  { label: 'Meru (Imenti / Buuri)', lat: 0.0463, lng: 37.6559, county: 'Meru', subCounty: 'Central Imenti' },
-  { label: 'Kiambu (Limuru / Gatundu)', lat: -1.1714, lng: 36.8304, county: 'Kiambu', subCounty: 'Limuru' },
-  { label: 'Kisumu (Muhoroni / Nyando)', lat: -0.0917, lng: 34.7617, county: 'Kisumu', subCounty: 'Muhoroni' },
-  { label: 'Machakos (Kangundo / Yatta)', lat: -1.5177, lng: 37.2634, county: 'Machakos', subCounty: 'Kangundo' },
 ];
 
 export const FarmerProfilePage: React.FC = () => {
@@ -163,23 +152,11 @@ export const FarmerProfilePage: React.FC = () => {
         setIsLocatingDevice(false);
         setLocationMessage({
           type: 'error',
-          text: `Unable to access location: ${err.message || 'Permission denied or signal unavailable'}. You can enter coordinates manually or choose an agricultural preset.`,
+          text: `Unable to access location: ${err.message || 'Permission denied or signal unavailable'}. You can enter coordinates manually or select your county.`,
         });
       },
       { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
-  };
-
-  // Agricultural Preset selection
-  const handleSelectPreset = (preset: typeof KENYA_AG_PRESETS[0]) => {
-    setLatitude(String(preset.lat));
-    setLongitude(String(preset.lng));
-    if (!county) setCounty(preset.county);
-    if (!subCounty) setSubCounty(preset.subCounty);
-    setLocationMessage({
-      type: 'success',
-      text: `Applied preset for ${preset.label}. Click Save Farm Location to confirm.`,
-    });
   };
 
   // Dedicated Save / Update Farm Location Handler
@@ -188,12 +165,26 @@ export const FarmerProfilePage: React.FC = () => {
     setIsSavingLocation(true);
     setLocationMessage(null);
 
+    // Auto-derive coordinates from county/sub-county if not explicitly provided
+    let targetLat = latitude.trim();
+    let targetLng = longitude.trim();
+
+    if ((!targetLat || !targetLng) && county.trim()) {
+      const derived = getCountyCoordinates(county.trim(), subCounty.trim());
+      if (derived) {
+        targetLat = String(derived.lat);
+        targetLng = String(derived.lng);
+        setLatitude(targetLat);
+        setLongitude(targetLng);
+      }
+    }
+
     // Coordinate validation
     let parsedLat: number | null = null;
     let parsedLng: number | null = null;
 
-    if (latitude.trim() !== '' || longitude.trim() !== '') {
-      if (latitude.trim() === '' || longitude.trim() === '') {
+    if (targetLat !== '' || targetLng !== '') {
+      if (targetLat === '' || targetLng === '') {
         setLocationMessage({
           type: 'error',
           text: 'Both latitude and longitude must be provided together.',
@@ -202,8 +193,8 @@ export const FarmerProfilePage: React.FC = () => {
         return;
       }
 
-      parsedLat = parseFloat(latitude.trim());
-      parsedLng = parseFloat(longitude.trim());
+      parsedLat = parseFloat(targetLat);
+      parsedLng = parseFloat(targetLng);
 
       if (isNaN(parsedLat) || isNaN(parsedLng)) {
         setLocationMessage({
@@ -410,6 +401,15 @@ export const FarmerProfilePage: React.FC = () => {
                   setCounty(newCounty);
                   setSubCounty('');
                   setGeneralArea('');
+                  const coords = getCountyCoordinates(newCounty);
+                  if (coords) {
+                    setLatitude(String(coords.lat));
+                    setLongitude(String(coords.lng));
+                    setLocationMessage({
+                      type: 'success',
+                      text: `Map adjusted to ${newCounty} (${coords.lat}, ${coords.lng}). Click Save Farm Location to update.`,
+                    });
+                  }
                 }}
                 style={styles.select}
               >
@@ -430,6 +430,15 @@ export const FarmerProfilePage: React.FC = () => {
                     const newSub = e.target.value;
                     setSubCounty(newSub);
                     setGeneralArea('');
+                    const coords = getCountyCoordinates(county, newSub);
+                    if (coords) {
+                      setLatitude(String(coords.lat));
+                      setLongitude(String(coords.lng));
+                      setLocationMessage({
+                        type: 'success',
+                        text: `Map adjusted to ${newSub}, ${county} (${coords.lat}, ${coords.lng}). Click Save Farm Location to update.`,
+                      });
+                    }
                   }}
                   style={styles.select}
                 >
@@ -528,27 +537,25 @@ export const FarmerProfilePage: React.FC = () => {
 
             <div style={styles.fieldRow}>
               <div style={styles.field}>
-                <label style={styles.label}>Latitude (-90° to +90°)</label>
+                <label style={styles.label}>Latitude</label>
                 <input
                   type="text"
                   value={latitude}
                   onChange={(e) => setLatitude(e.target.value)}
                   style={styles.input}
-                  placeholder="e.g. -1.153289"
+                  placeholder="-1.153289"
                 />
-                <span style={styles.helperText}>Kenya latitudes range approx -4.7° to +5.5°</span>
               </div>
 
               <div style={styles.field}>
-                <label style={styles.label}>Longitude (-180° to +180°)</label>
+                <label style={styles.label}>Longitude</label>
                 <input
                   type="text"
                   value={longitude}
                   onChange={(e) => setLongitude(e.target.value)}
                   style={styles.input}
-                  placeholder="e.g. 36.963183"
+                  placeholder="36.963183"
                 />
-                <span style={styles.helperText}>Kenya longitudes range approx 33.9° to 41.9°</span>
               </div>
             </div>
 
@@ -575,25 +582,6 @@ export const FarmerProfilePage: React.FC = () => {
                 </span>
               </div>
             )}
-
-            {/* Quick Presets for Agricultural Hubs */}
-            <div style={{ marginTop: '14px' }}>
-              <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', display: 'block', marginBottom: '8px' }}>
-                Quick Preset Hubs (click to populate typical county center):
-              </span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                {KENYA_AG_PRESETS.map((preset) => (
-                  <button
-                    key={preset.label}
-                    type="button"
-                    onClick={() => handleSelectPreset(preset)}
-                    style={styles.presetChip}
-                  >
-                    {preset.label}
-                  </button>
-                ))}
-              </div>
-            </div>
 
             {/* Interactive Farm Location & Satellite Map */}
             <div style={{ marginTop: '16px', padding: '14px', backgroundColor: 'var(--color-surface-raised)', borderRadius: '10px', border: '1px solid var(--color-surface-border)' }}>
@@ -956,16 +944,7 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     cursor: 'pointer',
   },
-  presetChip: {
-    backgroundColor: 'var(--color-surface-raised)',
-    border: '1px solid var(--color-surface-border)',
-    borderRadius: '6px',
-    color: 'var(--color-text-secondary)',
-    padding: '4px 10px',
-    fontSize: '0.78rem',
-    cursor: 'pointer',
-    transition: 'all 0.15s ease',
-  },
+
   locationActionBtn: {
     display: 'inline-flex',
     alignItems: 'center',

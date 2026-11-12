@@ -89,6 +89,7 @@ export interface FarmBoundaryDTO {
   boundaryAreaHectares?: number | null;
   boundaryUpdatedAt: string | null;
   farmSizeAcres?: number | null;
+  centroid?: [number, number] | null;
   referenceCoordinates?: {
     latitude: number | null;
     longitude: number | null;

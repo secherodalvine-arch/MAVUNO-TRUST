@@ -160,8 +160,10 @@ export async function calculateFarmNDVI({
 
   const startIso = start.toISOString().split('T')[0];
   const endIso = end.toISOString().split('T')[0];
+  const startMs = start.getTime();
+  const endMs = end.getTime();
 
-  // 5. Query Earth Engine REST API using the correct Expression DAG (values + result) format
+  // 5. Query Earth Engine REST API using valid Expression DAG format
   //    See: https://developers.google.com/earth-engine/reference/rest/v1/Expression
   const url = `https://earthengine.googleapis.com/v1/projects/${config.projectId}/value:compute`;
 
@@ -171,7 +173,7 @@ export async function calculateFarmNDVI({
     expression: {
       values: {
         // Node: farm geometry polygon
-        '0': {
+        geo: {
           functionInvocationValue: {
             functionName: 'GeometryConstructors.Polygon',
             arguments: {
@@ -179,104 +181,140 @@ export async function calculateFarmNDVI({
             },
           },
         },
-        // Node: Sentinel-2 image collection filtered to farm bounds
-        '1': {
+        // Node: Sentinel-2 image collection
+        col: {
           functionInvocationValue: {
-            functionName: 'ImageCollection.filterBounds',
+            functionName: 'ImageCollection.load',
             arguments: {
-              collection: { constantValue: SENTINEL_COLLECTION },
-              geometry: { valueReference: '0' },
+              id: { constantValue: SENTINEL_COLLECTION },
             },
           },
         },
-        // Node: further filter collection by date range
-        '2': {
+        // Filter 1: Spatial bounds intersection with farm boundary
+        f_geo: {
           functionInvocationValue: {
-            functionName: 'ImageCollection.filterDate',
+            functionName: 'Filter.intersects',
             arguments: {
-              collection: { valueReference: '1' },
-              start: { constantValue: startIso },
-              end: { constantValue: endIso },
+              leftField: { constantValue: '.geo' },
+              rightValue: { valueReference: 'geo' },
             },
           },
         },
-        // Node: filter by cloud cover property (CLOUDY_PIXEL_PERCENTAGE <= threshold)
-        '3': {
+        col_geo: {
           functionInvocationValue: {
-            functionName: 'ImageCollection.filter',
+            functionName: 'Collection.filter',
             arguments: {
-              collection: { valueReference: '2' },
-              filter: {
-                functionInvocationValue: {
-                  functionName: 'Filter.lessThanOrEquals',
-                  arguments: {
-                    name: { constantValue: 'CLOUDY_PIXEL_PERCENTAGE' },
-                    value: { constantValue: maxCloudCoverPercent },
-                  },
-                },
-              },
+              collection: { valueReference: 'col' },
+              filter: { valueReference: 'f_geo' },
             },
           },
         },
-        // Node: sort by ascending cloud cover and get least cloudy image
-        '4': {
+        // Filter 2: Date range start
+        f_start: {
           functionInvocationValue: {
-            functionName: 'ImageCollection.sort',
+            functionName: 'Filter.greaterThanOrEquals',
             arguments: {
-              collection: { valueReference: '3' },
-              property: { constantValue: 'CLOUDY_PIXEL_PERCENTAGE' },
-              ascending: { constantValue: true },
+              leftField: { constantValue: 'system:time_start' },
+              rightValue: { constantValue: startMs },
             },
           },
         },
-        '5': {
+        col_start: {
           functionInvocationValue: {
-            functionName: 'ImageCollection.first',
+            functionName: 'Collection.filter',
             arguments: {
-              collection: { valueReference: '4' },
+              collection: { valueReference: 'col_geo' },
+              filter: { valueReference: 'f_start' },
+            },
+          },
+        },
+        // Filter 3: Date range end
+        f_end: {
+          functionInvocationValue: {
+            functionName: 'Filter.lessThanOrEquals',
+            arguments: {
+              leftField: { constantValue: 'system:time_start' },
+              rightValue: { constantValue: endMs },
+            },
+          },
+        },
+        col_end: {
+          functionInvocationValue: {
+            functionName: 'Collection.filter',
+            arguments: {
+              collection: { valueReference: 'col_start' },
+              filter: { valueReference: 'f_end' },
+            },
+          },
+        },
+        // Filter 4: Max cloud coverage
+        f_clouds: {
+          functionInvocationValue: {
+            functionName: 'Filter.lessThanOrEquals',
+            arguments: {
+              leftField: { constantValue: 'CLOUDY_PIXEL_PERCENTAGE' },
+              rightValue: { constantValue: maxCloudCoverPercent },
+            },
+          },
+        },
+        col_clean: {
+          functionInvocationValue: {
+            functionName: 'Collection.filter',
+            arguments: {
+              collection: { valueReference: 'col_end' },
+              filter: { valueReference: 'f_clouds' },
+            },
+          },
+        },
+        // Node: composite cloud-filtered collection via mosaic
+        mosaic: {
+          functionInvocationValue: {
+            functionName: 'ImageCollection.mosaic',
+            arguments: {
+              collection: { valueReference: 'col_clean' },
             },
           },
         },
         // Node: select NIR (B8) and Red (B4) bands
-        '6': {
+        select_bands: {
           functionInvocationValue: {
             functionName: 'Image.select',
             arguments: {
-              input: { valueReference: '5' },
+              input: { valueReference: 'mosaic' },
               bandSelectors: { constantValue: ['B8', 'B4'] },
             },
           },
         },
         // Node: compute NDVI = (B8 - B4) / (B8 + B4)
-        '7': {
+        ndvi: {
           functionInvocationValue: {
             functionName: 'Image.normalizedDifference',
             arguments: {
-              input: { valueReference: '6' },
+              input: { valueReference: 'select_bands' },
               bandNames: { constantValue: ['B8', 'B4'] },
             },
           },
         },
         // Node: mean reducer over the farm polygon at 10 m resolution
-        '8': {
+        reduced: {
           functionInvocationValue: {
             functionName: 'Image.reduceRegion',
             arguments: {
-              image: { valueReference: '7' },
+              image: { valueReference: 'ndvi' },
               reducer: {
                 functionInvocationValue: {
                   functionName: 'Reducer.mean',
                   arguments: {},
                 },
               },
-              geometry: { valueReference: '0' },
+              geometry: { valueReference: 'geo' },
               scale: { constantValue: 10 },
               maxPixels: { constantValue: 1e9 },
             },
           },
         },
       },
-      result: '8',
+      result: 'reduced',
     },
   };
 
@@ -301,13 +339,14 @@ export async function calculateFarmNDVI({
 
     const geeResult = await geeResponse.json();
 
-    // Parse NDVI value from the result dictionary
-    // GEE returns: { result: { dictionaryValue: { values: { nd: { constantValue: <ndvi> } } } } }
-    // or: { result: { arrayValue: ... } } or { result: { constantValue: ... } }
+    // Parse NDVI value from the result dictionary:
+    // GEE returns: { result: { nd: 0.22419... } } or { result: { dictionaryValue: { values: { nd: { constantValue: <ndvi> } } } } }
     let meanNDVI = null;
     try {
       const r = geeResult.result;
-      if (r?.dictionaryValue?.values?.nd?.constantValue !== undefined) {
+      if (r?.nd !== undefined && r.nd !== null) {
+        meanNDVI = Number(r.nd);
+      } else if (r?.dictionaryValue?.values?.nd?.constantValue !== undefined) {
         meanNDVI = Number(r.dictionaryValue.values.nd.constantValue);
       } else if (r?.constantValue !== undefined) {
         meanNDVI = Number(r.constantValue);
@@ -315,16 +354,16 @@ export async function calculateFarmNDVI({
     } catch (_) {}
 
     if (meanNDVI === null || !Number.isFinite(meanNDVI)) {
-      // GEE returned a valid response but NDVI could not be parsed — try STAC fallback
-      console.warn('[SatelliteService] GEE returned unexpected format, falling back to Copernicus STAC...');
+      // GEE returned a valid response but NDVI could not be parsed (e.g. all pixels masked/cloudy) — try STAC fallback
+      console.warn('[SatelliteService] GEE NDVI was uncomputable over window, falling back to Copernicus STAC...');
       return await calculateNDVIFromCopernicusSTAC({ coordinates, normalized, startIso, endIso, maxCloudCoverPercent });
     }
 
     return {
       success: true,
-      source: 'GEE_SENTINEL2',
+      source: 'GEE_LIVE',
       dataset: SENTINEL_COLLECTION,
-      meanNDVI,
+      meanNDVI: parseFloat(meanNDVI.toFixed(4)),
       minNDVI: null,
       maxNDVI: null,
       cloudCoverPercent: null,

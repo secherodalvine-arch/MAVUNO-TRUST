@@ -46,7 +46,7 @@ export const FarmLocationMap: React.FC<FarmLocationMapProps> = ({
   const defaultLat = latitude && !isNaN(latitude) ? latitude : -0.2833;
   const defaultLng = longitude && !isNaN(longitude) ? longitude : 36.0663;
 
-  // Create custom GPS location pin icon with pulse animation
+  // Create custom GPS location pin icon with real pin marker design
   const createPinIcon = () => {
     return L.divIcon({
       className: 'custom-farm-pin',
@@ -54,7 +54,7 @@ export const FarmLocationMap: React.FC<FarmLocationMapProps> = ({
         <div style="
           position: relative;
           width: 36px;
-          height: 46px;
+          height: 48px;
           display: flex;
           flex-direction: column;
           align-items: center;
@@ -62,43 +62,32 @@ export const FarmLocationMap: React.FC<FarmLocationMapProps> = ({
           <!-- Pulse animation ring -->
           <div style="
             position: absolute;
-            top: 0; left: 50%;
+            top: -2px; left: 50%;
             transform: translateX(-50%);
-            width: 50px;
-            height: 50px;
+            width: 44px;
+            height: 44px;
             border-radius: 50%;
-            background: rgba(22, 163, 74, 0.2);
+            background: rgba(239, 68, 68, 0.25);
             animation: gps-pulse 2s ease-out infinite;
             pointer-events: none;
           "></div>
-          <!-- Pin SVG -->
-          <svg width="36" height="44" viewBox="0 0 36 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Drop shadow -->
-            <ellipse cx="18" cy="43" rx="6" ry="2" fill="rgba(0,0,0,0.25)"/>
-            <!-- Pin shape -->
-            <path d="M18 1C10.82 1 5 6.82 5 14c0 10.5 13 29 13 29s13-18.5 13-29c0-7.18-5.82-13-13-13z"
-              fill="#16a34a" stroke="#ffffff" stroke-width="2"/>
-            <!-- Inner white circle -->
-            <circle cx="18" cy="14" r="6.5" fill="white"/>
-            <!-- Center dot -->
-            <circle cx="18" cy="14" r="3.5" fill="#16a34a"/>
-            <!-- Cross-hair lines -->
-            <line x1="18" y1="9" x2="18" y2="11" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="18" y1="17" x2="18" y2="19" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="13" y1="14" x2="15" y2="14" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
-            <line x1="21" y1="14" x2="23" y2="14" stroke="#16a34a" stroke-width="1.5" stroke-linecap="round"/>
+          <!-- Real Location Pin SVG -->
+          <svg width="34" height="46" viewBox="0 0 34 46" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 4px 6px rgba(0,0,0,0.45));">
+            <path d="M17 0C7.61 0 0 7.61 0 17C0 29.75 17 46 17 46C17 46 34 29.75 34 17C34 7.61 26.39 0 17 0Z" fill="#ef4444" stroke="#ffffff" stroke-width="2"/>
+            <circle cx="17" cy="17" r="7.5" fill="#ffffff"/>
+            <circle cx="17" cy="17" r="4.5" fill="#ef4444"/>
           </svg>
           <style>
             @keyframes gps-pulse {
-              0% { transform: translateX(-50%) scale(0.4); opacity: 0.9; }
-              100% { transform: translateX(-50%) scale(1.5); opacity: 0; }
+              0% { transform: translateX(-50%) scale(0.5); opacity: 0.9; }
+              100% { transform: translateX(-50%) scale(1.6); opacity: 0; }
             }
           </style>
         </div>
       `,
-      iconSize: [36, 46],
-      iconAnchor: [18, 44],
-      popupAnchor: [0, -46],
+      iconSize: [36, 48],
+      iconAnchor: [18, 46],
+      popupAnchor: [0, -48],
     });
   };
 
@@ -202,7 +191,11 @@ export const FarmLocationMap: React.FC<FarmLocationMapProps> = ({
         </div>
       `);
 
-      map.panTo(pos);
+      if (map.getZoom() < 13) {
+        map.flyTo(pos, 14, { duration: 0.8 });
+      } else {
+        map.flyTo(pos, map.getZoom(), { duration: 0.6 });
+      }
     } else {
       if (markerRef.current) {
         map.removeLayer(markerRef.current);

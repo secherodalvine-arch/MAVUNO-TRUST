@@ -263,6 +263,27 @@ export const FarmBoundaryDrawer: React.FC<FarmBoundaryDrawerProps> = ({
     };
   }, [isLoading]);
 
+  // Update map view and center pin when reference coordinates change
+  useEffect(() => {
+    if (!mapInstanceRef.current || !referenceLat || !referenceLng || isNaN(referenceLat) || isNaN(referenceLng)) return;
+    const map = mapInstanceRef.current;
+    const pos: L.LatLngTuple = [referenceLat, referenceLng];
+
+    if (centerMarkerRef.current) {
+      centerMarkerRef.current.setLatLng(pos);
+    } else {
+      const centerMarker = L.marker(pos, {
+        icon: createCenterIcon(),
+        interactive: true,
+      }).addTo(map);
+      centerMarkerRef.current = centerMarker;
+    }
+
+    if (points.length === 0) {
+      map.flyTo(pos, 15, { duration: 0.8 });
+    }
+  }, [referenceLat, referenceLng, createCenterIcon, points.length]);
+
   // Redraw polygon and draggable vertex handles whenever points change
   useEffect(() => {
     if (!mapInstanceRef.current) return;

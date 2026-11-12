@@ -78,7 +78,7 @@ const FarmObservationSchema = new Schema(
     // Source of the observation (live GEE, Copernicus STAC, Sentinel Hub, or simulated)
     source: {
       type: String,
-      enum: ['GEE_LIVE', 'COPERNICUS_STAC', 'SENTINEL_HUB', 'LIVE', 'MANUAL', 'SIMULATED'],
+      enum: ['GEE_LIVE', 'GEE_SENTINEL2', 'COPERNICUS_STAC', 'SENTINEL_HUB', 'LIVE', 'MANUAL', 'SIMULATED'],
       default: 'GEE_LIVE',
     },
   },

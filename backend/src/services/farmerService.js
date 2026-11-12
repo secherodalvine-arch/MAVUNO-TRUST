@@ -14,7 +14,7 @@ import FarmerCropListing, { ListingStatus } from '../models/FarmerCropListing.js
 import FarmObservation from '../models/FarmObservation.js';
 import User, { UserRole } from '../models/User.js';
 import { assertOwner } from '../utils/authorizationUtils.js';
-import { validateAndNormalizePolygon } from '../utils/polygonValidator.js';
+import { validateAndNormalizePolygon, calculateCentroid } from '../utils/polygonValidator.js';
 import { calculateFarmNDVI } from './satelliteService.js';
 import { generateFarmAdvisory, classifyNDVI } from './farmAdvisorService.js';
 import { getFarmWeather, buildWeatherContext } from './weatherService.js';
@@ -305,12 +305,20 @@ export async function getFarmerBoundary(userId) {
         profile.farmBoundary.coordinates[0].length >= 4
     );
 
+    let centroid = null;
+    if (hasBoundary && profile.farmBoundary.coordinates[0]?.length >= 3) {
+        centroid = calculateCentroid(profile.farmBoundary.coordinates[0]);
+    } else if (profile.longitude !== null && profile.longitude !== undefined && profile.latitude !== null && profile.latitude !== undefined) {
+        centroid = [profile.longitude, profile.latitude];
+    }
+
     return {
         hasBoundary,
         farmBoundary: hasBoundary ? profile.farmBoundary : null,
         boundaryAreaAcres: profile.boundaryAreaAcres ?? null,
         boundaryUpdatedAt: profile.boundaryUpdatedAt || null,
         farmSizeAcres: profile.farmSizeAcres ?? null,
+        centroid,
         referenceCoordinates: {
             latitude: profile.latitude ?? null,
             longitude: profile.longitude ?? null,
@@ -357,6 +365,7 @@ export async function updateFarmerBoundary(userId, input) {
         farmBoundary: profile.farmBoundary,
         boundaryAreaAcres: profile.boundaryAreaAcres,
         boundaryAreaHectares: normalized.areaHectares,
+        centroid: normalized.centroid,
         boundaryUpdatedAt: profile.boundaryUpdatedAt,
         referenceCoordinates: {
             latitude: profile.latitude ?? null,
@@ -531,7 +540,7 @@ export async function deleteCropListing(userId, listingId) {
  */
 export async function getFarmerAdvisory(userId, queryOptions = {}) {
     const profile = await FarmerProfile.findOne({ userId }).select(
-        '+farmBoundary +boundaryAreaAcres +latitude +longitude +farmSizeAcres'
+        '+farmBoundary +boundaryAreaAcres +latitude +longitude +farmSizeAcres +phoneNumber'
     );
     if (!profile) {
         throw Object.assign(new Error('Farmer profile not found.'), { statusCode: 404 });
@@ -612,6 +621,7 @@ export async function getFarmerAdvisory(userId, queryOptions = {}) {
         try {
             await dispatchFarmerNotification({
                 userId,
+                phoneNumber: profile.phoneNumber || null,
                 type: 'FARM_ADVISORY',
                 title: 'Farm Health Observation Update',
                 body: `Satellite observation indicates vegetation stress on your registered parcel (${advisoryResult.ndviClassification.label}). Review guidance on your dashboard.`,
@@ -620,6 +630,7 @@ export async function getFarmerAdvisory(userId, queryOptions = {}) {
                 meta: {
                     observationDate: advisoryResult.observationDate,
                     severity: advisoryResult.ndviClassification.severity,
+                    label: advisoryResult.ndviClassification.label,
                 },
             });
         } catch (notifErr) {

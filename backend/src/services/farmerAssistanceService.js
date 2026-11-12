@@ -148,9 +148,12 @@ export async function requestAssistanceReferral({
     forceSms: true,
     meta: {
       referralId,
+      referenceNumber: referralId,
       partnerId: partner.id,
       partnerName: partner.name,
+      organizationName: partner.name,
       assistanceType,
+      notes,
     },
   });
 

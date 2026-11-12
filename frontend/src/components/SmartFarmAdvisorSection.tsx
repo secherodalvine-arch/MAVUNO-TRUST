@@ -33,6 +33,8 @@ export const SmartFarmAdvisorSection: React.FC = () => {
   const { user } = useAuth();
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
+  const [isScanning, setIsScanning] = useState<boolean>(false);
+  const [hasActivatedMonitoring, setHasActivatedMonitoring] = useState<boolean>(false);
   const [boundary, setBoundary] = useState<FarmBoundaryDTO | null>(null);
   const [advisory, setAdvisory] = useState<FarmAdvisoryDTO | null>(null);
   const [partners, setPartners] = useState<AgriculturalPartnerDTO[]>([]);
@@ -70,15 +72,6 @@ export const SmartFarmAdvisorSection: React.FC = () => {
         localStorage.setItem('farmer_profile_phone', resolvedPhone);
         setReferralPhone((prev) => (prev.trim() ? prev : resolvedPhone));
       }
-
-      if (boundaryRes?.hasBoundary) {
-        const advRes = await getFarmAdvisoryApi().catch((err) => ({
-          success: false,
-          code: 'FETCH_ERROR',
-          message: err.message,
-        }));
-        setAdvisory(advRes);
-      }
     } catch (err) {
       console.error('[SmartFarmAdvisor] Failed to load data:', err);
     } finally {
@@ -91,9 +84,36 @@ export const SmartFarmAdvisorSection: React.FC = () => {
     loadData();
   }, [user]);
 
-  const handleRefresh = () => {
+  const handleRunMonitoring = async () => {
+    if (!boundary?.hasBoundary) return;
+    setIsScanning(true);
+    try {
+      const advRes = await getFarmAdvisoryApi().catch((err) => ({
+        success: false,
+        code: 'FETCH_ERROR',
+        message: err.message,
+      }));
+      setAdvisory(advRes);
+      setHasActivatedMonitoring(true);
+    } catch (err: any) {
+      setAdvisory({
+        success: false,
+        code: 'FETCH_ERROR',
+        message: err.message || 'Failed to scan satellite imagery',
+      });
+      setHasActivatedMonitoring(true);
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
+  const handleRefresh = async () => {
     setRefreshing(true);
-    loadData();
+    await loadData();
+    if (hasActivatedMonitoring) {
+      await handleRunMonitoring();
+    }
+    setRefreshing(false);
   };
 
   const handleReferralSubmit = async (e: React.FormEvent) => {
@@ -183,8 +203,8 @@ export const SmartFarmAdvisorSection: React.FC = () => {
         </div>
 
         <button
-          onClick={handleRefresh}
-          disabled={loading || refreshing}
+          onClick={hasActivatedMonitoring ? handleRunMonitoring : handleRefresh}
+          disabled={loading || refreshing || isScanning}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -195,17 +215,17 @@ export const SmartFarmAdvisorSection: React.FC = () => {
             border: '1px solid var(--color-border, #334155)',
             background: 'transparent',
             color: 'var(--color-text-secondary, #94a3b8)',
-            cursor: loading || refreshing ? 'not-allowed' : 'pointer',
+            cursor: loading || refreshing || isScanning ? 'not-allowed' : 'pointer',
           }}
         >
-          <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-          {refreshing ? 'Checking Satellite...' : 'Refresh'}
+          <RefreshCw size={14} className={refreshing || isScanning ? 'animate-spin' : ''} />
+          {isScanning ? 'Scanning Satellite...' : refreshing ? 'Checking Satellite...' : hasActivatedMonitoring ? 'Re-run Monitoring' : 'Refresh'}
         </button>
       </div>
 
       {loading ? (
         <div style={{ padding: '40px 20px', display: 'flex', justifyContent: 'center' }}>
-          <LoadSpinner size="md" text="quering..." />
+          <LoadSpinner size="md" text="Loading farm data..." />
         </div>
       ) : !boundary?.hasBoundary ? (
         /* Case 1: No Boundary Registered */
@@ -246,6 +266,75 @@ export const SmartFarmAdvisorSection: React.FC = () => {
             >
               Draw Farm Boundary in Profile <ChevronRight size={16} />
             </Link>
+          </div>
+        </div>
+      ) : !hasActivatedMonitoring ? (
+        /* Case 1b: Boundary Registered — awaiting farmer activation to run monitoring */
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div
+            style={{
+              background: 'rgba(22, 163, 74, 0.08)',
+              border: '1px solid rgba(22, 163, 74, 0.25)',
+              borderRadius: '12px',
+              padding: '22px',
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                  <CheckCircle size={20} color="#16a34a" />
+                  <strong style={{ color: 'var(--color-text-primary)', fontSize: '1.05rem' }}>
+                    Farm Boundary &amp; Land Perimeter Linked ({boundary.boundaryAreaAcres || '0'} Acres)
+                  </strong>
+                </div>
+                <p style={{ fontSize: '0.9rem', color: 'var(--color-text-secondary)', margin: '0 0 14px 0', lineHeight: 1.6, maxWidth: '640px' }}>
+                  Your registered farm perimeter coordinates are linked and ready for automated satellite observation.
+                  Activate monitoring to scan European Space Agency (ESA) Sentinel-2 multi-spectral surface reflectance directly over your parcel.
+                </p>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px', fontSize: '0.82rem', color: 'var(--color-text-muted)' }}>
+                  {boundary.centroid && (
+                    <span>📍 Centroid: {boundary.centroid[1].toFixed(4)}°N, {boundary.centroid[0].toFixed(4)}°E</span>
+                  )}
+                  <span>🛰️ Resolution: 10m Ground Multi-Spectral</span>
+                  <span>🌿 Bands: B8 (NIR) &amp; B4 (Red)</span>
+                </div>
+              </div>
+
+              <div>
+                <button
+                  type="button"
+                  onClick={handleRunMonitoring}
+                  disabled={isScanning}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '10px',
+                    background: '#16a34a',
+                    color: '#ffffff',
+                    padding: '12px 24px',
+                    borderRadius: '8px',
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
+                    border: 'none',
+                    cursor: isScanning ? 'not-allowed' : 'pointer',
+                    boxShadow: '0 4px 12px rgba(22, 163, 74, 0.35)',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {isScanning ? (
+                    <>
+                      <RefreshCw size={18} style={{ animation: 'spin 1s linear infinite' }} />
+                      <span>Scanning Sentinel-2 Imagery...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Satellite size={18} />
+                      <span>Run Satellite Monitoring</span>
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       ) : advisory?.code === 'GEE_CREDENTIALS_REQUIRED' || !advisory?.success ? (

@@ -303,3 +303,87 @@ export function resolveKenyaPlace(lat: number, lng: number): string {
   return `${lat > 0 ? lat.toFixed(4) + '°N' : Math.abs(lat).toFixed(4) + '°S'}, ${lng > 0 ? lng.toFixed(4) + '°E' : Math.abs(lng).toFixed(4) + '°W'} (Kenya)`;
 }
 
+export const KENYA_COUNTY_COORDINATES: Record<string, { lat: number; lng: number }> = {
+  'Mombasa': { lat: -4.0435, lng: 39.6682 },
+  'Kwale': { lat: -4.1816, lng: 39.4606 },
+  'Kilifi': { lat: -3.5107, lng: 39.9093 },
+  'Tana River': { lat: -1.5000, lng: 40.0000 },
+  'Lamu': { lat: -2.2717, lng: 40.9020 },
+  'Taita Taveta': { lat: -3.3167, lng: 38.3500 },
+  'Garissa': { lat: -0.4532, lng: 39.6460 },
+  'Wajir': { lat: 1.7471, lng: 40.0573 },
+  'Mandera': { lat: 3.9373, lng: 41.8569 },
+  'Marsabit': { lat: 2.3284, lng: 37.9899 },
+  'Isiolo': { lat: 0.3546, lng: 37.5822 },
+  'Meru': { lat: 0.0463, lng: 37.6559 },
+  'Tharaka-Nithi': { lat: -0.2970, lng: 37.8690 },
+  'Embu': { lat: -0.5344, lng: 37.4574 },
+  'Kitui': { lat: -1.3748, lng: 38.0106 },
+  'Machakos': { lat: -1.5177, lng: 37.2634 },
+  'Makueni': { lat: -1.8041, lng: 37.6203 },
+  'Nyandarua': { lat: -0.1804, lng: 36.5230 },
+  'Nyeri': { lat: -0.4201, lng: 36.9476 },
+  'Kirinyaga': { lat: -0.4989, lng: 37.2803 },
+  'Murang\'a': { lat: -0.7211, lng: 37.1526 },
+  'Kiambu': { lat: -1.1714, lng: 36.8356 },
+  'Turkana': { lat: 3.1167, lng: 35.6000 },
+  'West Pokot': { lat: 1.2333, lng: 35.1167 },
+  'Samburu': { lat: 1.1667, lng: 36.8000 },
+  'Trans Nzoia': { lat: 1.0167, lng: 35.0000 },
+  'Uasin Gishu': { lat: 0.5167, lng: 35.2833 },
+  'Elgeyo-Marakwet': { lat: 0.8000, lng: 35.5000 },
+  'Nandi': { lat: 0.1833, lng: 35.1000 },
+  'Baringo': { lat: 0.4667, lng: 35.9667 },
+  'Laikipia': { lat: 0.3333, lng: 36.7833 },
+  'Nakuru': { lat: -0.3031, lng: 36.0800 },
+  'Narok': { lat: -1.0833, lng: 35.8667 },
+  'Kajiado': { lat: -1.8500, lng: 36.7833 },
+  'Kericho': { lat: -0.3689, lng: 35.2863 },
+  'Bomet': { lat: -0.7813, lng: 35.3416 },
+  'Kakamega': { lat: 0.2827, lng: 34.7519 },
+  'Vihiga': { lat: 0.0833, lng: 34.7167 },
+  'Bungoma': { lat: 0.5695, lng: 34.5584 },
+  'Busia': { lat: 0.4608, lng: 34.1115 },
+  'Siaya': { lat: 0.0607, lng: 34.2882 },
+  'Kisumu': { lat: -0.0917, lng: 34.7680 },
+  'Homa Bay': { lat: -0.5273, lng: 34.4571 },
+  'Migori': { lat: -1.0634, lng: 34.4731 },
+  'Kisii': { lat: -0.6817, lng: 34.7667 },
+  'Nyamira': { lat: -0.5633, lng: 34.9358 },
+  'Nairobi': { lat: -1.2921, lng: 36.8219 },
+};
+
+// Sub-county specific geographic coordinates (e.g. Kakamega -> Shinyalu, Kiambu -> Ruiru, etc.)
+export const KENYA_SUBCOUNTY_COORDINATES: Record<string, { lat: number; lng: number }> = {
+  'Shinyalu': { lat: 0.2333, lng: 34.8500 },
+  'Lurambi': { lat: 0.2833, lng: 34.7500 },
+  'Malava': { lat: 0.4431, lng: 34.8540 },
+  'Ikolomani': { lat: 0.1667, lng: 34.7500 },
+  'Navakholo': { lat: 0.3833, lng: 34.6500 },
+  'Mumias West': { lat: 0.3347, lng: 34.4870 },
+  'Mumias East': { lat: 0.3500, lng: 34.5500 },
+  'Matungu': { lat: 0.4000, lng: 34.4500 },
+  'Butere': { lat: 0.2081, lng: 34.4920 },
+  'Khwisero': { lat: 0.1500, lng: 34.5500 },
+  'Likuyani': { lat: 0.7000, lng: 35.1167 },
+  'Lugari': { lat: 0.5833, lng: 34.9167 },
+  'Ruiru': { lat: -1.1533, lng: 36.9632 },
+  'Thika Town': { lat: -1.0333, lng: 37.0694 },
+  'Juja': { lat: -1.1000, lng: 37.0167 },
+  'Limuru': { lat: -1.1000, lng: 36.6500 },
+  'Njoro': { lat: -0.3333, lng: 35.9500 },
+  'Rongai': { lat: -0.1667, lng: 35.8667 },
+  'Moiben': { lat: 0.6167, lng: 35.4333 },
+  'Cherangany': { lat: 1.1000, lng: 35.1667 },
+};
+
+export function getCountyCoordinates(county: string, subCounty?: string): { lat: number; lng: number } | null {
+  if (subCounty && KENYA_SUBCOUNTY_COORDINATES[subCounty]) {
+    return KENYA_SUBCOUNTY_COORDINATES[subCounty];
+  }
+  if (county && KENYA_COUNTY_COORDINATES[county]) {
+    return KENYA_COUNTY_COORDINATES[county];
+  }
+  return null;
+}
+
