@@ -139,7 +139,6 @@ export class TalkSasaService {
         sender_id: this.senderId,
         recipient: cleanPhone,
         message: message.trim(),
-        type: 'plain',
       };
 
       const response = await fetch(this.apiUrl, {
@@ -147,28 +146,41 @@ export class TalkSasaService {
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
-          'X-Authorization': this.apiKey,
           Authorization: `Bearer ${this.apiKey}`,
         },
         body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.warn(`[SMS-SERVICE] TalkSasa HTTP ${response.status} (${this.senderId}): ${errorText}`);
-        
-        // If TalkSasa rejected because custom sender ID isn't approved yet in portal,
-        // dispatch via simulated gateway fallback so the agricultural notification is preserved
-        console.info(`[SMS-SERVICE] [FALLBACK] Dispatched SMS to ${normalizedPhone} (${topic}): "${message.trim()}"`);
+        let errorText = '';
+        try { errorText = await response.text(); } catch (_) {}
+        let errorData = {};
+        try { errorData = JSON.parse(errorText); } catch (_) {}
+        const errMsg = errorData.message || errorText;
+
+        // "Originator not authorized" means no sender ID has been activated in the
+        // TalkSasa dashboard for this account yet. Go to:
+        //   https://bulksms.talksasa.com → Sender IDs → Request/Activate a free generic sender
+        // Once approved, SMS will go through automatically.
+        if (response.status === 404 && errMsg.toLowerCase().includes('not authorized')) {
+          console.warn(`[SMS-SERVICE] TalkSasa sender ID "${this.senderId}" not yet activated in dashboard.`);
+          console.warn(`[SMS-SERVICE] ACTION REQUIRED → Log in at https://bulksms.talksasa.com, go to Sender IDs, and activate the free generic sender or request "${this.senderId}".`);
+        } else {
+          console.warn(`[SMS-SERVICE] TalkSasa HTTP ${response.status} (${this.senderId}): ${errMsg}`);
+        }
+
+        // Log the SMS content so it's not lost — notify farmers via fallback once sender is live
+        console.info(`[SMS-SERVICE] [QUEUED-FALLBACK] Would-send SMS to ${normalizedPhone} (${topic}): "${message.trim()}"`);
         const key = `${normalizedPhone}:${topic}`;
         smsSentTimestamps.set(key, Date.now());
 
         return {
-          success: true,
+          success: false,
           simulated: true,
           gatewayStatus: `TalkSasa HTTP ${response.status}`,
           messageId: `sim-fallback-${Date.now()}`,
-          message: 'SMS dispatched via fallback gateway (TalkSasa sender ID pending approval in dashboard).',
+          message: `SMS queued (TalkSasa sender ID "${this.senderId}" not yet activated — visit https://bulksms.talksasa.com → Sender IDs to activate).`,
+          actionRequired: 'Activate sender ID in TalkSasa dashboard',
         };
       }
 
