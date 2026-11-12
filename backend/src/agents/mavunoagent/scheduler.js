@@ -5,7 +5,7 @@ import { runFAOSync } from '../../services/faoSyncWorker.js';
 class Scheduler {
   constructor() {
     this.intervalId = null;
-    this.intervalMs = 10 * 60 * 1000; // 10 minutes
+    this.intervalMs = 40 * 60 * 1000; // 40 minutes
     this.isRunning = false;
     this.lastRunTime = null;
     this.lastResult = null;
@@ -18,7 +18,7 @@ class Scheduler {
     }
 
     this.isRunning = true;
-    console.log(`[MavunoAgent] Scheduler started — configured to run every 10 minutes (${this.intervalMs / 1000 / 60} mins).`);
+    console.log(`[MavunoAgent] Scheduler started — configured to run every 40 minutes (${this.intervalMs / 1000 / 60} mins).`);
 
     if (runImmediately) {
       this.executeTask();
